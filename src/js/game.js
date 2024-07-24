@@ -9,25 +9,15 @@ import Splode from './splode.js';
 (function(){
 
 document.body.style="margin:0; background-color:black; overflow:hidden";
+//same resolution as picotron, 16x9 aspect ratio
 w = 480, h = 270;
+
+//palette is a 1x64 image containing the AAP64 palette. It can be larger for sprite use but the top row is read in as the palette.
+//build step catches DATAURL and inlines the image as base64. 
 const atlasURL = 'DATAURL:src/img/palette.webp';
 atlasImage = new Image();
 atlasImage.src = atlasURL;
 
-// atlasImage.onload = function(){ 
-//   let c = document.createElement('canvas');
-//   c.width = 64;
-//   c.height = 64;
-//   let ctx = c.getContext('2d');
-//   ctx.drawImage(this, 0, 0);
-//   atlas = new Uint32Array( ctx.getImageData(0,0,64, 64).data.buffer );
-//   r = new RetroBuffer(w, h, atlas, 10);
-//   window.r = r;
-//   gameInit();
-//   resizeCanvas(r.c, w, h);
-// };
-
-//--------------------------------------------
 loadAtlas(atlasURL, (atlas) => {
   const r = new RetroBuffer(w, h, atlas, 10);
   window.r = r;
@@ -35,7 +25,6 @@ loadAtlas(atlasURL, (atlas) => {
   gameInit();
   resizeCanvas(r.c, w, h);
 });
-//--------------------------------------------
 
 function gameInit(){
   window.playSound = playSound;
@@ -114,16 +103,12 @@ function drawGame(){
 
 function titlescreen(){
   r.clear(64, r.SCREEN);
-  r.fillRect(10,10,10,10,22);
-  r.fillCircle(30,15, 5, 22);
-  r.line(40,10,50,20, 22);
-  r.fillTriangle({x:60, y:10}, {x:70, y:20}, {x:60, y:20}, 22);
+  
   //draw a box 4x4 of each color 0 thru 63 across the bottom of the screen
   for(let i = 0; i < 64; i++){
     r.fillRect(i*7, 250, 7, 8, i);
   } 
   r.renderSource = r.SCREEN;
-  r.sspr(10,10,100,12, 10, 30, 200, 24, false, false);
   drawEntities(entitiesArray);
   let txt = "TITLE SCREEN";
   r.text(txt, w/2-2, 100, 1, 1, 'center', 'top', 1, 22);
@@ -140,14 +125,7 @@ function resetGame(){
 function preload(){
   r.clear(64, r.SCREEN);
   r.renderTarget = r.SCREEN;
-  //dump fontbitmap to screen
-  let lengthInPixels = r.fontString.length * 5;
-  let heightInPixels = 5;
-  for(let i = 0; i < lengthInPixels; i++){
-    for(let j = 0; j < heightInPixels; j++){
-      r.fontBitmap[j * lengthInPixels + i] ? r.pset(i, j, 22) : r.pset(i, j, 0);
-    }
-  }
+  drawDemoThings();
   r.text(audioTxt, w/2-2, 100, 1, 1, 'center', 'top', 1, 22);
   if(Key.justReleased(Key.UP) || Key.justReleased(Key.w) || Key.justReleased(Key.z)){
     if(soundsReady == 0 && !started){
@@ -159,13 +137,13 @@ function preload(){
       gamestate = 2;
     }
   }; 
-  audioTxt = "CLICK TO ALLOW AUDIOCONTEXT TO CONTINUE\nABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_!@#.'\"?/<()";
+  audioTxt = "CLICK TO ALLOW AUDIOCONTEXT TO CONTINUE\n";
   if(soundsReady == totalSounds){
     audioTxt="ALL SOUNDS RENDERED.\nPRESS UP/W/Z TO CONTINUE";
   } else if (started){
     audioTxt = "SOUNDS RENDERING... " + soundsReady;
   } else {
-    audioTxt = "CLICK TO ALLOW AUDIOCONTEXT TO CONTINUE\nABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_!@#.'\"?/<()";
+    audioTxt = "CLICK TO ALLOW AUDIOCONTEXT TO CONTINUE";
   }
   r.render();
 }
@@ -236,14 +214,15 @@ function gameloop(){
   if(1==1){
   //stats.begin();
     switch(gamestate){
-      case 0: //title screen
+      case 0: 
         preload();
         break;
       case 1: //game
         updateGame();
         drawGame();
         break;
-      case 2: //game over
+      case 2: 
+        updateGame();
         titlescreen();
         break;
     }
@@ -263,6 +242,27 @@ function tadaSplode(){
     )
   }
   playSound(sounds.tada, 1, 0, 1, false);
+}
+
+function drawDemoThings(){
+  //draw a box 4x4 of each color 0 thru 63 across the bottom of the screen
+  for(let i = 0; i < 64; i++){
+    r.fillRect(i*7, 250, 7, 8, i);
+  }
+
+  //use each drawing function to prevent treeshake, test size
+  r.fillRect(10,10,10,10,22);
+  r.fillCircle(30,15, 5, 22);
+  r.line(40,10,50,20, 22);
+  r.fillTriangle({x:60, y:10}, {x:70, y:20}, {x:60, y:20}, 22);
+  r.text("ABCDEFGABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_!@#.'\"?/<()", 80, 10, 1, 1, 'left', 'top', 1, 22);
+  r.sspr(10,10,100,12, 10, 30, 200, 24, false, false);
+
+  let angle = t % 360;
+  r.gradRect(10, 40, 50, 50, 3, 5, angle);
+  r.gradRect(70, 40, 50, 50, 3, 5, (angle + 45)%360);
+  r.gradRect(140, 40, 50, 50, 3, 5, (angle + 90)%360);
+
 }
 
 })();
