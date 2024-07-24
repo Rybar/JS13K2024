@@ -216,6 +216,7 @@ function gameloop(){
     switch(gamestate){
       case 0: 
         preload();
+        updateGame();
         break;
       case 1: //game
         updateGame();
