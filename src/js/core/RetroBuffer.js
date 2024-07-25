@@ -127,6 +127,32 @@ class RetroBuffer {
     }
 
     /**
+     * replaces the current dither table with a random one
+     */
+    replaceDitherTable() {
+        this.dither = [];
+        for (let i = 0; i < 16; i++) {
+            let pattern = 0;
+            const bitsToSet = Math.floor(i * 16 / 15); // Distribute bitsToSet from 0 to 16
+            let bitsSet = 0;
+    
+            while (bitsSet < bitsToSet) {
+                const bit = Math.floor(Math.random() * 16);
+                if ((pattern & (1 << bit)) === 0) { // Ensure the bit isn't already set
+                    pattern |= (1 << bit);
+                    bitsSet++;
+                }
+            }
+            
+            this.dither.push(pattern);
+        }
+    
+        // Ensure the first and last patterns are correct (all 0s and all 1s)
+        this.dither[0] = 0b0000000000000000;
+        this.dither[15] = 0b1111111111111111;
+    };
+
+    /**
      * Sets a pixel at the specified coordinates.
      * @param {number} x - The x-coordinate.
      * @param {number} y - The y-coordinate.

@@ -30,6 +30,7 @@ function gameInit(){
   window.playSound = playSound;
   gamebox = document.getElementById("game");
   gamebox.appendChild(r.c);
+  r.replaceDitherTable();
   createEventListeners();
   gameloop();
 }
@@ -258,6 +259,7 @@ function drawDemoThings(){
   r.fillTriangle({x:60, y:10}, {x:70, y:20}, {x:60, y:20}, 22);
   r.text("ABCDEFGABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_!@#.'\"?/<()", 80, 10, 1, 1, 'left', 'top', 1, 22);
   r.sspr(10,10,100,12, 10, 30, 200, 24, false, false);
+  
   r.bricks(200,10,100,100,30,10, 10, 4, 5)
 
   let angle = t % 360;
