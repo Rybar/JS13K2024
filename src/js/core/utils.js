@@ -128,6 +128,61 @@ export function loadAtlas(atlasURL, callback) {
       callback(atlas);
   };
 }
+export class PerlinNoise {
+  constructor() {
+    this.gradients = {};
+    this.memory = {};
+  }
+
+  randVect() {
+    const theta = Math.random() * 2 * Math.PI;
+    return { x: Math.cos(theta), y: Math.sin(theta) };
+  }
+
+  dotProdGrid(x, y, vx, vy) {
+    const dVect = { x: x - vx, y: y - vy };
+    let gVect;
+    if (this.gradients[[vx, vy]]) {
+      gVect = this.gradients[[vx, vy]];
+    } else {
+      gVect = this.randVect();
+      this.gradients[[vx, vy]] = gVect;
+    }
+    return dVect.x * gVect.x + dVect.y * gVect.y;
+  }
+
+  smootherStep(x) {
+    return 6 * x ** 5 - 15 * x ** 4 + 10 * x ** 3;
+  }
+
+  interp(x, a, b) {
+    return a + this.smootherStep(x) * (b - a);
+  }
+
+  seed() {
+    this.gradients = {};
+    this.memory = {};
+  }
+
+  get(x, y) {
+    if (this.memory.hasOwnProperty([x, y])) return this.memory[[x, y]];
+
+    const xf = Math.floor(x);
+    const yf = Math.floor(y);
+
+    const tl = this.dotProdGrid(x, y, xf, yf);
+    const tr = this.dotProdGrid(x, y, xf + 1, yf);
+    const bl = this.dotProdGrid(x, y, xf, yf + 1);
+    const br = this.dotProdGrid(x, y, xf + 1, yf + 1);
+    const xt = this.interp(x - xf, tl, tr);
+    const xb = this.interp(x - xf, bl, br);
+    const v = this.interp(y - yf, xt, xb);
+
+    this.memory[[x, y]] = v;
+    return v;
+  }
+}
+
 
 
 

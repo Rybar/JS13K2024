@@ -1,6 +1,7 @@
 /**
  * RetroBuffer class for creating indexed-color drawing API for pixel-art games.
  */
+import LCG from "./LCG";
 class RetroBuffer {
     /**
      * Creates an instance of RetroBuffer.
@@ -15,6 +16,7 @@ class RetroBuffer {
         this.PAGESIZE = this.WIDTH * this.HEIGHT;
         this.PAGES = pages;
         this.atlas = atlas;
+        this.LCG = new LCG()
 
         this.SCREEN = 0;
 
@@ -166,7 +168,7 @@ class RetroBuffer {
      * @param {number} y2 - The y-coordinate of the second point.
      * @param {number} color - The color of the line.
      */
-    line(x1, y1, x2, y2, color) {
+    line(x1, y1, x2, y2, color, color2=0) {
         x1 = x1 | 0;
         x2 = x2 | 0;
         y1 = y1 | 0;
@@ -191,7 +193,7 @@ class RetroBuffer {
         dy <<= 1;
         dx <<= 1;
 
-        this.pset(x1, y1, color);
+        this.pset(x1, y1, color, color2);
         if (dx > dy) {
             var fraction = dy - (dx >> 1);
             while (x1 != x2) {
@@ -201,7 +203,7 @@ class RetroBuffer {
                 }
                 x1 += stepx;
                 fraction += dy;
-                this.pset(x1, y1, color);
+                this.pset(x1, y1, color, color2);
             }
         } else {
             fraction = dx - (dy >> 1);
@@ -212,7 +214,7 @@ class RetroBuffer {
                 }
                 y1 += stepy;
                 fraction += dx;
-                this.pset(x1, y1, color);
+                this.pset(x1, y1, color, color2);
             }
         }
     }
@@ -272,17 +274,17 @@ class RetroBuffer {
      * @param {number} r - The radius of the circle.
      * @param {number} color - The color of the circle.
      */
-    circle(xm, ym, r, color) {
+    circle(xm, ym, r, color, color2=0) {
         xm = xm | 0;
         ym = ym | 0;
         r = r | 0;
         color = color | 0;
         var x = -r, y = 0, err = 2 - 2 * r;
         do {
-            this.pset(xm - x, ym + y, color);
-            this.pset(xm - y, ym - x, color);
-            this.pset(xm + x, ym - y, color);
-            this.pset(xm + y, ym + x, color);
+            this.pset(xm - x, ym + y, color, color2);
+            this.pset(xm - y, ym - x, color, color2);
+            this.pset(xm + x, ym - y, color, color2);
+            this.pset(xm + y, ym + x, color, color2);
             r = err;
             if (r <= y) err += ++y * 2 + 1;
             if (r > x || err > y) err += ++x * 2 + 1;
@@ -296,7 +298,7 @@ class RetroBuffer {
      * @param {number} r - The radius of the circle.
      * @param {number} color - The color of the circle.
      */
-    fillCircle(xm, ym, r, color) {
+    fillCircle(xm, ym, r, color, color2=0) {
         xm = xm | 0;
         ym = ym | 0;
         r = r | 0;
@@ -304,8 +306,8 @@ class RetroBuffer {
         if (r < 0) return;
         var x = -r, y = 0, err = 2 - 2 * r;
         do {
-            this.line(xm - x, ym - y, xm + x, ym - y, color);
-            this.line(xm - x, ym + y, xm + x, ym + y, color);
+            this.line(xm - x, ym - y, xm + x, ym - y, color, color2);
+            this.line(xm - x, ym + y, xm + x, ym + y, color, color2);
             r = err;
             if (r <= y) err += ++y * 2 + 1;
             if (r > x || err > y) err += ++x * 2 + 1;
@@ -344,17 +346,17 @@ class RetroBuffer {
      * @param {number} h - The height of the rectangle.
      * @param {number} color - The color of the rectangle.
      */
-    rect(x, y, w, h, color) {
+    rect(x, y, w, h, color, color2=0) {
         color = color | this.cursorColor;
         let x1 = x | 0;
         let y1 = y | 0;
         let x2 = (x + w) | 0;
         let y2 = (y + h) | 0;
 
-        this.line(x1, y1, x2, y1, color);
-        this.line(x2, y1, x2, y2, color);
-        this.line(x1, y2, x2, y2, color);
-        this.line(x1, y1, x1, y2, color);
+        this.line(x1, y1, x2, y1, color, color2);
+        this.line(x2, y1, x2, y2, color, color2);
+        this.line(x1, y2, x2, y2, color, color2);
+        this.line(x1, y1, x1, y2, color, color2);
     }
 
     /**
@@ -365,7 +367,7 @@ class RetroBuffer {
      * @param {number} h - The height of the rectangle.
      * @param {number} color - The color of the rectangle.
      */
-    fillRect(x, y, w, h, color) {
+    fillRect(x, y, w, h, color, color2=0) {
         let x1 = x | 0;
         let y1 = y | 0;
         let x2 = ((x + w) | 0) - 1;
@@ -373,15 +375,15 @@ class RetroBuffer {
         color = color;
 
         var i = Math.abs(y2 - y1);
-        this.line(x1, y1, x2, y1, color);
+        this.line(x1, y1, x2, y1, color, color2);
 
         if (i > 0) {
             while (--i) {
-                this.line(x1, y1 + i, x2, y1 + i, color);
+                this.line(x1, y1 + i, x2, y1 + i, color, color2);
             }
         }
 
-        this.line(x1, y2, x2, y2, color);
+        this.line(x1, y2, x2, y2, color, color2);
     }
 
     /**
@@ -571,6 +573,184 @@ class RetroBuffer {
             }
         }
     }
+
+    /**
+   * Fills a circle with a gradient between two colors.
+   * @param {number} xm - The x-coordinate of the circle center.
+   * @param {number} ym - The y-coordinate of the circle center.
+   * @param {number} r - The radius of the circle.
+   * @param {number} color1 - The starting color index.
+   * @param {number} color2 - The ending color index.
+   * @param {number} angle - The angle of the gradient in degrees.
+   */
+  gradCircle(xm, ym, r, color1, color2, angle) {
+    let prevPat = this.pat; // Preserve the existing pattern setting
+
+    // Convert angle to radians
+    const rad = angle * (Math.PI / 180);
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+
+    for (let y = -r; y <= r; y++) {
+      for (let x = -r; x <= r; x++) {
+        if (x * x + y * y <= r * r) {
+          // Calculate position within the gradient
+          const dx = x;
+          const dy = y;
+          const distance = dx * cos + dy * sin;
+
+          // Normalize distance to range 0 to 1
+          const normalizedDistance = (distance + r) / (2 * r);
+
+          // Map normalized distance to a range of 0 to 15 for dither patterns
+          const patternIndex = Math.floor(normalizedDistance * 15);
+          const pattern = Math.max(0, Math.min(15, patternIndex));
+
+          // Set the dither pattern
+          this.pat = this.dither[pattern];
+
+          // Draw the pixel with interpolated colors
+          this.pset(xm + x, ym + y, color1, color2);
+        }
+      }
+    }
+
+    this.pat = prevPat; // Restore the previous pattern setting
+  }
+
+  /**
+   * Fills a triangle with a solid color.
+   * @param {object} p1 - The first vertex of the triangle.
+   * @param {object} p2 - The second vertex of the triangle.
+   * @param {object} p3 - The third vertex of the triangle.
+   * @param {number} color - The color index to fill the triangle.
+   */
+  fillTriangle(p1, p2, p3, color) {
+    // Find bounding box
+    const minX = Math.min(p1.x, p2.x, p3.x);
+    const maxX = Math.max(p1.x, p2.x, p3.x);
+    const minY = Math.min(p1.y, p2.y, p3.y);
+    const maxY = Math.max(p1.y, p2.y, p3.y);
+
+    for (let y = minY; y <= maxY; y++) {
+      for (let x = minX; x <= maxX; x++) {
+        if (this.pointInTriangle({ x, y }, p1, p2, p3)) {
+          this.pset(x, y, color);
+        }
+      }
+    }
+  }
+
+  /**
+   * Fills a triangle with a gradient between two colors.
+   * @param {object} p1 - The first vertex of the triangle.
+   * @param {object} p2 - The second vertex of the triangle.
+   * @param {object} p3 - The third vertex of the triangle.
+   * @param {number} color1 - The starting color index.
+   * @param {number} color2 - The ending color index.
+   * @param {number} angle - The angle of the gradient in degrees.
+   */
+  gradTriangle(p1, p2, p3, color1, color2, angle) {
+    let prevPat = this.pat; // Preserve the existing pattern setting
+
+    // Convert angle to radians
+    const rad = angle * (Math.PI / 180);
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+
+    // Find bounding box
+    const minX = Math.min(p1.x, p2.x, p3.x);
+    const maxX = Math.max(p1.x, p2.x, p3.x);
+    const minY = Math.min(p1.y, p2.y, p3.y);
+    const maxY = Math.max(p1.y, p2.y, p3.y);
+
+    for (let y = minY; y <= maxY; y++) {
+      for (let x = minX; x <= maxX; x++) {
+        if (this.pointInTriangle({ x, y }, p1, p2, p3)) {
+          // Calculate position within the gradient
+          const dx = x - (p1.x + p2.x + p3.x) / 3;
+          const dy = y - (p1.y + p2.y + p3.y) / 3;
+          const distance = dx * cos + dy * sin;
+
+          // Normalize distance to range 0 to 1
+          const maxDist = Math.max(maxX - minX, maxY - minY);
+          const normalizedDistance = (distance + maxDist / 2) / maxDist;
+
+          // Map normalized distance to a range of 0 to 15 for dither patterns
+          const patternIndex = Math.floor(normalizedDistance * 15);
+          const pattern = Math.max(0, Math.min(15, patternIndex));
+
+          // Set the dither pattern
+          this.pat = this.dither[pattern];
+
+          // Draw the pixel with interpolated colors
+          this.pset(x, y, color1, color2);
+        }
+      }
+    }
+
+    this.pat = prevPat; // Restore the previous pattern setting
+  }
+
+/**
+ * Draws a brick wall pattern
+ * @param {number} x - The x position of the top-left corner of the wall
+ * @param {number} y - The y position of the top-left corner of the wall
+ * @param {number} width - The total width of the wall
+ * @param {number} height - The total height of the wall
+ * @param {number} brickWidth - The width of each brick
+ * @param {number} brickHeight - The height of each brick
+ * @param {number} color1 - The main color of the bricks
+ * @param {number} color2 - The secondary color of the bricks
+ * @param {number} offset - The offset of the bricks in alternating rows
+ */
+bricks(x, y, width, height, brickWidth, brickHeight, offset, color1, color2=0, seed=0xdeadbeef) {
+    const rows = Math.ceil(height / brickHeight);
+    const cols = Math.ceil(width / brickWidth);
+    this.LCG.state = seed;
+
+    for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+            const brickX = x + col * brickWidth + (row % 2 === 0 ? 0 : offset);
+            const brickY = y + row * brickHeight;
+            const pattern = this.dither[this.LCG.randomInt(0,16)];
+            this.pat = pattern;
+            this.fillRect(brickX, brickY, brickWidth, brickHeight, color1, color2);
+        }
+    }
+    // Reset the pattern
+    this.pat = 0b1111111111111111;
+};
+  
+    /**
+   * Helper function to determine if a point is inside a triangle
+   * @param {object} p - The point to test.
+   * @param {object} p1 - The first vertex of the triangle.
+   * @param {object} p2 - The second vertex of the triangle.
+   * @param {object} p3 - The third vertex of the triangle.
+   * @returns {boolean} - True if the point is inside the triangle, false otherwise.
+   */
+    pointInTriangle(p, p1, p2, p3) {
+        const d1 = this.sign(p, p1, p2);
+        const d2 = this.sign(p, p2, p3);
+        const d3 = this.sign(p, p3, p1);
+    
+        const hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+        const hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+    
+        return !(hasNeg && hasPos);
+      }
+    
+      /**
+       * Helper function to calculate the sign of a point relative to a line
+       * @param {object} p1 - The point to test.
+       * @param {object} p2 - The first vertex of the line.
+       * @param {object} p3 - The second vertex of the line.
+       * @returns {number} - The sign value.
+       */
+      sign(p1, p2, p3) {
+        return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+      }
 
     /**
      * Loads an image into the buffer.
