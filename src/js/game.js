@@ -30,7 +30,7 @@ function gameInit(){
   window.playSound = playSound;
   gamebox = document.getElementById("game");
   gamebox.appendChild(r.c);
-  r.replaceDitherTable();
+  // r.replaceDitherTable();
   createEventListeners();
   gameloop();
 }
@@ -260,12 +260,17 @@ function drawDemoThings(){
   r.text("ABCDEFGABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_!@#.'\"?/<()", 80, 10, 1, 1, 'left', 'top', 1, 22);
   r.sspr(10,10,100,12, 10, 30, 200, 24, false, false);
   
-  r.bricks(200,10,100,100,30,10, 10, 4, 5)
+  r.brick(60, 110, 150, 100, 20 + Math.sin(t/200)*10, 12, 2, 4, 10, 1)
+  r.brick(10, 110, 150, 100, 20 + Math.sin(t/100)*10, 12, 64, 28, 10, 1)
 
   let angle = t % 360;
   r.gradRect(10, 40, 50, 50, 3, 5, angle);
   r.gradRect(70, 40, 50, 50, 3, 5, (angle + 45)%360);
   r.gradRect(140, 40, 50, 50, 3, 5, (angle + 90)%360);
+
+  r.pat = r.dither[8];
+  r.fillCircle(50, 150, 20, 20, 64);
+  r.pat = r.dither[0];
 
 }
 

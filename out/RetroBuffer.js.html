@@ -1,4 +1,32 @@
-/**
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: RetroBuffer.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: RetroBuffer.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
  * RetroBuffer class for creating indexed-color drawing API for pixel-art games.
  */
 import LCG from './LCG';
@@ -24,7 +52,7 @@ class RetroBuffer {
     /**
      * The pages in the buffer can be referenced by their index, i.e. PAGE_1, PAGE_2, etc.
      */
-    for (let i = 1; i <= this.PAGES; i++) {
+    for (let i = 1; i &lt;= this.PAGES; i++) {
       this[`PAGE_${i}`] = this.PAGESIZE * i;
     }
 
@@ -45,7 +73,7 @@ class RetroBuffer {
     this.renderSource = this.PAGESIZE; // Buffer is ahead one screen's worth of pixels
 
     // The characters available in the build-in pixel font, in order
-    this.fontString = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_!@#.\'"?/<()';
+    this.fontString = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_!@#.\'"?/&lt;()';
 
     // Base64 encoded font bitmap
     //TODO: Move fontbitmap to palette atlas img/palette.webp
@@ -54,10 +82,10 @@ class RetroBuffer {
     // Decode Base64 string to binary data and store as a typed array
     const binaryString = atob (this.fontBitmapBase64);
     this.fontBitmap = new Uint8Array (binaryString.length * 8);
-    for (let i = 0; i < binaryString.length; i++) {
+    for (let i = 0; i &lt; binaryString.length; i++) {
       let byte = binaryString.charCodeAt (i);
-      for (let bit = 0; bit < 8; bit++) {
-        this.fontBitmap[i * 8 + bit] = (byte >> (7 - bit)) & 1;
+      for (let bit = 0; bit &lt; 8; bit++) {
+        this.fontBitmap[i * 8 + bit] = (byte >> (7 - bit)) &amp; 1;
       }
     }
 
@@ -105,8 +133,8 @@ class RetroBuffer {
 
     // Brightness LUT
     this.brightness = [];
-    for (let i = 0; i < 6; i++) {
-      for (let j = 0; j < 64; j++) {
+    for (let i = 0; i &lt; 6; i++) {
+      for (let j = 0; j &lt; 64; j++) {
         this.brightness[i * 64 + j] = this.colors.indexOf (
           this.atlas[i * 64 + j]
         );
@@ -137,11 +165,11 @@ class RetroBuffer {
       ? this.pget (x, y, this.stencilSource) + this.stencilOffset
       : (color | 0) % 64;
     let px = y % 4 * 4 + x % 4;
-    let mask = this.pat & Math.pow (2, px);
+    let mask = this.pat &amp; Math.pow (2, px);
     let pcolor = mask ? color : color2;
     if (pcolor == 64) return;
-    if (x < 0 || x > this.WIDTH - 1) return;
-    if (y < 0 || y > this.HEIGHT - 1) return;
+    if (x &lt; 0 || x > this.WIDTH - 1) return;
+    if (y &lt; 0 || y > this.HEIGHT - 1) return;
 
     this.ram[this.renderTarget + y * this.WIDTH + x] = pcolor;
   }
@@ -177,20 +205,20 @@ class RetroBuffer {
     var dx = x2 - x1;
     var stepx, stepy;
 
-    if (dy < 0) {
+    if (dy &lt; 0) {
       dy = -dy;
       stepy = -1;
     } else {
       stepy = 1;
     }
-    if (dx < 0) {
+    if (dx &lt; 0) {
       dx = -dx;
       stepx = -1;
     } else {
       stepx = 1;
     }
-    dy <<= 1;
-    dx <<= 1;
+    dy &lt;&lt;= 1;
+    dx &lt;&lt;= 1;
 
     this.pset (x1, y1, color, color2);
     if (dx > dy) {
@@ -236,9 +264,9 @@ class RetroBuffer {
       this.pset (xm + x, ym - y, color, color2);
       this.pset (xm + y, ym + x, color, color2);
       r = err;
-      if (r <= y) err += ++y * 2 + 1;
+      if (r &lt;= y) err += ++y * 2 + 1;
       if (r > x || err > y) err += ++x * 2 + 1;
-    } while (x < 0);
+    } while (x &lt; 0);
   }
 
   /**
@@ -253,15 +281,15 @@ class RetroBuffer {
     ym = ym | 0;
     r = r | 0;
     color = color | 0;
-    if (r < 0) return;
+    if (r &lt; 0) return;
     var x = -r, y = 0, err = 2 - 2 * r;
     do {
       this.line (xm - x, ym - y, xm + x, ym - y, color, color2);
       this.line (xm - x, ym + y, xm + x, ym + y, color, color2);
       r = err;
-      if (r <= y) err += ++y * 2 + 1;
+      if (r &lt;= y) err += ++y * 2 + 1;
       if (r > x || err > y) err += ++x * 2 + 1;
-    } while (x < 0);
+    } while (x &lt; 0);
   }
   /**
      * Draws a rectangle.
@@ -340,8 +368,8 @@ class RetroBuffer {
     const maxProjection = Math.max (...projections);
     const projectionRange = maxProjection - minProjection;
 
-    for (let i = 0; i < w; i++) {
-      for (let j = 0; j < h; j++) {
+    for (let i = 0; i &lt; w; i++) {
+      for (let j = 0; j &lt; h; j++) {
         // Calculate position within the gradient
         const dx = i - w / 2;
         const dy = j - h / 2;
@@ -392,8 +420,8 @@ class RetroBuffer {
     var xratio = sw / dw;
     var yratio = sh / dh;
     this.pat = this.dither[0]; // Reset pattern
-    for (var i = 0; i < dh; i++) {
-      for (var j = 0; j < dw; j++) {
+    for (var i = 0; i &lt; dh; i++) {
+      for (var j = 0; j &lt; dw; j++) {
         let px = (j * xratio) | 0;
         let py = (i * yratio) | 0;
         sy = flipy ? sh - py - i : sy;
@@ -423,9 +451,9 @@ class RetroBuffer {
     const cos = Math.cos (rad);
     const sin = Math.sin (rad);
 
-    for (let y = -r; y <= r; y++) {
-      for (let x = -r; x <= r; x++) {
-        if (x * x + y * y <= r * r) {
+    for (let y = -r; y &lt;= r; y++) {
+      for (let x = -r; x &lt;= r; x++) {
+        if (x * x + y * y &lt;= r * r) {
           // Calculate position within the gradient
           const dx = x;
           const dy = y;
@@ -464,8 +492,8 @@ class RetroBuffer {
     const minY = Math.min (p1.y, p2.y, p3.y);
     const maxY = Math.max (p1.y, p2.y, p3.y);
 
-    for (let y = minY; y <= maxY; y++) {
-      for (let x = minX; x <= maxX; x++) {
+    for (let y = minY; y &lt;= maxY; y++) {
+      for (let x = minX; x &lt;= maxX; x++) {
         if (this.pointInTriangle ({x, y}, p1, p2, p3)) {
           this.pset (x, y, color);
         }
@@ -496,8 +524,8 @@ class RetroBuffer {
     const minY = Math.min (p1.y, p2.y, p3.y);
     const maxY = Math.max (p1.y, p2.y, p3.y);
 
-    for (let y = minY; y <= maxY; y++) {
-      for (let x = minX; x <= maxX; x++) {
+    for (let y = minY; y &lt;= maxY; y++) {
+      for (let x = minX; x &lt;= maxX; x++) {
         if (this.pointInTriangle ({x, y}, p1, p2, p3)) {
           // Calculate position within the gradient
           const dx = x - (p1.x + p2.x + p3.x) / 3;
@@ -557,7 +585,7 @@ class RetroBuffer {
     
     this.LCG.state = 0xdeadbeef; // Reset the random number generator
 
-    for (let row = 0; row < rows; row++) {
+    for (let row = 0; row &lt; rows; row++) {
       let startX = x;
       let offsetRow = false;
       if (row % 2 !== 0) {
@@ -565,7 +593,7 @@ class RetroBuffer {
         offsetRow = true;
       }
 
-      for (let col = 0; col <= cols; col++) {
+      for (let col = 0; col &lt;= cols; col++) {
         let brickX = startX + col * (brickWidth + gap);
         let brickY = y + row * (brickHeight + gap);
 
@@ -577,13 +605,13 @@ class RetroBuffer {
           ? y + height - brickY
           : brickHeight;
 
-        if (col == 0 && offsetRow) {
+        if (col == 0 &amp;&amp; offsetRow) {
           brickX += offset;
           adjustedBrickWidth -= offset;
         }
 
         // Draw brick only if it is within the bounds
-        if (brickX < x + width && brickX + adjustedBrickWidth > x) {
+        if (brickX &lt; x + width &amp;&amp; brickX + adjustedBrickWidth > x) {
           const brickPattern = pattern !== undefined
             ? this.dither[pattern]
             : this.dither[this.LCG.randomInt (0, 15)];
@@ -616,10 +644,10 @@ class RetroBuffer {
     const d2 = this.sign (p, p2, p3);
     const d3 = this.sign (p, p3, p1);
 
-    const hasNeg = d1 < 0 || d2 < 0 || d3 < 0;
+    const hasNeg = d1 &lt; 0 || d2 &lt; 0 || d3 &lt; 0;
     const hasPos = d1 > 0 || d2 > 0 || d3 > 0;
 
-    return !(hasNeg && hasPos);
+    return !(hasNeg &amp;&amp; hasPos);
   }
 
   /**
@@ -648,7 +676,7 @@ class RetroBuffer {
     let imageData = context.getImageData (0, 0, this.WIDTH, this.HEIGHT);
     let data = new Uint32Array (imageData.data.buffer);
 
-    for (var i = 0; i < data.length; i++) {
+    for (var i = 0; i &lt; data.length; i++) {
       this.ram[address + i] = this.colors.indexOf (data[i]);
     }
   }
@@ -696,11 +724,11 @@ class RetroBuffer {
     var textLength = text.length;
     var size = 5;
 
-    for (var i = 0; i < textLength; i++) {
+    for (var i = 0; i &lt; textLength; i++) {
       var letter = this.getCharacter (text.charAt (i));
 
-      for (var yi = 0; yi < size; yi++) {
-        for (var xi = 0; xi < size; xi++) {
+      for (var yi = 0; yi &lt; size; yi++) {
+        for (var xi = 0; xi &lt; size; xi++) {
           if (letter[yi * size + xi] == 1) {
             if (scale == 1) {
               this.pset (
@@ -771,7 +799,7 @@ class RetroBuffer {
 
     var cx = sx + textWidth / 2, cy = sy + textHeight / 2;
 
-    for (var i = 0; i < lineCount; i++) {
+    for (var i = 0; i &lt; lineCount; i++) {
       var line = lines[i];
       var lineWidth = line.length * letterSize + (line.length - 1) * hspacing;
       var lx = x;
@@ -816,3 +844,26 @@ class RetroBuffer {
 }
 
 export default RetroBuffer;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="RetroBuffer.html">RetroBuffer</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Thu Jul 25 2024 23:06:16 GMT-0500 (Central Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
