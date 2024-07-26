@@ -5,7 +5,8 @@ import MusicPlayer from './core/musicplayer.js';
 import tada from './sounds/tada.js';
 
 import { playSound, Key, choice, inView, lerp, callOnce, rand, resizeCanvas, loadAtlas } from './core/utils.js';
-import Splode from './splode.js';
+import Splode from './gfx/Splode.js';
+import AnimRect from './gfx/AnimRect.js';
 (function(){
 
 document.body.style="margin:0; background-color:black; overflow:hidden";
@@ -32,6 +33,7 @@ function gameInit(){
   gamebox.appendChild(r.c);
   // r.replaceDitherTable();
   createEventListeners();
+  
   gameloop();
 }
 
@@ -228,8 +230,8 @@ function gameloop(){
         titlescreen();
         break;
     }
-    pruneDead(entitiesArray);
-    pruneScreen(entitiesArray);
+    //pruneDead(entitiesArray);
+    //pruneScreen(entitiesArray);
     Key.update();
    // stats.end();
     requestAnimationFrame(gameloop);
@@ -243,6 +245,9 @@ function tadaSplode(){
       new Splode(rand(0,w), rand(0,h), 200, rand(1, 63))
     )
   }
+  entitiesArray.push (
+    new AnimRect(r, 10, 10, 100, 100, 1, "clockwise", 2, 22)
+  )
   playSound(sounds.tada, 1, 0, 1, false);
 }
 
