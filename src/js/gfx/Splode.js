@@ -1,8 +1,7 @@
 export default class Splode {
     /**
      * Creates an instance of Splode.
-     * @constructor
-     * @param {RetroBuffer} buffer - the instance of 
+     * @constructor 
      * @param {number} x - The x-coordinate of the explosion center.
      * @param {number} y - The y-coordinate of the explosion center.
      * @param {number} life - The lifespan of the explosion.

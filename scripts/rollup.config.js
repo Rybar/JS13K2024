@@ -24,6 +24,9 @@ export default {
     // allow the use of onresize=onrotate=... and other space saver hacks
     strict: false,
     useStrict: false,
+    globals: {
+      RetroBuffer: "r",
+    }
   },
   plugins: [
     // embed images into source files as data URI

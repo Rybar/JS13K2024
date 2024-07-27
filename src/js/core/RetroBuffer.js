@@ -148,10 +148,10 @@ class RetroBuffer {
 
   /**
      * Gets the color of the pixel at the specified coordinates.
-     * @param {number} x - The x-coordinate.
-     * @param {number} y - The y-coordinate.
-     * @param {number} [page=0] - The page to read from.
-     * @returns {number} - The color of the pixel.
+     * @param {int} x - The x-coordinate.
+     * @param {int} y - The y-coordinate.
+     * @param {int} [page=0] - The page to read from.
+     * @returns {int} - The color of the pixel.
      */
   pget (x, y, page = 0) {
     x = x | 0;

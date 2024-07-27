@@ -103,6 +103,7 @@ export function resizeCanvas(canvas, baseWidth, baseHeight) {
 
   if (newHeight > window.innerHeight) {
       newHeight = Math.floor(window.innerHeight / baseHeight) * baseHeight;
+      //newHeight = window.innerHeight;
       newWidth = newHeight * aspectRatio;
   }
 
