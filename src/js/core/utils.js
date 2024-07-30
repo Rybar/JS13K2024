@@ -122,10 +122,10 @@ export function loadAtlas(atlasURL, callback) {
   atlasImage.onload = function () {
       let c = document.createElement('canvas');
       c.width = 64;
-      c.height = 64;
+      c.height = 72;
       let ctx = c.getContext('2d');
       ctx.drawImage(atlasImage, 0, 0);
-      const atlas = new Uint32Array(ctx.getImageData(0, 0, 64, 64).data.buffer);
+      const atlas = new Uint32Array(ctx.getImageData(0, 0, 64, 72).data.buffer);
       callback(atlas);
   };
 }

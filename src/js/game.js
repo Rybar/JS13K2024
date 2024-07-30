@@ -21,7 +21,7 @@ atlasImage = new Image();
 atlasImage.src = atlasURL;
 
 loadAtlas(atlasURL, (atlas) => {
-  const r = new RetroBuffer(w, h, atlas, 10);
+  const r = new RetroBuffer(w, h, atlas, 3);
   window.r = r;
   document.getElementById('game').appendChild(r.c);
   document.getElementById('game').style.background = "none";
@@ -274,15 +274,27 @@ function drawDemoThings(){
   r.line(40,10,50,20, 22);
   r.fillTriangle({x:60, y:10}, {x:70, y:20}, {x:60, y:20}, 22);
   r.text("ABCDEFGABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_!@#.'\"?/<()", 80, 10, 1, 1, 'left', 'top', 1, 22);
-  r.sspr(10,10,100,12, 10, 30, 200, 24, false, false);
   
-  r.brick(60, 110, 150, 100, 20 + Math.sin(t/200)*10, 12, 2, 4, 10, 1)
-  r.brick(10, 110, 150, 100, 20 + Math.sin(t/100)*10, 12, 64, 28, 10, 1)
-
   let angle = t % 360;
   r.gradRect(10, 40, 50, 50, 3, 5, angle);
   r.gradRect(70, 40, 50, 50, 3, 5, (angle + 45)%360);
   r.gradRect(140, 40, 50, 50, 3, 5, (angle + 90)%360);
+
+  r.sspr(0,0, 64,72, 200, 30, 64, 72, false, false);
+  r.fillRect(200,200, 8,8, 7);
+
+  //fill a field with random tiles and colors
+  r.LCG.state = 0xdeadbeef;
+  r.dither[8]
+  for(let i = 0; i < 20; i++){
+    for(let j = 0; j < 20; j++){
+      r.drawTile(r.LCG.randomInt(0, 63), i*8, j*8, 0, r.LCG.randomInt(0,63));
+    }
+  }
+  r.pat = r.dither[0];
+
+  r.drawTile(1, 208, 200, 4, 9);
+  r.drawTile(2, 216, 200, 25, 14);
 
   r.pat = r.dither[8];
   r.fillCircle(50, 150, 20, 20, 64);

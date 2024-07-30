@@ -32,7 +32,11 @@ class RetroBuffer {
     this.stencilSource = this.PAGE_2;
     this.stencilOffset = 0;
 
+    //color table is top row of img/palette.webp
     this.colors = this.atlas.slice (0, 64);
+
+    //palette.webp is 64x72 pixels.  tileset starts at 0,8 through the end of the image
+    this.tileGraphics = this.atlas.slice (64*8, 64*72);
 
     // Default palette index
     this.palDefault = Array.from ({length: 64}, (_, i) => i);
@@ -42,9 +46,9 @@ class RetroBuffer {
     this.c.height = this.HEIGHT;
     this.ctx = this.c.getContext ('2d');
     this.renderTarget = 0x00000;
-    this.renderSource = this.PAGESIZE; // Buffer is ahead one screen's worth of pixels
+    this.renderSource = this.PAGESIZE; // default renderSource in buffer is ahead one screen's worth of pixels
 
-    // The characters available in the build-in pixel font, in order
+    // The characters available in the built-in pixel font, in order
     this.fontString = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_!@#.\'"?/<()';
 
     // Base64 encoded font bitmap
@@ -85,6 +89,7 @@ class RetroBuffer {
       0b1000000000100000,
       0b1000000000000000,
       0b0000000000000000,
+      0b0101101001011010,
     ];
 
     /**
@@ -103,7 +108,7 @@ class RetroBuffer {
     this.data = new Uint32Array (this.buf);
     this.ram = new Uint8Array (this.WIDTH * this.HEIGHT * this.PAGES);
 
-    // Brightness LUT
+    // Brightness LUT, top 64 colors are 100% brightness, gradually decreasing to 0% brightness at row 6. 
     this.brightness = [];
     for (let i = 0; i < 6; i++) {
       for (let j = 0; j < 64; j++) {
@@ -111,6 +116,25 @@ class RetroBuffer {
           this.atlas[i * 64 + j]
         );
       }
+    }
+    
+    //populate page 1 with all of atlas
+    for(let i = 0; i < 64; i++){
+      for(let j = 0; j < 72; j++){
+        //ram pages are 480x270 pixels
+
+        this.ram[this.PAGE_1 + i + j * 480] = this.colors.indexOf ( this.tileGraphics[i + j * 64] );
+
+      }
+    }
+
+    //the tileset is 64x64 pixels, 8x8 tiles
+    this.tileset = {
+      tileWidth: 8,
+      tileHeight: 8,
+      widthInTiles: 8,
+      heightInTiles: 8,
+      renderSource: this.PAGESIZE,
     }
   }
 
@@ -139,7 +163,7 @@ class RetroBuffer {
     let px = y % 4 * 4 + x % 4;
     let mask = this.pat & Math.pow (2, px);
     let pcolor = mask ? color : color2;
-    if (pcolor == 64) return;
+    if (pcolor == 0) return;
     if (x < 0 || x > this.WIDTH - 1) return;
     if (y < 0 || y > this.HEIGHT - 1) return;
 
@@ -391,7 +415,7 @@ class RetroBuffer {
   ) {
     var xratio = sw / dw;
     var yratio = sh / dh;
-    this.pat = this.dither[0]; // Reset pattern
+    //this.pat = this.dither[0]; // Reset pattern
     for (var i = 0; i < dh; i++) {
       for (var j = 0; j < dw; j++) {
         let px = (j * xratio) | 0;
@@ -399,11 +423,20 @@ class RetroBuffer {
         sy = flipy ? sh - py - i : sy;
         sx = flipx ? sw - px - j : sx;
         let source = this.pget (sx + px, sy + py, this.renderSource);
-        if (source > 0) {
-          this.pset (x + j, y + i, source);
-        }
+        source = this.pal[source];
+        if(source == 0) continue;
+        this.pset (x + j, y + i, source);
       }
     }
+  }
+
+  drawTile (tileIndex, x, y, color1, color2 = 64) {
+    this.pal[0] = color1;
+    this.pal[22] = color2;
+    let tileX = (tileIndex % 8) * 8;
+    let tileY = Math.floor (tileIndex / 8) * 8;
+    this.sspr (tileX, tileY, 8, 8, x, y, 8, 8, false, false);
+    this.pal = this.palDefault.slice();
   }
 
   /**
@@ -522,85 +555,6 @@ class RetroBuffer {
     }
 
     this.pat = prevPat; // Restore the previous pattern setting
-  }
-
-  /**
- * Draws a brick wall pattern with optional gaps for mortar and a specified or random dither pattern.
- * @param {number} x - The x position of the top-left corner of the wall
- * @param {number} y - The y position of the top-left corner of the wall
- * @param {number} width - The total width of the wall
- * @param {number} height - The total height of the wall
- * @param {number} brickWidth - The width of each brick
- * @param {number} brickHeight - The height of each brick
- * @param {number} color1 - The main color of the bricks
- * @param {number} color2 - The secondary color of the bricks
- * @param {number} offset - The offset of the bricks in alternating rows
- * @param {number} gap - The gap between bricks to simulate mortar
- * @param {number} backgroundColor - The color of the mortar
- * @param {number} [pattern] - Optional. The dither pattern to use for the bricks. If not provided, a random pattern will be used.
- */
-  brick (
-    x,
-    y,
-    width,
-    height,
-    brickWidth,
-    brickHeight,
-    color1,
-    color2,
-    offset,
-    gap,
-    pattern
-  ) {
-    const rows = Math.ceil (height / (brickHeight + gap));
-    const cols = Math.ceil (width / (brickWidth + gap));
-    
-    this.LCG.state = 0xdeadbeef; // Reset the random number generator
-
-    for (let row = 0; row < rows; row++) {
-      let startX = x;
-      let offsetRow = false;
-      if (row % 2 !== 0) {
-        startX -= offset;
-        offsetRow = true;
-      }
-
-      for (let col = 0; col <= cols; col++) {
-        let brickX = startX + col * (brickWidth + gap);
-        let brickY = y + row * (brickHeight + gap);
-
-        // Ensure bricks are within the bounds
-        var adjustedBrickWidth = brickX + brickWidth > x + width
-          ? x + width - brickX
-          : brickWidth;
-        var adjustedBrickHeight = brickY + brickHeight > y + height
-          ? y + height - brickY
-          : brickHeight;
-
-        if (col == 0 && offsetRow) {
-          brickX += offset;
-          adjustedBrickWidth -= offset;
-        }
-
-        // Draw brick only if it is within the bounds
-        if (brickX < x + width && brickX + adjustedBrickWidth > x) {
-          const brickPattern = pattern !== undefined
-            ? this.dither[pattern]
-            : this.dither[this.LCG.randomInt (0, 15)];
-          this.pat = brickPattern;
-          this.fillRect (
-            brickX,
-            brickY,
-            adjustedBrickWidth,
-            adjustedBrickHeight,
-            color1,
-            color2
-          );
-        }
-      }
-    }
-    // Reset the pattern
-    this.pat = 0b1111111111111111;
   }
 
   /**
