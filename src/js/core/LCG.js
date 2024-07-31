@@ -20,4 +20,8 @@ export default class LCG {
     randomFloat(min, max) {
       return this.next() * (max - min) + min;
     }
+
+    coinFlip(){
+      return this.next() > 0.5;
+    } 
   }

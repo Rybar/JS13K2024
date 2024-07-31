@@ -6,8 +6,8 @@ import tada from './sounds/tada.js';
 
 import { playSound, Key, choice, inView, lerp, callOnce, rand, resizeCanvas, loadAtlas } from './core/utils.js';
 import Splode from './gfx/Splode.js';
-import AnimRect from './gfx/AnimRect.js';
-import AnimLine from './gfx/AnimLine.js';
+// import AnimRect from './gfx/AnimRect.js';
+// import AnimLine from './gfx/AnimLine.js';
 (function(){
 
 // document.body.style="margin:0; background-color:black; overflow:hidden";
@@ -128,6 +128,7 @@ function resetGame(){
 }
 
 function preload(){
+
   r.clear(64, r.SCREEN);
   r.renderTarget = r.SCREEN;
   drawDemoThings();
@@ -244,30 +245,23 @@ function tadaSplode(){
   //make some splodes at random positions
   for (let i = 0; i < 10; i++){
     entitiesArray.push(
-      new Splode(r, rand(0,w), rand(0,h), 200, rand(1, 63))
+      new Splode(rand(0,w), rand(0,h), 200, rand(1, 63))
     )
   }
-  //push a bunch of random AnimRects
-  for (let i = 0; i < 10; i++){
-    entitiesArray.push (
-      new AnimRect(r, rand(0,w), rand(0,h), rand(10, 100), rand(10, 100), choice[0,1,2,3], choice(["clockwise", "counterClockwise"]), rand(1, 5), rand(1, 63))
-    )
-  }
-  entitiesArray.push (
-    new AnimRect(r, 10, 10, 100, 100, 1, "clockwise", 2, 22)
-  )
-  entitiesArray.push (
-    new AnimLine(r, 10, 10, 110, 110, 22, 2)
-  )
+
   playSound(sounds.tada, 1, 0, 1, false);
 }
 
 function drawDemoThings(){
   //draw a box 4x4 of each color 0 thru 63 across the bottom of the screen
   for(let i = 0; i < 64; i++){
-    r.fillRect(i*7, 250, 7, 8, i);
+    r.fillRect(i*7, 220, 7, 50, i);
   }
-
+  //draw some r.LCG pseudo-random filled circles moving across the color bar
+  r.LCG.state = 0xdeadbeef;
+  for(let i = 0; i < 128; i++){
+    r.fillCircle(r.LCG.randomInt(-480, 480)+(t/(2 + r.LCG.randomInt(0, 6)))%w*2, r.LCG.randomInt(220,270), r.LCG.randomInt(4, 15), 66);
+  }
   //use each drawing function to prevent treeshake, test size
   r.fillRect(10,10,10,10,22);
   r.fillCircle(30,15, 5, 22);
@@ -277,27 +271,23 @@ function drawDemoThings(){
   
   let angle = t % 360;
   r.gradRect(10, 40, 50, 50, 3, 5, angle);
-  r.gradRect(70, 40, 50, 50, 3, 5, (angle + 45)%360);
-  r.gradRect(140, 40, 50, 50, 3, 5, (angle + 90)%360);
+  r.gradRect(70, 40, 50, 50, 7, 9, (angle + 45)%360);
+  r.gradRect(140, 40, 50, 50, 11, 13, (angle + 90)%360);
+
+  r.fillRect(10, 60, 200, 10, 65 );
+  r.fillRect(10, 70, 200, 10, 66);
+  r.fillRect(10, 80, 200, 10, 67);
+  r.fillRect(10, 85, 200, 5, 68);
 
   r.sspr(0,0, 64,72, 200, 30, 64, 72, false, false);
-  r.fillRect(200,200, 8,8, 7);
 
   //fill a field with random tiles and colors
-  r.LCG.state = 0xdeadbeef;
-  r.dither[8]
+  r.LCG.state = 0xdeadbeef + Math.floor(t/100);
   for(let i = 0; i < 20; i++){
-    for(let j = 0; j < 20; j++){
-      r.drawTile(r.LCG.randomInt(0, 63), i*8, j*8, 0, r.LCG.randomInt(0,63));
+    for(let j = 0; j < 8; j++){
+      r.drawTile(r.LCG.randomInt(0, 63), 280+ i*8, 30+ j*8, r.LCG.randomInt(1,63), r.LCG.randomInt(1,63), r.LCG.coinFlip(), r.LCG.coinFlip());
     }
   }
-  r.pat = r.dither[0];
-
-  r.drawTile(1, 208, 200, 4, 9);
-  r.drawTile(2, 216, 200, 25, 14);
-
-  r.pat = r.dither[8];
-  r.fillCircle(50, 150, 20, 20, 64);
   r.pat = r.dither[0];
 
 }

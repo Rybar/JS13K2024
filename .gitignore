@@ -2,3 +2,7 @@
 dist
 node_modules
 keys.json
+src/img/Microbe.png
+src/img/MRMOTEXT.aseprite
+src/img/MRMOTEXT.png
+src/img/palette-bigger.webp
