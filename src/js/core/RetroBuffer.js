@@ -464,6 +464,34 @@ span(x1, x2, y, color, color2 = 64) {
   }
 
   /**
+   * Draws a tile asset to the buffer.
+   * @param {number} startX - The x-coordinate to start drawing the asset.
+   * @param {number} startY - The y-coordinate to start drawing the asset.
+   * @param {object} asset - The asset to draw.
+   * @param {number} asset.width - The width of the asset in tiles.
+   * @param {number} asset.height - The height of the asset in tiles.
+   * @param {Array} asset.data - The asset data.
+   **/
+  drawTileAsset(startX, startY, asset) {
+    const { width, height, data } = asset;
+    const tileSize = 8; // Assuming the tile size is 8x8
+  
+    for (let row = 0; row < height; row++) {
+      for (let col = 0; col < width; col++) {
+        const index = (row * width + col) * 3;
+        const tileIndex = data[index];
+        const color1 = data[index + 1];
+        const color2 = data[index + 2];
+        
+        const x = startX + col * tileSize;
+        const y = startY + row * tileSize;
+  
+        this.drawTile(tileIndex, x, y,  color2, color1);
+      }
+    }
+  }
+
+  /**
    * Fills a circle with a gradient between two colors.
    * @param {number} xm - The x-coordinate of the circle center.
    * @param {number} ym - The y-coordinate of the circle center.

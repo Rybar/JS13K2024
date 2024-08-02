@@ -4,8 +4,12 @@ import MusicPlayer from './core/musicplayer.js';
 //sound assets
 import tada from './sounds/tada.js';
 
+//tile assets
+import tileAssetTest from '../assets/tileAssetTest.js';
+
 import { playSound, Key, choice, inView, lerp, callOnce, rand, resizeCanvas, loadAtlas } from './core/utils.js';
 import Splode from './gfx/Splode.js';
+import platformerTest from '../assets/platformerTest.js';
 // import AnimRect from './gfx/AnimRect.js';
 // import AnimLine from './gfx/AnimLine.js';
 (function(){
@@ -270,16 +274,23 @@ function drawDemoThings(){
   r.text("ABCDEFGABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_!@#.'\"?/<()", 80, 10, 1, 1, 'left', 'top', 1, 22);
   
   let angle = t % 360;
+  //gradient squares with rotating fills, red, yellow and green
   r.gradRect(10, 40, 50, 50, 3, 5, angle);
   r.gradRect(70, 40, 50, 50, 7, 9, (angle + 45)%360);
   r.gradRect(140, 40, 50, 50, 11, 13, (angle + 90)%360);
 
+  //"shade" drawing over the top of the gradient squares.
+  //color indices 65 - 70 are special "shade" colors that darken the color underneath.
   r.fillRect(10, 60, 200, 10, 65 );
   r.fillRect(10, 70, 200, 10, 66);
   r.fillRect(10, 80, 200, 10, 67);
   r.fillRect(10, 85, 200, 5, 68);
 
+  //draw the entire tile palette to top middle
   r.sspr(0,0, 64,72, 200, 30, 64, 72, false, false);
+
+  //tile asset test
+  r.drawTileAsset(0,110, platformerTest);
 
   //fill a field with random tiles and colors
   r.LCG.state = 0xdeadbeef + Math.floor(t/100);
