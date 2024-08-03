@@ -109,10 +109,6 @@ export function resizeCanvas(canvas, baseWidth, baseHeight) {
 
   canvas.style.width = `${newWidth}px`;
   canvas.style.height = `${newHeight}px`;
-
-  // Optionally, adjust the canvas rendering size if using a higher resolution
-  //canvas.width = newWidth;
-  //canvas.height = newHeight;
 }
 
 export function loadAtlas(atlasURL, callback) {

@@ -5,16 +5,13 @@ import MusicPlayer from './core/musicplayer.js';
 import tada from './sounds/tada.js';
 
 //tile assets
-import tileAssetTest from '../assets/tileAssetTest.js';
-
-import { playSound, Key, choice, inView, lerp, callOnce, rand, resizeCanvas, loadAtlas } from './core/utils.js';
-import Splode from './gfx/Splode.js';
 import platformerTest from '../assets/platformerTest.js';
+
+import { playSound, Key, inView, callOnce, rand, resizeCanvas, loadAtlas } from './core/utils.js';
+import Splode from './gfx/Splode.js';
 // import AnimRect from './gfx/AnimRect.js';
 // import AnimLine from './gfx/AnimLine.js';
 (function(){
-
-// document.body.style="margin:0; background-color:black; overflow:hidden";
 //same resolution as picotron, 16x9 aspect ratio
 w = 480, h = 270;
 
@@ -264,8 +261,10 @@ function drawDemoThings(){
   //draw some r.LCG pseudo-random filled circles moving across the color bar
   r.LCG.state = 0xdeadbeef;
   for(let i = 0; i < 128; i++){
+    r.pat = r.dither[r.LCG.coinFlip() ? 0: 16];
     r.fillCircle(r.LCG.randomInt(-480, 480)+(t/(2 + r.LCG.randomInt(0, 6)))%w*2, r.LCG.randomInt(220,270), r.LCG.randomInt(4, 15), 66);
   }
+  r.pat = r.dither[0];
   //use each drawing function to prevent treeshake, test size
   r.fillRect(10,10,10,10,22);
   r.fillCircle(30,15, 5, 22);
@@ -281,16 +280,22 @@ function drawDemoThings(){
 
   //"shade" drawing over the top of the gradient squares.
   //color indices 65 - 70 are special "shade" colors that darken the color underneath.
-  r.fillRect(10, 60, 200, 10, 65 );
-  r.fillRect(10, 70, 200, 10, 66);
-  r.fillRect(10, 80, 200, 10, 67);
-  r.fillRect(10, 85, 200, 5, 68);
+  // r.fillRect(10, 60, 200, 10, 65 );
+  // r.fillRect(10, 70, 200, 10, 66);
+  // r.fillRect(10, 80, 200, 10, 67);
+  // r.fillRect(10, 85, 200, 5, 68);
+  r.gradRect(10,60,200, 50, 66, 69, 90 )
 
   //draw the entire tile palette to top middle
   r.sspr(0,0, 64,72, 200, 30, 64, 72, false, false);
 
   //tile asset test
   r.drawTileAsset(0,110, platformerTest);
+  //shade sky at top 1 shade darker
+ r.fillRect(0, 110, 480, 100, 66, 64, 8);
+
+  //polygon test
+  r.polygon(240, 160, 30, 7, t/100, 22);
 
   //fill a field with random tiles and colors
   r.LCG.state = 0xdeadbeef + Math.floor(t/100);

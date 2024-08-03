@@ -146,12 +146,12 @@ class RetroBuffer {
 pset(x, y, color, color2 = 64) {
   x = Math.round(x);
   y = Math.round(y);
-  let originalColor = color;
 
   // Check for color indices 65 thru 70 and adjust based on brightness table
-  if (color >= 65 && color <= 70) {
+  
+  if (color >= 65 && color <= 69) {
     let currentColor = this.pget(x, y, this.renderTarget);
-    let brightnessRow = color - 65 + 1; // Map 65 to 1, 66 to 2, ..., 70 to 6
+    let brightnessRow = color - 66 + 1; // Map 65 to 1, 66 to 2, ..., 70 to 6
     color = this.brightness[brightnessRow * 64 + currentColor];
   } else {
     color = this.stencil
@@ -159,10 +159,20 @@ pset(x, y, color, color2 = 64) {
       : (color | 0) % 64;
   }
 
+  if (color2 >= 65 && color2 <= 69) {
+    let currentColor = this.pget(x, y, this.renderTarget);
+    let brightnessRow = color2 - 66 + 1; // Map 65 to 1, 66 to 2, ..., 70 to 6
+    color2 = this.brightness[brightnessRow * 64 + currentColor];
+  } else {
+    color2 = this.stencil
+      ? this.pget(x, y, this.stencilSource) + this.stencilOffset
+      : (color2 | 0) % 64;
+  }
+
   let px = (y % 4) * 4 + (x % 4);
   let mask = this.pat & Math.pow(2, px);
   let pcolor = mask ? color : color2;
-  if (pcolor == 64) return;
+  if (pcolor == 0) return;
   if (x < 0 || x > this.WIDTH - 1) return;
   if (y < 0 || y > this.HEIGHT - 1) return;
 
@@ -239,6 +249,34 @@ pset(x, y, color, color2 = 64) {
         fraction += dx;
         this.pset(x1, y1, color, color2);
       }
+    }
+  }
+  /**
+   * 
+   * @param {number} cx  
+   * @param {number} cy 
+   * @param {number} radius 
+   * @param {number} sides 
+   * @param {number} color1 
+   * @param {number} color2 
+   * @returns 
+   */
+  polygon(cx, cy, radius, sides, rotation, color1, color2=64) {
+    if (sides < 3) return; // Polygons must have at least 3 sides
+
+    const angleStep = (Math.PI * 2) / sides;
+    let x1 = cx + radius * Math.cos(rotation);
+    let y1 = cy + radius * Math.sin(rotation);
+
+    for (let i = 0; i <= sides; i++) {
+      const angle = i * angleStep
+      const x2 = cx + radius * Math.cos(angle + rotation);
+      const y2 = cy + radius * Math.sin(angle + rotation);
+
+      this.line(x1, y1, x2, y2, color1, color2);
+
+      x1 = x2;
+      y1 = y2;
     }
   }
 
@@ -332,13 +370,13 @@ span(x1, x2, y, color, color2 = 64) {
    * @param {number} color - The primary color of the rectangle.
    * @param {number} [color2=64] - The secondary color used for dithering.
    */
-  fillRect(x, y, w, h, color, color2 = 64) {
+  fillRect(x, y, w, h, color, color2 = 64, ditherPattern=0) {
     let x1 = x | 0;
     let y1 = y | 0;
     let x2 = ((x + w) | 0) - 1;
     let y2 = ((y + h) | 0) - 1;
     color = color;
-
+    this.pat = this.dither[ditherPattern];
     var i = Math.abs(y2 - y1);
     this.line(x1, y1, x2, y1, color, color2);
 
@@ -349,6 +387,7 @@ span(x1, x2, y, color, color2 = 64) {
     }
 
     this.line(x1, y2, x2, y2, color, color2);
+    this.pat = this.dither[0];
   }
 
   /**
