@@ -281,6 +281,101 @@ pset(x, y, color, color2 = 64) {
   }
 
   /**
+   * Triangulates a polygon into a set of triangles.
+   * @param {Array} points - The array of points representing the polygon.
+   * @returns {Array} - The array of triangles.
+   */
+  triangulate(points) {
+    const triangles = [];
+    const n = points.length;
+
+    if (n < 3) return triangles;
+
+    const V = [];
+    for (let i = 0; i < n; i++) V[i] = i;
+
+    let nv = n;
+    let count = 2 * nv;
+    for (let m = 0, v = nv - 1; nv > 2;) {
+      if ((count--) <= 0) return triangles;
+
+      let u = v;
+      if (nv <= u) u = 0;
+      v = u + 1;
+      if (nv <= v) v = 0;
+      let w = v + 1;
+      if (nv <= w) w = 0;
+
+      if (this.snip(points, u, v, w, nv, V)) {
+        const a = V[u];
+        const b = V[v];
+        const c = V[w];
+        triangles.push([points[a], points[b], points[c]]);
+        m++;
+        for (let s = v, t = v + 1; t < nv; s++, t++) V[s] = V[t];
+        nv--;
+        count = 2 * nv;
+      }
+    }
+
+    return triangles;
+  }
+
+  /**
+   * Determines if a point is inside a triangle.
+   * @param {Array} points - The array of points representing the polygon.
+   * @param {number} u - The first vertex index.
+   * @param {number} v - The second vertex index.
+   * @param {number} w - The third vertex index.
+   * @param {number} n - The number of vertices in the polygon.
+   * @param {Array} V - The array of vertex indices.
+   * @returns {boolean} - True if the point is inside the triangle, false otherwise.
+   */
+  snip(points, u, v, w, n, V) {
+    const Ax = points[V[u]].x;
+    const Ay = points[V[u]].y;
+    const Bx = points[V[v]].x;
+    const By = points[V[v]].y;
+    const Cx = points[V[w]].x;
+    const Cy = points[V[w]].y;
+
+    if (0 > (Bx - Ax) * (Cy - Ay) - (By - Ay) * (Cx - Ax)) return false;
+
+    for (let p = 0; p < n; p++) {
+      if ((p === u) || (p === v) || (p === w)) continue;
+      const Px = points[V[p]].x;
+      const Py = points[V[p]].y;
+      if (this.pointInTriangle({ x: Px, y: Py }, { x: Ax, y: Ay }, { x: Bx, y: By }, { x: Cx, y: Cy })) return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Fills a polygon with a solid color.
+   * @param {number} x - The x-coordinate of the polygon.
+   * @param {number} y - The y-coordinate of the polygon.
+   * @param {Array} points - The array of points representing the polygon.
+   * @param {number} color1 - The primary color of the polygon.
+   * @param {number} color2 - The secondary color used for dithering.
+   */
+  polyfill(x, y, points, color1, color2) {
+    const triangles = this.triangulate(points);
+
+    for (const triangle of triangles) {
+      const [p1, p2, p3] = triangle;
+      this.fillTriangle(
+        { x: p1.x + x, y: p1.y + y },
+        { x: p2.x + x, y: p2.y + y },
+        { x: p3.x + x, y: p3.y + y },
+        color1,
+        color2
+      );
+    }
+  }
+
+
+  /**
    * Draws a circle.
    * @param {number} xm - The x-coordinate of the center of the circle.
    * @param {number} ym - The y-coordinate of the center of the circle.
