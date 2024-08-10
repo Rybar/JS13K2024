@@ -5,7 +5,7 @@
     // use it in a demo.
 
     // Song data
-    var tada = {
+export default tada = {
       songData: [
         { // Instrument 0
           i: [
@@ -54,4 +54,3 @@
       numChannels: 1  // Number of channels
     };
 
-    export default tada

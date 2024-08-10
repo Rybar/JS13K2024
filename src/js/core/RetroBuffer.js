@@ -832,7 +832,7 @@ span(x1, x2, y, color, color2 = 64) {
    * @param {number} scale - The scale of the text.
    * @param {number} color - The color of the text.
    */
-  textLine(text, x, y, hspacing, vspacing, halign, valign, scale, color) {
+  textLine(text, x, y, hspacing, vspacing, halign, valign, scale, color, color2=64) {
     var textLength = text.length;
     var size = 5;
 
@@ -846,7 +846,7 @@ span(x1, x2, y, color, color2 = 64) {
               this.pset(
                 x + xi * scale + (size * scale + hspacing) * i,
                 y + yi * scale,
-                color
+                color, color2
               );
             } else {
               this.fillRect(
@@ -854,7 +854,7 @@ span(x1, x2, y, color, color2 = 64) {
                 y + yi * scale,
                 scale,
                 scale,
-                color
+                color, color2
               );
             }
           }

@@ -1,16 +1,21 @@
 import RetroBuffer from './core/RetroBuffer.js';
 import MusicPlayer from './core/musicplayer.js';
-import { playSound, Key, inView, callOnce, rand, resizeCanvas, loadAtlas } from './core/utils.js';
+import { playSound, Key, inView, callOnce, rand, resizeCanvas, loadAtlas, choice } from './core/utils.js';
 import Splode from './gfx/Splode.js';
 
 //sound assets
 import tada from './sounds/tada.js';
+import missileWhoosh from './sounds/missileWhoosh.js';
+import boom1 from './sounds/boom1.js';
+import spawn from './sounds/spawn.js';
 
 //tile assets
 import platformerTest from '../assets/platformerTest.js';
+import { get } from 'browser-sync';
+import background1 from '../assets/background1.js';
 
 class Enemy {
-    constructor(x, y, size, speedX, speedY, color) {
+    constructor(x, y, size, speedX, speedY, color, seed) {
         this.x = x;
         this.y = y;
         this.size = size;
@@ -18,9 +23,42 @@ class Enemy {
         this.speedY = speedY;
         this.color = color;
         this.alive = true;
+        this.seed = seed;
+        this.maxSpeed = 100;
+        // Set the LCG state with the provided seed
+        r.LCG.state = seed;
+
+        // Generate random shapes within the bounds
+        this.shapes = this.generateShapes();
+    }
+
+    generateShapes() {
+        const shapes = [];
+        const numShapes = r.LCG.randomInt(10, 20); // Random number of shapes between 5 and 10
+
+        for (let i = 0; i < numShapes; i++) {
+            const shapeType = r.LCG.randomInt(0, 1) === 0 ? 'rect' : 'circle';
+            const posX = r.LCG.randomInt(0, this.size / 1.25);
+            const posY = r.LCG.randomInt(0, this.size);
+            const width = r.LCG.randomInt(0, this.size);
+            const height = r.LCG.randomInt(0, this.size);
+            const radius = r.LCG.randomInt(0, this.size / 4);
+            const patternChoice = r.LCG.randomInt(0,2)
+            const pattern = [0b1010101010101010,0b1111111111111111][patternChoice];
+            const colorMod = r.LCG.randomInt(-3, 3);
+
+            shapes.push({ shapeType, posX, posY, width, height, radius, pattern, colorMod });
+        }
+
+        return shapes;
     }
 
     update(deltaTime) {
+        this.speedX += r.LCG.randomInt(-10, 10);
+        this.speedY += r.LCG.randomInt(-10, 10);
+        //cap speed between -100 and 100
+        this.speedX = Math.min(this.maxSpeed, Math.max(-this.maxSpeed, this.speedX));
+        this.speedY = Math.min(this.maxSpeed, Math.max(-this.maxSpeed, this.speedY));
         this.x += this.speedX * deltaTime / 1000;
         this.y += this.speedY * deltaTime / 1000;
         if (this.x < 0 || this.x > r.WIDTH - this.size) this.speedX = -this.speedX;
@@ -28,9 +66,30 @@ class Enemy {
     }
 
     draw(r) {
-        r.fillRect(this.x, this.y, this.size, this.size, this.color);
+        const halfSize = this.size / 2;
+
+        // Draw the mirrored shapes
+        this.shapes.forEach(shape => {
+            const color = this.color;
+            r.pat = shape.pattern;
+            if (shape.shapeType === 'rect') {
+                // Left side
+                r.rect(this.x + shape.posX, this.y + shape.posY, shape.width, shape.height, color + shape.colorMod);
+                // Mirrored right side
+                r.rect(this.x + this.size - shape.posX - shape.width, this.y + shape.posY, shape.width, shape.height, color + shape.colorMod);
+            } else if (shape.shapeType === 'circle') {
+                // Left side
+                r.circle(this.x + shape.posX + shape.radius, this.y + shape.posY, shape.radius, color + shape.colorMod);
+                // Mirrored right side
+                r.circle(this.x + this.size - shape.posX - shape.radius, this.y + shape.posY, shape.radius, color + shape.colorMod);
+            }
+        });
+        r.pat = 0b1111111111111111;
+        // Draw a border to emphasize the enemy's bounds
+        //r.rect(this.x, this.y, this.size, this.size, this.color);
     }
 }
+
 
 class Missile {
     constructor(x, y, targetX, targetY, speed) {
@@ -49,12 +108,13 @@ class Missile {
 
         if (Math.hypot(this.targetX - this.x, this.targetY - this.y) < 5) {
             this.alive = false;
-            explosions.push(new Explosion(this.targetX, this.targetY, 30, 500)); // Example explosion size and duration
+            explosions.push(new Explosion(this.targetX, this.targetY, 70, 600)); 
+            playSound(sounds.boom1, 1, 0, 1, false);
         }
     }
 
     draw(r) {
-        r.line(r.WIDTH / 2, r.HEIGHT, this.x, this.y, 22); // Color 22 for the missile line
+        r.line(r.WIDTH / 2, r.HEIGHT, this.x, this.y, rand(5,63)); // Color 22 for the missile line
     }
 }
 
@@ -77,26 +137,56 @@ class Explosion {
 
     draw(r) {
         const progress = this.elapsed / this.duration;
-        r.fillCircle(this.x, this.y, this.radius * progress, 22); // Color 22 for the explosion
+        //set dither pattern based on progress
+        r.pat = r.dither[Math.floor(progress * 16)];
+        r.fillCircle(this.x, this.y, this.radius * progress, choice([4,5,6,7,8,9,22])); 
+        r.pat = 0b1111111111111111;
     }
 
     affects(enemy) {
-        const distance = Math.hypot(this.x - enemy.x, this.y - enemy.y);
-        return distance < this.radius;
+        const progress = this.elapsed / this.duration;
+        const enemyRadius = enemy.size / 2;
+        const distance = Math.hypot(this.x - enemy.x - enemyRadius, this.y - enemy.y - enemyRadius);
+        const hit = distance < this.radius * progress;
+        if (hit) {
+            entitiesArray.push(new Splode(enemy.x, enemy.y, 60, choice([22,23,24,25,26,27,28])));
+            playSound(sounds.boom1, 1, 0, 1, false);
+        }
+        return hit;
     }
 }
 
 let enemies = [];
 let missiles = [];
 let explosions = [];
-let lastSpawnTime = Date.now();
-let spawnInterval = 1000; // Spawn new enemy every second
-let lastFrameTime = 0;
+let lastSecondSpawnTime = Date.now();
+let last10SecondsSpawnTime = Date.now();
+let lastMinuteSpawnTime = Date.now();
+let lastHourSpawnTime = Date.now();
+let lastDaySpawnTime = Date.now();
+
+let spawn10thofasecond = 100;
+let spawnEachSecond = 1000; // Spawn new enemy every second
+let spawnEach10Seconds = 10000;
+let spawnEachMinute = 60000;
+let spawnEachHour = 3600000;
+let spawnEachDay = 86400000;
+
 
 (function () {
     document.body.style = "margin:0; background-color:black; overflow:hidden";
     const w = 480, h = 270;
     window.w = w; window.h = h;
+    let x = w / 2; let y = 36;
+    const spawnLocations = {
+        //these are same as the text locations, but for the spawn locations of the enemies
+        day: { x: x - 140, y: y + 24 },
+        hour: { x: x - 70, y: y + 24 },
+        minute: { x: x, y: y + 24 },
+        second: { x: x + 70, y: y + 24 },
+        tenthOfASecond: { x: x + 140, y: y + 24 }
+    }
+let lastFrameTime = 0;
     const atlasURL = 'DATAURL:src/img/palette.webp';
     const atlasImage = new Image();
     atlasImage.src = atlasURL;
@@ -120,7 +210,6 @@ let lastFrameTime = 0;
     }
 
     window.t = 1;
-
     sounds = {};
     soundsReady = 0;
     totalSounds = 8;
@@ -152,6 +241,9 @@ let lastFrameTime = 0;
 
         sndData = [
             { name: 'tada', data: tada },
+            { name: 'missileWhoosh', data: missileWhoosh },
+            { name: 'boom1', data: boom1 },
+            { name: 'spawn', data: spawn },
         ]
         totalSounds = sndData.length;
         soundsReady = 0;
@@ -196,22 +288,69 @@ let lastFrameTime = 0;
             enemies = enemies.filter(enemy => !explosion.affects(enemy));
         });
 
+        entitiesArray.forEach(entity => entity.update());
+
         // Spawn new enemy every second
-        if (Date.now() - lastSpawnTime > spawnInterval) {
-            lastSpawnTime = Date.now();
+        if (Date.now() % spawnEachSecond > spawnEachSecond - deltaTime) {
             enemies.push(new Enemy(
-                Math.random() * (r.WIDTH - 20),
-                Math.random() * (r.HEIGHT - 20),
+                spawnLocations.second.x,
+                spawnLocations.second.y,
                 20,
                 Math.random() * 100 - 50,
-                Math.random() * 100 - 50,
-                2 // Color for enemies
+                Math.random() * 100 + 30,
+                rand(5,63), 
+                Math.floor(Math.random() * 0xFFFFFFFF)
             ));
+            entitiesArray.push(new Splode(spawnLocations.second.x, spawnLocations.second.y, 60, 5));
+            playSound(sounds.spawn, 1, 0, 1, false);
+        }
+
+        // Spawn a ton of enemies every 10 seconds
+        if (Date.now() % spawnEach10Seconds > spawnEach10Seconds - deltaTime) {
+            let i = 30; 
+            while(i--) {
+                enemies.push(new Enemy(
+                    spawnLocations.second.x,
+                    spawnLocations.second.y,
+                    6,
+                    Math.random() * 100 - 50,
+                    Math.random() * 100 + 10,
+                    rand(5,63), 
+                    Math.floor(Math.random() * 0xFFFFFFFF)
+                ));
+            }
+            entitiesArray.push(new Splode(spawnLocations.second.x, spawnLocations.second.y, 150, 8));
+            playSound(sounds.spawn, 1, 0, 1, false);
+
+        }
+
+        if (Date.now() % spawnEachMinute > spawnEachMinute - deltaTime) {
+            let i = 90; 
+            while(i--) {
+                enemies.push(new Enemy(
+                    spawnLocations.minute.x,
+                    spawnLocations.minute.y,
+                    6,
+                    Math.random() * 100 - 50,
+                    Math.random() * 100,
+                    rand(5,63), 
+                    Math.floor(Math.random() * 0xFFFFFFFF)
+                ));
+            }
+            entitiesArray.push(new Splode(spawnLocations.minute.x, spawnLocations.minute.y, 200, 9));
+            playSound(sounds.spawn, 1, 0, 1, false);
+
         }
     }
 
     function drawGame() {
         r.clear(64, r.SCREEN);
+
+        // Draw background
+        r.pat = 0b1111111111111111;
+        r.drawTileAsset(0, 50, background1);
+
+       
 
         // Draw enemies
         enemies.forEach(enemy => enemy.draw(r));
@@ -222,12 +361,19 @@ let lastFrameTime = 0;
         // Draw explosions
         explosions.forEach(explosion => explosion.draw(r));
 
+        drawEntities(entitiesArray);
+
+        //draw color bar
+        for (let i = 0; i < 64; i++) {
+        r.fillRect(i * w/64, 0, w/64, 50, i + t/60);
+        }
+        r.fillRect(0, 8, w, 36, 66, 67, 8);
         // Draw timer
         countdownLoop();
-
+        
         // Draw debug text
-        let debugText = `ENEMIES: ${enemies.length}, MISSILES: ${missiles.length}, EXPLOSIONS: ${explosions.length}`;
-        r.text(debugText, 10, 10, 1, 1, 'left', 'top', 1, 22);
+        let debugText = `BUGS IN THE FIELD: ${enemies.length}`;
+        r.text(debugText, 10, 260, 1, 1, 'left', 'top', 1, 22);
 
         r.render();
     }
@@ -235,17 +381,13 @@ let lastFrameTime = 0;
     function titlescreen() {
         r.clear(64, r.SCREEN);
 
-        //draw a box 4x4 of each color 0 thru 63 across the bottom of the screen
-        for (let i = 0; i < 64; i++) {
-            r.fillRect(i * 7, 250, 7, 8, i);
-        }
-        r.renderSource = r.SCREEN;
+        r.drawTileAsset(0, 0, background1);
         drawEntities(entitiesArray);
-        let txt = "COUNTDOWN COMMAND";
-        r.text(txt, w / 2 - 2, 100, 1, 1, 'center', 'top', 3, 22);
+        let txt = "COUNTDOWN COMMANDO";
+        r.text(txt, w / 2, 100, 4, 1, 'center', 'top', 4, 22);
         txt = "CLICK TO START";
-        r.text(txt, w / 2 - 2, 120, 1, 1, 'center', 'top', 1, 22);
-        countdownLoop();
+        r.text(txt, w / 2, 125, 1, 1, 'center', 'top', 1, 22);
+        //countdownLoop();
         r.render();
     }
 
@@ -259,8 +401,16 @@ let lastFrameTime = 0;
 
         r.clear(64, r.SCREEN);
         r.renderTarget = r.SCREEN;
+        r.pat = 0b1111111111111111;
+
+
+
         drawDemoThings();
-        r.text(audioTxt, w / 2 - 2, 100, 1, 1, 'center', 'top', 1, 22);
+
+        let txt = "COUNTDOWN COMMANDO";
+        r.text(txt, w / 2, 100, 4, 1, 'center', 'top', 4, 2);
+
+        r.text(audioTxt, w / 2 - 2, 130, 1, 1, 'center', 'top', 1, 22);
         if (Key.justReleased(Key.UP) || Key.justReleased(Key.w) || Key.justReleased(Key.z)) {
             if (soundsReady == 0 && !started) {
                 initGameData();
@@ -271,6 +421,7 @@ let lastFrameTime = 0;
                 gamestate = 2;
             }
         };
+
         audioTxt = "CLICK TO ALLOW AUDIOCONTEXT TO CONTINUE\n";
         if (soundsReady == totalSounds) {
             audioTxt = "ALL SOUNDS RENDERED.\nPRESS UP/W/Z TO CONTINUE";
@@ -319,7 +470,8 @@ let lastFrameTime = 0;
                 }
                 break;
             case 1:
-                missiles.push(new Missile(r.WIDTH / 2, r.HEIGHT, x, y, 300)); // Launch a missile
+                missiles.push(new Missile(r.WIDTH / 2, r.HEIGHT, x, y, 600)); // Launch a missile
+                playSound(sounds.missileWhoosh, 1, 0, 1, false);
                 break;
             case 2:
                 gamestate = 1;
@@ -356,8 +508,8 @@ let lastFrameTime = 0;
     }
 
     function countdownLoop() {
-        const targetDate = new Date('August 13, 2024 6:00:00').getTime();
-        const now = new Date().getTime();
+        const targetDate = new Date(Date.UTC(2024, 7, 13, 11, 0, 0))
+        const now = getZuluTime();
         const distance = targetDate - now;
 
         const days = Math.floor(distance / (1000 * 60 * 60 * 24));
@@ -368,13 +520,14 @@ let lastFrameTime = 0;
 
         // Display the countdown text
         const x = w / 2;
-        const y = h / 2 - 60;
+        const y = 36;
         const hspacing = 1;
         const vspacing = 3;
         const scaleLarge = 4;
         const scaleSmall = 1;
-        const color = 13; // White color
+        const color = 22; 
 
+        r.pat = 0b0000100010000000;
         r.text(days.toString(), x - 140, y - 24, hspacing, vspacing, 'center', 'top', scaleLarge, color);
         r.text("DAYS", x - 140, y, hspacing, vspacing, 'center', 'top', scaleSmall, color);
 
@@ -389,6 +542,18 @@ let lastFrameTime = 0;
 
         r.text(milliseconds.toString(), x + 180, y - 24, hspacing, vspacing, 'right', 'top', scaleLarge, color);
         r.text("MS", x + 140, y, hspacing, vspacing, 'center', 'top', scaleSmall, color);
+
+       
+        //r.pat=0b1111111111111111;
+    }
+
+    function getZuluTime() {
+        const now = new Date(); // Client's local time
+        const localTime = now.getTime(); // Local time in milliseconds
+        const timezoneOffset = now.getTimezoneOffset() * 60000; // Offset in milliseconds
+    
+        const zuluTime = new Date(localTime + timezoneOffset);
+        return zuluTime;
     }
 
     function gameloop(timestamp) {
@@ -400,14 +565,14 @@ let lastFrameTime = 0;
             switch (gamestate) {
                 case 0:
                     preload();
-                    updateGame(deltaTime);
+                    //updateGame(deltaTime);
                     break;
                 case 1: //game
                     updateGame(deltaTime);
-                    drawGame(r);
+                    drawGame();
                     break;
                 case 2:
-                    updateGame(deltaTime);
+                    //updateGame(deltaTime);
                     titlescreen();
                     break;
             }
@@ -431,44 +596,52 @@ let lastFrameTime = 0;
     }
 
     function drawDemoThings() {
-        //draw a box 4x4 of each color 0 thru 63 across the bottom of the screen
+        t += 1000/60; 
+        //tile asset test, background
+        r.drawTileAsset(0, 0, background1);
+        r.fillRect(0,0,480,20,64);
         for (let i = 0; i < 64; i++) {
-            r.fillRect(i * 7, 220, 7, 50, i);
+            r.fillRect(i * (480/64), 0, w/64, 17, i);
         }
+        r.fillRect(0, 5, 480, 7, 66, 67, 8)
+
+        for (let i = 0; i < 64; i++) {
+            r.fillRect(i * (480/64), 220, w/64, 50, i);
+        }
+        r.fillRect(0, 5, 480, 7, 66, 67, 8)
         //draw some r.LCG pseudo-random filled circles moving across the color bar
         r.LCG.state = 0xdeadbeef;
         for (let i = 0; i < 128; i++) {
-            r.pat = r.dither[r.LCG.coinFlip() ? 0 : 16];
-            r.fillCircle(r.LCG.randomInt(-480, 480) + (t/60 / (2 + r.LCG.randomInt(0, 6))) % w * 2, r.LCG.randomInt(220, 270), r.LCG.randomInt(4, 15), 66);
+            r.pat = r.dither[8];
+            r.fillCircle(r.LCG.randomInt(-480, 480) + (t/3 / (2 + r.LCG.randomInt(0, 6))) % w * 2, r.LCG.randomInt(220, 270), r.LCG.randomInt(4, 15), 66,67);
         }
         r.pat = r.dither[0];
+
         //use each drawing function to prevent treeshake, test size
-        r.fillRect(10, 10, 10, 10, 22);
-        r.fillCircle(30, 15, 5, 22);
-        r.line(40, 10, 50, 20, 22);
-        r.fillTriangle({ x: 60, y: 10 }, { x: 70, y: 20 }, { x: 60, y: 20 }, 22);
-        r.text("ABCDEFGABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_!@#.'\"?/<()", 80, 10, 1, 1, 'left', 'top', 1, 22);
+        let demox = 4, demoy = 6;
+        r.fillRect(demox, demoy, 10, 10, 67);
+        r.fillCircle(demox+20, demoy+5, 5, 67);
+        r.line(demox+30, demoy, demox+40, demoy+10, 67);
+        r.fillTriangle({ x: 50, y: demoy }, { x: 60, y: demoy+10 }, { x: 50, y: demoy+10 }, 67);
+        r.text("RETROBUFFER API DEMO", 66, demoy+1, 1, 1, 'left', 'top', 1, 68);
+        demoy = 4;
+        r.fillRect(demox, demoy, 10, 10, 22);
+        r.fillCircle(demox+20, demoy+5, 5, 22);
+        r.line(demox+30, demoy, demox+40, demoy+10, 22);
+        r.fillTriangle({ x: 50, y: demoy }, { x: 60, y: demoy+10 }, { x: 50, y: demoy+10 }, 22);
+        r.text("RETROBUFFER API DEMO", 66, 6, 1, 1, 'left', 'top', 1, 22);
 
-        let angle = t/60 % 360;
+        let angle = t/20 % 360;
         //gradient squares with rotating fills, red, yellow and green
-        r.gradRect(10, 40, 50, 50, 3, 5, angle);
-        r.gradRect(70, 40, 50, 50, 7, 9, (angle + 45) % 360);
-        r.gradRect(140, 40, 50, 50, 11, 13, (angle + 90) % 360);
-
-        //"shade" drawing over the top of the gradient squares.
-        //color indices 65 - 70 are special "shade" colors that darken the color underneath.
-        r.gradRect(10, 60, 200, 50, 66, 69, 90)
-
-        //draw the entire tile palette to top middle
-        r.sspr(0, 0, 64, 72, 200, 30, 64, 72, false, false);
-
-        //tile asset test
-        r.drawTileAsset(0, 110, platformerTest);
-        //shade sky at top 1 shade darker
-        r.fillRect(0, 110, 480, 100, 66, 64, 8);
+        r.gradRect(4, 20, 50, 32, 3, 5, angle);
+        r.gradRect(70, 20, 50, 32, 7, 9, (angle + 45) % 360);
+        r.gradRect(140, 20, 50, 32, 11, 13, (angle + 90) % 360);       
 
         //polygon test
-        r.polygon(240, 160, 30, 7, t / 600, 22);
+        let px = 240, py = 50;
+        for(let i = 0; i < 10; i++) {
+            r.polygon(px, py, 20+i, i+2, t /(100*i), 9+i);
+        }
 
         //polyfill test
         //array of points for a 5 pointed star
@@ -485,16 +658,16 @@ let lastFrameTime = 0;
             { x: -10, y: 30 },
         ];
 
-        r.polyfill(100, 100, points, 22, 22);
+        r.polyfill(100, 100, points, 65, 66);
 
         //fill a field with random tiles and colors
-        r.LCG.state = 0xdeadbeef + Math.floor(t / 100 /60);
+        r.LCG.state = 0xdeadbeef + Math.floor(t / 1000);
         for (let i = 0; i < 20; i++) {
-            for (let j = 0; j < 8; j++) {
+            for (let j = 0; j < 4; j++) {
                 r.drawTile(r.LCG.randomInt(0, 63), 280 + i * 8, 30 + j * 8, r.LCG.randomInt(1, 63), r.LCG.randomInt(1, 63), r.LCG.coinFlip(), r.LCG.coinFlip());
             }
         }
-        r.pat = r.dither[0];
+        r.pat = 0b1111111111111111;
 
     }
 
