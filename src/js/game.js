@@ -508,7 +508,7 @@ let lastFrameTime = 0;
     }
 
     function countdownLoop() {
-        const targetDate = new Date(Date.UTC(2024, 7, 13, 11, 0, 0))
+        const targetDate = new Date(Date.UTC(2024, 7, 13, 16, 0, 0))
         const now = getZuluTime();
         const distance = targetDate - now;
 
