@@ -285,41 +285,41 @@ pset(x, y, color, color2 = 64) {
    * @param {Array} points - The array of points representing the polygon.
    * @returns {Array} - The array of triangles.
    */
-  triangulate(points) {
-    const triangles = [];
-    const n = points.length;
+  // triangulate(points) {
+  //   const triangles = [];
+  //   const n = points.length;
 
-    if (n < 3) return triangles;
+  //   if (n < 3) return triangles;
 
-    const V = [];
-    for (let i = 0; i < n; i++) V[i] = i;
+  //   const V = [];
+  //   for (let i = 0; i < n; i++) V[i] = i;
 
-    let nv = n;
-    let count = 2 * nv;
-    for (let m = 0, v = nv - 1; nv > 2;) {
-      if ((count--) <= 0) return triangles;
+  //   let nv = n;
+  //   let count = 2 * nv;
+  //   for (let m = 0, v = nv - 1; nv > 2;) {
+  //     if ((count--) <= 0) return triangles;
 
-      let u = v;
-      if (nv <= u) u = 0;
-      v = u + 1;
-      if (nv <= v) v = 0;
-      let w = v + 1;
-      if (nv <= w) w = 0;
+  //     let u = v;
+  //     if (nv <= u) u = 0;
+  //     v = u + 1;
+  //     if (nv <= v) v = 0;
+  //     let w = v + 1;
+  //     if (nv <= w) w = 0;
 
-      if (this.snip(points, u, v, w, nv, V)) {
-        const a = V[u];
-        const b = V[v];
-        const c = V[w];
-        triangles.push([points[a], points[b], points[c]]);
-        m++;
-        for (let s = v, t = v + 1; t < nv; s++, t++) V[s] = V[t];
-        nv--;
-        count = 2 * nv;
-      }
-    }
+  //     if (this.snip(points, u, v, w, nv, V)) {
+  //       const a = V[u];
+  //       const b = V[v];
+  //       const c = V[w];
+  //       triangles.push([points[a], points[b], points[c]]);
+  //       m++;
+  //       for (let s = v, t = v + 1; t < nv; s++, t++) V[s] = V[t];
+  //       nv--;
+  //       count = 2 * nv;
+  //     }
+  //   }
 
-    return triangles;
-  }
+  //   return triangles;
+  // }
 
   /**
    * Determines if a point is inside a triangle.
@@ -331,25 +331,25 @@ pset(x, y, color, color2 = 64) {
    * @param {Array} V - The array of vertex indices.
    * @returns {boolean} - True if the point is inside the triangle, false otherwise.
    */
-  snip(points, u, v, w, n, V) {
-    const Ax = points[V[u]].x;
-    const Ay = points[V[u]].y;
-    const Bx = points[V[v]].x;
-    const By = points[V[v]].y;
-    const Cx = points[V[w]].x;
-    const Cy = points[V[w]].y;
+  // snip(points, u, v, w, n, V) {
+  //   const Ax = points[V[u]].x;
+  //   const Ay = points[V[u]].y;
+  //   const Bx = points[V[v]].x;
+  //   const By = points[V[v]].y;
+  //   const Cx = points[V[w]].x;
+  //   const Cy = points[V[w]].y;
 
-    if (0 > (Bx - Ax) * (Cy - Ay) - (By - Ay) * (Cx - Ax)) return false;
+  //   if (0 > (Bx - Ax) * (Cy - Ay) - (By - Ay) * (Cx - Ax)) return false;
 
-    for (let p = 0; p < n; p++) {
-      if ((p === u) || (p === v) || (p === w)) continue;
-      const Px = points[V[p]].x;
-      const Py = points[V[p]].y;
-      if (this.pointInTriangle({ x: Px, y: Py }, { x: Ax, y: Ay }, { x: Bx, y: By }, { x: Cx, y: Cy })) return false;
-    }
+  //   for (let p = 0; p < n; p++) {
+  //     if ((p === u) || (p === v) || (p === w)) continue;
+  //     const Px = points[V[p]].x;
+  //     const Py = points[V[p]].y;
+  //     if (this.pointInTriangle({ x: Px, y: Py }, { x: Ax, y: Ay }, { x: Bx, y: By }, { x: Cx, y: Cy })) return false;
+  //   }
 
-    return true;
-  }
+  //   return true;
+  // }
 
   /**
    * Fills a polygon with a solid color.
@@ -359,20 +359,20 @@ pset(x, y, color, color2 = 64) {
    * @param {number} color1 - The primary color of the polygon.
    * @param {number} color2 - The secondary color used for dithering.
    */
-  polyfill(x, y, points, color1, color2) {
-    const triangles = this.triangulate(points);
+  // polyfill(x, y, points, color1, color2) {
+  //   const triangles = this.triangulate(points);
 
-    for (const triangle of triangles) {
-      const [p1, p2, p3] = triangle;
-      this.fillTriangle(
-        { x: p1.x + x, y: p1.y + y },
-        { x: p2.x + x, y: p2.y + y },
-        { x: p3.x + x, y: p3.y + y },
-        color1,
-        color2
-      );
-    }
-  }
+  //   for (const triangle of triangles) {
+  //     const [p1, p2, p3] = triangle;
+  //     this.fillTriangle(
+  //       { x: p1.x + x, y: p1.y + y },
+  //       { x: p2.x + x, y: p2.y + y },
+  //       { x: p3.x + x, y: p3.y + y },
+  //       color1,
+  //       color2
+  //     );
+  //   }
+  // }
 
 
   /**
@@ -495,48 +495,48 @@ span(x1, x2, y, color, color2 = 64) {
    * @param {number} color2 - The ending color index.
    * @param {number} angle - The angle of the gradient in degrees.
    */
-  gradRect(x, y, w, h, color1, color2, angle) {
-    let prevPat = this.pat;
-    const rad = angle * (Math.PI / 180);
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
+  // gradRect(x, y, w, h, color1, color2, angle) {
+  //   let prevPat = this.pat;
+  //   const rad = angle * (Math.PI / 180);
+  //   const cos = Math.cos(rad);
+  //   const sin = Math.sin(rad);
 
-    // Calculate the projection of the corners
-    const corners = [{ x: 0, y: 0 }, { x: w, y: 0 }, { x: 0, y: h }, { x: w, y: h }];
+  //   // Calculate the projection of the corners
+  //   const corners = [{ x: 0, y: 0 }, { x: w, y: 0 }, { x: 0, y: h }, { x: w, y: h }];
 
-    const projections = corners.map(corner => {
-      const dx = corner.x - w / 2;
-      const dy = corner.y - h / 2;
-      return dx * cos + dy * sin;
-    });
+  //   const projections = corners.map(corner => {
+  //     const dx = corner.x - w / 2;
+  //     const dy = corner.y - h / 2;
+  //     return dx * cos + dy * sin;
+  //   });
 
-    const minProjection = Math.min(...projections);
-    const maxProjection = Math.max(...projections);
-    const projectionRange = maxProjection - minProjection;
+  //   const minProjection = Math.min(...projections);
+  //   const maxProjection = Math.max(...projections);
+  //   const projectionRange = maxProjection - minProjection;
 
-    for (let i = 0; i < w; i++) {
-      for (let j = 0; j < h; j++) {
-        // Calculate position within the gradient
-        const dx = i - w / 2;
-        const dy = j - h / 2;
-        const distance = dx * cos + dy * sin;
+  //   for (let i = 0; i < w; i++) {
+  //     for (let j = 0; j < h; j++) {
+  //       // Calculate position within the gradient
+  //       const dx = i - w / 2;
+  //       const dy = j - h / 2;
+  //       const distance = dx * cos + dy * sin;
 
-        // Normalize distance to range 0 to 1
-        const normalizedDistance = (distance - minProjection) / projectionRange;
+  //       // Normalize distance to range 0 to 1
+  //       const normalizedDistance = (distance - minProjection) / projectionRange;
 
-        // Map normalized distance to a range of 0 to 15 for dither patterns
-        const patternIndex = Math.floor(normalizedDistance * 15);
-        const pattern = Math.max(0, Math.min(15, patternIndex));
+  //       // Map normalized distance to a range of 0 to 15 for dither patterns
+  //       const patternIndex = Math.floor(normalizedDistance * 15);
+  //       const pattern = Math.max(0, Math.min(15, patternIndex));
 
-        // Set the dither pattern
-        this.pat = this.dither[pattern];
+  //       // Set the dither pattern
+  //       this.pat = this.dither[pattern];
 
-        // Draw the pixel with interpolated colors
-        this.pset(x + i, y + j, color1, color2);
-      }
-    }
-    this.pat = prevPat;
-  }
+  //       // Draw the pixel with interpolated colors
+  //       this.pset(x + i, y + j, color1, color2);
+  //     }
+  //   }
+  //   this.pat = prevPat;
+  // }
 
   /**
    * Draws a scaled sprite from a rectangular area in renderSource to a rectangular area in renderTarget.
@@ -634,40 +634,40 @@ span(x1, x2, y, color, color2 = 64) {
    * @param {number} color2 - The ending color index.
    * @param {number} angle - The angle of the gradient in degrees.
    */
-  gradCircle(xm, ym, r, color1, color2, angle) {
-    let prevPat = this.pat; // Preserve the existing pattern setting
+  // gradCircle(xm, ym, r, color1, color2, angle) {
+  //   let prevPat = this.pat; // Preserve the existing pattern setting
 
-    // Convert angle to radians
-    const rad = angle * (Math.PI / 180);
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
+  //   // Convert angle to radians
+  //   const rad = angle * (Math.PI / 180);
+  //   const cos = Math.cos(rad);
+  //   const sin = Math.sin(rad);
 
-    for (let y = -r; y <= r; y++) {
-      for (let x = -r; x <= r; x++) {
-        if (x * x + y * y <= r * r) {
-          // Calculate position within the gradient
-          const dx = x;
-          const dy = y;
-          const distance = dx * cos + dy * sin;
+  //   for (let y = -r; y <= r; y++) {
+  //     for (let x = -r; x <= r; x++) {
+  //       if (x * x + y * y <= r * r) {
+  //         // Calculate position within the gradient
+  //         const dx = x;
+  //         const dy = y;
+  //         const distance = dx * cos + dy * sin;
 
-          // Normalize distance to range 0 to 1
-          const normalizedDistance = (distance + r) / (2 * r);
+  //         // Normalize distance to range 0 to 1
+  //         const normalizedDistance = (distance + r) / (2 * r);
 
-          // Map normalized distance to a range of 0 to 15 for dither patterns
-          const patternIndex = Math.floor(normalizedDistance * 15);
-          const pattern = Math.max(0, Math.min(15, patternIndex));
+  //         // Map normalized distance to a range of 0 to 15 for dither patterns
+  //         const patternIndex = Math.floor(normalizedDistance * 15);
+  //         const pattern = Math.max(0, Math.min(15, patternIndex));
 
-          // Set the dither pattern
-          this.pat = this.dither[pattern];
+  //         // Set the dither pattern
+  //         this.pat = this.dither[pattern];
 
-          // Draw the pixel with interpolated colors
-          this.pset(xm + x, ym + y, color1, color2);
-        }
-      }
-    }
+  //         // Draw the pixel with interpolated colors
+  //         this.pset(xm + x, ym + y, color1, color2);
+  //       }
+  //     }
+  //   }
 
-    this.pat = prevPat; // Restore the previous pattern setting
-  }
+  //   this.pat = prevPat; // Restore the previous pattern setting
+  // }
 
   /**
    * Fills a triangle with a solid color.
@@ -676,21 +676,21 @@ span(x1, x2, y, color, color2 = 64) {
    * @param {object} p3 - The third vertex of the triangle.
    * @param {number} color - The color index to fill the triangle.
    */
-  fillTriangle(p1, p2, p3, color) {
-    // Find bounding box
-    const minX = Math.min(p1.x, p2.x, p3.x);
-    const maxX = Math.max(p1.x, p2.x, p3.x);
-    const minY = Math.min(p1.y, p2.y, p3.y);
-    const maxY = Math.max(p1.y, p2.y, p3.y);
+  // fillTriangle(p1, p2, p3, color) {
+  //   // Find bounding box
+  //   const minX = Math.min(p1.x, p2.x, p3.x);
+  //   const maxX = Math.max(p1.x, p2.x, p3.x);
+  //   const minY = Math.min(p1.y, p2.y, p3.y);
+  //   const maxY = Math.max(p1.y, p2.y, p3.y);
 
-    for (let y = minY; y <= maxY; y++) {
-      for (let x = minX; x <= maxX; x++) {
-        if (this.pointInTriangle({ x, y }, p1, p2, p3)) {
-          this.pset(x, y, color);
-        }
-      }
-    }
-  }
+  //   for (let y = minY; y <= maxY; y++) {
+  //     for (let x = minX; x <= maxX; x++) {
+  //       if (this.pointInTriangle({ x, y }, p1, p2, p3)) {
+  //         this.pset(x, y, color);
+  //       }
+  //     }
+  //   }
+  // }
 
   /**
    * Fills a triangle with a gradient between two colors.
@@ -701,47 +701,47 @@ span(x1, x2, y, color, color2 = 64) {
    * @param {number} color2 - The ending color index.
    * @param {number} angle - The angle of the gradient in degrees.
    */
-  gradTriangle(p1, p2, p3, color1, color2, angle) {
-    let prevPat = this.pat; // Preserve the existing pattern setting
+  // gradTriangle(p1, p2, p3, color1, color2, angle) {
+  //   let prevPat = this.pat; // Preserve the existing pattern setting
 
-    // Convert angle to radians
-    const rad = angle * (Math.PI / 180);
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
+  //   // Convert angle to radians
+  //   const rad = angle * (Math.PI / 180);
+  //   const cos = Math.cos(rad);
+  //   const sin = Math.sin(rad);
 
-    // Find bounding box
-    const minX = Math.min(p1.x, p2.x, p3.x);
-    const maxX = Math.max(p1.x, p2.x, p3.x);
-    const minY = Math.min(p1.y, p2.y, p3.y);
-    const maxY = Math.max(p1.y, p2.y, p3.y);
+  //   // Find bounding box
+  //   const minX = Math.min(p1.x, p2.x, p3.x);
+  //   const maxX = Math.max(p1.x, p2.x, p3.x);
+  //   const minY = Math.min(p1.y, p2.y, p3.y);
+  //   const maxY = Math.max(p1.y, p2.y, p3.y);
 
-    for (let y = minY; y <= maxY; y++) {
-      for (let x = minX; x <= maxX; x++) {
-        if (this.pointInTriangle({ x, y }, p1, p2, p3)) {
-          // Calculate position within the gradient
-          const dx = x - (p1.x + p2.x + p3.x) / 3;
-          const dy = y - (p1.y + p2.y + p3.y) / 3;
-          const distance = dx * cos + dy * sin;
+  //   for (let y = minY; y <= maxY; y++) {
+  //     for (let x = minX; x <= maxX; x++) {
+  //       if (this.pointInTriangle({ x, y }, p1, p2, p3)) {
+  //         // Calculate position within the gradient
+  //         const dx = x - (p1.x + p2.x + p3.x) / 3;
+  //         const dy = y - (p1.y + p2.y + p3.y) / 3;
+  //         const distance = dx * cos + dy * sin;
 
-          // Normalize distance to range 0 to 1
-          const maxDist = Math.max(maxX - minX, maxY - minY);
-          const normalizedDistance = (distance + maxDist / 2) / maxDist;
+  //         // Normalize distance to range 0 to 1
+  //         const maxDist = Math.max(maxX - minX, maxY - minY);
+  //         const normalizedDistance = (distance + maxDist / 2) / maxDist;
 
-          // Map normalized distance to a range of 0 to 15 for dither patterns
-          const patternIndex = Math.floor(normalizedDistance * 15);
-          const pattern = Math.max(0, Math.min(15, patternIndex));
+  //         // Map normalized distance to a range of 0 to 15 for dither patterns
+  //         const patternIndex = Math.floor(normalizedDistance * 15);
+  //         const pattern = Math.max(0, Math.min(15, patternIndex));
 
-          // Set the dither pattern
-          this.pat = this.dither[pattern];
+  //         // Set the dither pattern
+  //         this.pat = this.dither[pattern];
 
-          // Draw the pixel with interpolated colors
-          this.pset(x, y, color1, color2);
-        }
-      }
-    }
+  //         // Draw the pixel with interpolated colors
+  //         this.pset(x, y, color1, color2);
+  //       }
+  //     }
+  //   }
 
-    this.pat = prevPat; // Restore the previous pattern setting
-  }
+  //   this.pat = prevPat; // Restore the previous pattern setting
+  // }
 
   /**
    * Helper function to determine if a point is inside a triangle.
@@ -751,16 +751,16 @@ span(x1, x2, y, color, color2 = 64) {
    * @param {object} p3 - The third vertex of the triangle.
    * @returns {boolean} - True if the point is inside the triangle, false otherwise.
    */
-  pointInTriangle(p, p1, p2, p3) {
-    const d1 = this.sign(p, p1, p2);
-    const d2 = this.sign(p, p2, p3);
-    const d3 = this.sign(p, p3, p1);
+  // pointInTriangle(p, p1, p2, p3) {
+  //   const d1 = this.sign(p, p1, p2);
+  //   const d2 = this.sign(p, p2, p3);
+  //   const d3 = this.sign(p, p3, p1);
 
-    const hasNeg = d1 < 0 || d2 < 0 || d3 < 0;
-    const hasPos = d1 > 0 || d2 > 0 || d3 > 0;
+  //   const hasNeg = d1 < 0 || d2 < 0 || d3 < 0;
+  //   const hasPos = d1 > 0 || d2 > 0 || d3 > 0;
 
-    return !(hasNeg && hasPos);
-  }
+  //   return !(hasNeg && hasPos);
+  // }
 
   /**
    * Helper function to calculate the sign of a point relative to a line.
@@ -769,9 +769,9 @@ span(x1, x2, y, color, color2 = 64) {
    * @param {object} p3 - The second vertex of the line.
    * @returns {number} - The sign value.
    */
-  sign(p1, p2, p3) {
-    return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
-  }
+  // sign(p1, p2, p3) {
+  //   return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+  // }
 
   /**
    * Loads an image into the buffer.
