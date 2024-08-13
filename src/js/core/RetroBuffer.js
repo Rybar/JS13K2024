@@ -443,7 +443,7 @@ span(x1, x2, y, color, color2 = 64) {
    * @param {number} color - The primary color of the rectangle.
    * @param {number} [color2=64] - The secondary color used for dithering.
    */
-  rect(x, y, w, h, color, color2 = 64) {
+  lRect(x, y, w, h, color, color2 = 64) {
     color = color;
     let x1 = x | 0;
     let y1 = y | 0;
@@ -465,7 +465,7 @@ span(x1, x2, y, color, color2 = 64) {
    * @param {number} color - The primary color of the rectangle.
    * @param {number} [color2=64] - The secondary color used for dithering.
    */
-  fillRect(x, y, w, h, color, color2 = 64, ditherPattern=0) {
+  fRect(x, y, w, h, color, color2 = 64, ditherPattern=0) {
     let x1 = x | 0;
     let y1 = y | 0;
     let x2 = ((x + w) | 0) - 1;
@@ -849,7 +849,7 @@ span(x1, x2, y, color, color2 = 64) {
                 color, color2
               );
             } else {
-              this.fillRect(
+              this.fRect(
                 x + xi * scale + (size * scale + hspacing) * i,
                 y + yi * scale,
                 scale,

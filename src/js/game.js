@@ -12,6 +12,9 @@ import spawn from './sounds/spawn.js';
 //tile assets
 import background1 from '../assets/background1.js';
 
+//entities
+import Player from './entities/player.js';
+
 (function () {
     document.body.style = "margin:0; background-color:black; overflow:hidden";
     const w = 480, h = 270;
@@ -30,7 +33,6 @@ import background1 from '../assets/background1.js';
     });
 
     function gameInit() {
-        window.playSound = playSound;
         gamebox = document.getElementById("game");
         gamebox.appendChild(r.c);
         createEventListeners();
@@ -38,21 +40,27 @@ import background1 from '../assets/background1.js';
     }
 
     window.t = 0;
+    player = null;
     sounds = {};
     soundsReady = 0;
     totalSounds = 8;
     audioTxt = "";
     debugText = "";
+    TITLESCREEN = 2;
+    GAMESCREEN = 1;
     gamestate = 0;
     started = false;
     entitiesArray = [];
     lastFrameTime = 0;
+    paused = false;
     view = { x: 0, y: 0, w: w, h: h };
 
 
     function initGameData() {
         //initialize game data
         entitiesArray = [];
+        player = new Player(w / 2, h / 2);
+        entitiesArray.push(player);
     }
 
     function initAudio() {
@@ -97,8 +105,12 @@ import background1 from '../assets/background1.js';
     }
 
     function updateGame(deltaTime) {
+        if(paused) { return; }
+        handleInput();
         t += deltaTime;
         entitiesArray.forEach(entity => entity.update());
+
+        
     }
 
     function drawGame() {
@@ -108,10 +120,20 @@ import background1 from '../assets/background1.js';
         r.pat = 0b1111111111111111;
         r.drawTileAsset(0, 50, background1);
 
-        drawEntities(entitiesArray);
 
         r.text("GAME", w / 2, 10, 1, 1, 'center', 'top', 1, 22);
+
+        debugText= `FPS: ${Math.round(1000 / (t - lastFrameTime))}`;
+        debugPlayerText = `PLAYER: ${player.x}, ${player.y}`;
+        r.text(debugPlayerText, 10, 30, 1, 1, 'left', 'top', 1, 22);
+        r.text(debugText, 10, 10, 1, 1, 'left', 'top', 1, 22);
+
+        //r.fRect(player.x, player.y, 10, 10, 4, 4);
+        drawEntities(entitiesArray);
+        player.draw(r, view);
+
         
+        if (paused) { drawPaused(); }
         r.render();
     }
 
@@ -149,8 +171,7 @@ import background1 from '../assets/background1.js';
                 initAudio();
                 started = true;
             } else {
-                callOnce(tadaSplode());
-                gamestate = 2;
+                gamestate = GAMESCREEN;
             }
         };
 
@@ -232,7 +253,6 @@ import background1 from '../assets/background1.js';
     function drawEntities(entitiesArray) {
         for (let i = 0; i < entitiesArray.length; i++) {
             let e = entitiesArray[i];
-            e.update();
             e.draw(r, view);
         }
     }
@@ -257,23 +277,35 @@ import background1 from '../assets/background1.js';
                     titlescreen();
                     break;
             }
-            pruneDead(entitiesArray);
-            pruneScreen(entitiesArray);
+            //pruneDead(entitiesArray);
+            //pruneScreen(entitiesArray);
             Key.update();
             // stats.end();
             requestAnimationFrame(gameloop);
         }
     }
 
-    function tadaSplode() {
-        //make some splodes at random positions
-        for (let i = 0; i < 10; i++) {
-            entitiesArray.push(
-                new Splode(rand(0, w), rand(0, h), 200, rand(1, 63))
-            )
+    function handleInput() {
+        if (Key.justReleased(Key.ESC) || Key.justReleased(Key.p)) {
+            paused = !paused;
+            console.log('paused', paused);
         }
+        if (Key.isDown(Key.LEFT) || Key.isDown(Key.a)) {
+            player.acceleration.x = -0.1;
+        } else if (Key.isDown(Key.RIGHT) || Key.isDown(Key.d)) {
+            player.acceleration.x = 0.1;
+        }
+        if (Key.isDown(Key.UP) || Key.isDown(Key.w)) {
+            player.acceleration.y = -0.1;
+        } else if (Key.isDown(Key.DOWN) || Key.isDown(Key.s)) {
+            player.acceleration.y = 0.1;
+        }
+        
+    }
 
-        playSound(sounds.tada, 1, 0, 1, false);
+    function drawPaused() {
+        r.fRect(0, 0, w, h, 66, 67, 8);
+        r.text("PAUSED", w / 2, h / 2, 1, 1, 'center', 'middle', 1, 22);
     }
 
 })();
