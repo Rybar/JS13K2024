@@ -93,7 +93,11 @@ export const Key = {
   },
 
   update() {
-      this._released = {};
+    // reset the released keys without creating new objects
+    for (let key in this._released) {
+      delete this._released[key];
+    
+    }
   }
 };
 

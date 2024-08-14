@@ -1,7 +1,6 @@
 import RetroBuffer from './core/RetroBuffer.js';
 import MusicPlayer from './core/musicplayer.js';
-import { playSound, Key, inView, callOnce, rand, resizeCanvas, loadAtlas, choice } from './core/utils.js';
-import Splode from './gfx/Splode.js';
+import { playSound, Key, inView, callOnce, rand, resizeCanvas, loadAtlas, lerp } from './core/utils.js';
 
 //sound assets
 import tada from './sounds/tada.js';
@@ -14,6 +13,8 @@ import background1 from '../assets/background1.js';
 
 //entities
 import Player from './entities/player.js';
+import Floor from './entities/floor.js';
+import Map from './entities/map.js';
 
 (function () {
     document.body.style = "margin:0; background-color:black; overflow:hidden";
@@ -24,7 +25,7 @@ import Player from './entities/player.js';
     atlasImage.src = atlasURL;
 
     loadAtlas(atlasURL, (atlas) => {
-        const r = new RetroBuffer(w, h, atlas, 3);
+        const r = new RetroBuffer(w, h, atlas, 5);
         window.r = r;
         document.getElementById('game').appendChild(r.c);
         document.getElementById('game').style.background = "none";
@@ -40,6 +41,7 @@ import Player from './entities/player.js';
     }
 
     window.t = 0;
+    text = "";
     player = null;
     sounds = {};
     soundsReady = 0;
@@ -51,16 +53,38 @@ import Player from './entities/player.js';
     gamestate = 0;
     started = false;
     entitiesArray = [];
+    floors = [];
+    rooms = [];
+    map = null;
     lastFrameTime = 0;
     paused = false;
-    view = { x: 0, y: 0, w: w, h: h };
+    tileSize = 8;
+    view = {
+        x: 0, y: 0,
+        target: {x: 0, y: 0},
+         w: w, h: h
+        };
 
 
     function initGameData() {
         //initialize game data
         entitiesArray = [];
-        player = new Player(w / 2, h / 2);
+        floors.push(new Floor(480, 270, 40,25));
+        rooms = floors[0].rooms;
+        //pick random room
+        let room = rooms[Math.floor(Math.random() * rooms.length)];
+        let startX = room.x + room.width / 2;
+        let startY = room.y + room.height / 2;
+        player = new Player(startX * tileSize, startY * tileSize);
         entitiesArray.push(player);
+
+        //draw to buffer for tilemap
+        r.renderTarget = r.PAGE_3;
+        drawEntities(rooms);
+        r.renderTarget = r.SCREEN;
+
+        map = new Map(480, 270, tileSize, r, r.PAGE_3);
+
     }
 
     function initAudio() {
@@ -109,31 +133,38 @@ import Player from './entities/player.js';
         handleInput();
         t += deltaTime;
         entitiesArray.forEach(entity => entity.update());
-
-        
+        rooms.forEach(room => {room.update(player);});
+        cameraFollow();
     }
 
     function drawGame() {
-        r.clear(13, r.SCREEN);
+        r.clear(1, r.SCREEN);
 
         // Draw background
         r.pat = 0b1111111111111111;
-        r.drawTileAsset(0, 50, background1);
+        //r.drawTileAsset(0-view.x, 50-view.y, background1);
 
+        //draw things
+        map.draw(r, view);
+        drawEntities(entitiesArray);
 
-        r.text("GAME", w / 2, 10, 1, 1, 'center', 'top', 1, 22);
+        if (paused) { drawPaused(); }
 
-        debugText= `FPS: ${Math.round(1000 / (t - lastFrameTime))}`;
-        debugPlayerText = `PLAYER: ${player.x}, ${player.y}`;
-        r.text(debugPlayerText, 10, 30, 1, 1, 'left', 'top', 1, 22);
+        text = "GAME"
+        r.text(text, w / 2, 10, 1, 1, 'center', 'top', 1, 22);
+        // Draw debug text
+        debugText= `FPS: ${Math.round(1000 / (t - lastFrameTime))}\nPLAYER: ${player.x}, ${player.y}`;
         r.text(debugText, 10, 10, 1, 1, 'left', 'top', 1, 22);
 
-        //r.fRect(player.x, player.y, 10, 10, 4, 4);
-        drawEntities(entitiesArray);
-        player.draw(r, view);
+        //draw Minimum Spanning Tree of floor 
 
-        
-        if (paused) { drawPaused(); }
+        // floors[0].mst.forEach(edge => {
+        //     r.line(edge.roomA.x - view.x + edge.roomA.width / 2,
+        //         edge.roomA.y - view.y + edge.roomA.height / 2,
+        //         edge.roomB.x - view.x + edge.roomB.width / 2,
+        //         edge.roomB.y - view.y + edge.roomB.height / 2, 22);
+        // })
+
         r.render();
     }
 
@@ -141,10 +172,10 @@ import Player from './entities/player.js';
         r.clear(64, r.SCREEN);
         r.drawTileAsset(0, 0, background1);
         drawEntities(entitiesArray);
-        let txt = "SIX AND SEVEN";
-        r.text(txt, w / 2, 100, 4, 1, 'center', 'top', 4, 22);
-        txt = "CLICK TO START";
-        r.text(txt, w / 2, 125, 1, 1, 'center', 'top', 1, 22);
+        text = "SIX AND SEVEN";
+        r.text(text, w / 2, 100, 4, 1, 'center', 'top', 4, 22);
+        text = "CLICK TO START";
+        r.text(text, w / 2, 125, 1, 1, 'center', 'top', 1, 22);
         //countdownLoop();
         r.render();
     }
@@ -159,10 +190,9 @@ import Player from './entities/player.js';
 
         r.clear(64, r.SCREEN);
         r.renderTarget = r.SCREEN;
-        r.pat = 0b1111111111111111;
 
-        let txt = "SIX AND SEVEN";
-        r.text(txt, w / 2, 100, 4, 1, 'center', 'top', 4, 2);
+        text = "SIX AND SEVEN";
+        r.text(text, w / 2, 100, 4, 1, 'center', 'top', 4, 2);
 
         r.text(audioTxt, w / 2 - 2, 130, 1, 1, 'center', 'top', 1, 22);
         if (Key.justReleased(Key.UP) || Key.justReleased(Key.w) || Key.justReleased(Key.z)) {
@@ -175,9 +205,9 @@ import Player from './entities/player.js';
             }
         };
 
-        audioTxt = "CLICK TO ALLOW AUDIOCONTEXT TO CONTINUE\n";
+        audioTxt = "CLICK TO BEGIN GENERATION PROCESS\n";
         if (soundsReady == totalSounds) {
-            audioTxt = "ALL SOUNDS RENDERED.\nPRESS UP/W/Z TO CONTINUE";
+            audioTxt = "ALL ASSETS CREATED.\nPRESS UP/W/Z TO CONTINUE";
         } else if (started) {
             audioTxt = "SOUNDS RENDERING... " + soundsReady;
         } else {
@@ -253,7 +283,7 @@ import Player from './entities/player.js';
     function drawEntities(entitiesArray) {
         for (let i = 0; i < entitiesArray.length; i++) {
             let e = entitiesArray[i];
-            e.draw(r, view);
+            if(inView(e, 240)){e.draw(r, view);}
         }
     }
 
@@ -285,27 +315,40 @@ import Player from './entities/player.js';
         }
     }
 
-    function handleInput() {
+    function cameraFollow() {
+        //implement deadzone
+        deadzone = { x: 200, y: 100 };
+        if(player.x - view.x > w - deadzone.x) {
+            view.target.x = player.x - w + deadzone.x;
+        }
+        if(player.x - view.x < deadzone.x) {
+            view.target.x = player.x - deadzone.x;
+        }
+        if(player.y - view.y > h - deadzone.y) {
+            view.target.y = player.y - h + deadzone.y;
+        }
+        if(player.y - view.y < deadzone.y) {
+            view.target.y = player.y - deadzone.y;
+        }
+
+        //lerp camera to target
+        view.x = lerp(view.x, view.target.x, 0.1);
+        view.y = lerp(view.y, view.target.y, 0.1);
+
+    }
+
+   function handleInput() {
         if (Key.justReleased(Key.ESC) || Key.justReleased(Key.p)) {
             paused = !paused;
             console.log('paused', paused);
         }
-        if (Key.isDown(Key.LEFT) || Key.isDown(Key.a)) {
-            player.acceleration.x = -0.1;
-        } else if (Key.isDown(Key.RIGHT) || Key.isDown(Key.d)) {
-            player.acceleration.x = 0.1;
-        }
-        if (Key.isDown(Key.UP) || Key.isDown(Key.w)) {
-            player.acceleration.y = -0.1;
-        } else if (Key.isDown(Key.DOWN) || Key.isDown(Key.s)) {
-            player.acceleration.y = 0.1;
-        }
-        
+        player.handleInput(Key);    
     }
 
     function drawPaused() {
         r.fRect(0, 0, w, h, 66, 67, 8);
-        r.text("PAUSED", w / 2, h / 2, 1, 1, 'center', 'middle', 1, 22);
+        text = "PAUSED";
+        r.text(text, w / 2, h / 2, 1, 1, 'center', 'middle', 1, 22);
     }
 
 })();

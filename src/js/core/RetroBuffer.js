@@ -107,6 +107,7 @@ class RetroBuffer {
     this.buf8 = new Uint8Array(this.buf);
     this.data = new Uint32Array(this.buf);
     this.ram = new Uint8Array(this.WIDTH * this.HEIGHT * this.PAGES);
+    this.charBuffer = new Uint8Array(25);
 
     // Brightness LUT, top 64 colors are 100% brightness, gradually decreasing to 0% brightness at row 6. 
     this.brightness = [];
@@ -144,8 +145,10 @@ class RetroBuffer {
  * @param {number} [color2=64] - The secondary color used for dithering.
  */
 pset(x, y, color, color2 = 64) {
-  x = Math.round(x);
-  y = Math.round(y);
+  x = x | 0;
+  y = y | 0;
+  if (x < 0 || x > this.WIDTH - 1) return;
+  if (y < 0 || y > this.HEIGHT - 1) return;
 
   // Check for color indices 65 thru 70 and adjust based on brightness table
   
@@ -159,22 +162,20 @@ pset(x, y, color, color2 = 64) {
       : (color | 0) % 64;
   }
 
-  if (color2 >= 65 && color2 <= 69) {
-    let currentColor = this.pget(x, y, this.renderTarget);
-    let brightnessRow = color2 - 66 + 1; // Map 65 to 1, 66 to 2, ..., 70 to 6
-    color2 = this.brightness[brightnessRow * 64 + currentColor];
-  } else {
-    color2 = this.stencil
-      ? this.pget(x, y, this.stencilSource) + this.stencilOffset
-      : (color2 | 0) % 64;
-  }
+  // if (color2 >= 65 && color2 <= 69) {
+  //   let currentColor = this.pget(x, y, this.renderTarget);
+  //   let brightnessRow = color2 - 66 + 1; // Map 65 to 1, 66 to 2, ..., 70 to 6
+  //   color2 = this.brightness[brightnessRow * 64 + currentColor];
+  // } else {
+  //   color2 = this.stencil
+  //     ? this.pget(x, y, this.stencilSource) + this.stencilOffset
+  //     : (color2 | 0) % 64;
+  // }
 
   let px = (y % 4) * 4 + (x % 4);
   let mask = this.pat & Math.pow(2, px);
   let pcolor = mask ? color : color2;
   if (pcolor == 0) return;
-  if (x < 0 || x > this.WIDTH - 1) return;
-  if (y < 0 || y > this.HEIGHT - 1) return;
 
   this.ram[this.renderTarget + y * this.WIDTH + x] = pcolor;
 }
@@ -383,7 +384,7 @@ pset(x, y, color, color2 = 64) {
    * @param {number} color - The primary color of the circle.
    * @param {number} [color2=64] - The secondary color used for dithering.
    */
-  circle(xm, ym, r, color, color2 = 64) {
+  lCircle(xm, ym, r, color, color2 = 64) {
     xm = xm | 0;
     ym = ym | 0;
     r = r | 0;
@@ -408,7 +409,7 @@ pset(x, y, color, color2 = 64) {
  * @param {number} color - The primary color of the circle.
  * @param {number} [color2=64] - The secondary color used for dithering.
  */
-fillCircle(xm, ym, r, color, color2 = 64) {
+fCircle(xm, ym, r, color, color2 = 64) {
   if (r < 0) return;
   for(let x = -r; x < r; x++){
     let height = (Math.sqrt(r*r - x*x));
@@ -432,7 +433,6 @@ span(x1, x2, y, color, color2 = 64) {
     this.pset(x, y, color, color2);
   }
 }
-
 
   /**
    * Draws a rectangle.
@@ -473,15 +473,15 @@ span(x1, x2, y, color, color2 = 64) {
     color = color;
     this.pat = this.dither[ditherPattern];
     var i = Math.abs(y2 - y1);
-    this.line(x1, y1, x2, y1, color, color2);
+    this.span(x1, x2, y1, color, color2);
 
     if (i > 0) {
       while (--i) {
-        this.line(x1, y1 + i, x2, y1 + i, color, color2);
+        this.span(x1, x2, y1 + i, color, color2);
       }
     }
 
-    this.line(x1, y2, x2, y2, color, color2);
+    this.span(x1, x2, y2, color, color2);
     this.pat = this.dither[0];
   }
 
@@ -581,6 +581,27 @@ span(x1, x2, y, color, color2 = 64) {
   }
 
   /**
+ * Draws a portion of the buffer to the screen without scaling or flipping.
+ * @param {number} sx - The x-coordinate of the top-left corner of the sprite in the source image.
+ * @param {number} sy - The y-coordinate of the top-left corner of the sprite in the source image.
+ * @param {number} sw - The width of the sprite in the source image.
+ * @param {number} sh - The height of the sprite in the source image.
+ * @param {number} x - The x-coordinate of the top-left corner of the sprite on the screen.
+ * @param {number} y - The y-coordinate of the top-left corner of the sprite on the screen.
+ */
+spr(sx = 0, sy = 0, sw = 8, sh = 8, x = 0, y = 0) {
+  for (let i = 0; i < sh; i++) {
+      for (let j = 0; j < sw; j++) {
+          const source = this.pget(sx + j, sy + i, this.renderSource);
+          const color = this.pal[source];
+          if (color == 0) continue; // Skip transparent pixels
+          this.pset(x + j, y + i, color);
+      }
+  }
+}
+
+
+  /**
    * Draws a tile from the tile atlas.
    * @param {number} tileIndex - The index of the tile in the tile atlas.
    * @param {number} x - The x-coordinate to draw the tile.
@@ -593,7 +614,7 @@ span(x1, x2, y, color, color2 = 64) {
     this.pal[22] = color2;
     let tileX = (tileIndex % 8) * 8;
     let tileY = Math.floor(tileIndex / 8) * 8;
-    this.sspr(tileX, tileY, 8, 8, x, y, 8, 8, false, false);
+    this.spr(tileX, tileY, 8, 8, x, y);
     this.pal = this.palDefault.slice();
   }
 
@@ -612,6 +633,8 @@ span(x1, x2, y, color, color2 = 64) {
   
     for (let row = 0; row < height; row++) {
       for (let col = 0; col < width; col++) {
+        //check if the tile is on the screen
+        if (startX + col * tileSize < -tileSize || startX + col * tileSize > this.WIDTH) continue;
         const index = (row * width + col) * 3;
         const tileIndex = data[index];
         const color1 = data[index + 1];
@@ -619,7 +642,7 @@ span(x1, x2, y, color, color2 = 64) {
         
         const x = startX + col * tileSize;
         const y = startY + row * tileSize;
-  
+        
         this.drawTile(tileIndex, x, y,  color2, color1);
       }
     }
@@ -797,27 +820,27 @@ span(x1, x2, y, color, color2 = 64) {
    * Renders the buffer to the canvas.
    */
   render() {
-    var i = this.PAGESIZE;
+    var i = this.PAGESIZE+1;
 
     while (i--) {
-      if (i > 0) this.data[i] = this.colors[this.pal[this.ram[i]]];
+      if (i > 0) this.data[i-1] = this.colors[this.pal[this.ram[i-1]]];
     }
 
     this.imageData.data.set(this.buf8);
-    this.c.width = this.c.width;
+    //this.c.width = this.c.width;
     this.ctx.putImageData(this.imageData, 0, 0);
   }
 
-  /**
-   * Gets the binary representation of a character.
-   * @param {string} char - The character to get.
-   * @returns {Uint8Array} - The binary representation of the character.
-   */
-  getCharacter(char) {
+  getCharacter(char, buffer) {
     let index = this.fontString.indexOf(char);
     let start = index * 25;
-    let end = start + 25;
-    return this.fontBitmap.slice(start, end);
+
+    // Copy the character's binary data into the provided buffer
+    for (let i = 0; i < 25; i++) {
+        buffer[i] = this.fontBitmap[start + i];
+    }
+
+    return buffer;
   }
 
   /**
@@ -837,7 +860,7 @@ span(x1, x2, y, color, color2 = 64) {
     var size = 5;
 
     for (var i = 0; i < textLength; i++) {
-      var letter = this.getCharacter(text.charAt(i));
+      var letter = this.getCharacter(text.charAt(i), this.charBuffer);
 
       for (var yi = 0; yi < size; yi++) {
         for (var xi = 0; xi < size; xi++) {

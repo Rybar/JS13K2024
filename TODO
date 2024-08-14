@@ -1,8 +1,0 @@
-getting started guide
-demo selection
-document where to put palette and charmap for playscii creation
-.char file for playscii font
-replace titlescreen with JS13K art
-make a 'GAME' state with an MVG: tiny shooter, pong, etc.
-particle system
-aabb collision response
