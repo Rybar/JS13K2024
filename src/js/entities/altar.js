@@ -3,7 +3,7 @@ export default class Altar {
     constructor(x, y, torchCount=3) {
         this.x = x*8;
         this.y = y*8;
-        this.radius = 32;
+        this.radius = 40;
         this.torchCount = torchCount;
         this.torches = [];
         this.lit = false;
@@ -11,17 +11,34 @@ export default class Altar {
         this.fill = 12;
         this.completeColor = 13;
         this.generateTorches();
-        this.bloodRequired = 100;
+        this.bloodRequired = 20;
     }
 
     update() {
-        this.torches.forEach(t => t.update());
-        this.lit = this.torches.filter(t => t.lit).length === this.torchCount;
+        this.torches.forEach(torch => torch.update());
+        this.lit = this.torches.filter(torch => torch.lit).length === this.torchCount;
         this.annointed = this.lit && this.bloodRequired === 0;
+        if(this.annointed) {
+            this.fill = this.completeColor;
+            //can't be unlit
+            this.lit = true;
+            this.torches.forEach(torch => torch.health = 25);
+
+        }
         this.fill = this.annointed ? this.completeColor : 12;
         if(this.lit && this.bloodRequired > 0) {
 
-            this.bloodRequired--; //temporary auto countdown for testing
+            //distance to player
+            let dx = player.x - this.x;
+            let dy = player.y - this.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            if(dist < 20 && player.isFiring) {
+                if(player.gremlinBlood > 0) {
+                    this.bloodRequired--;
+                    player.gremlinBlood--;
+                }
+
+            }
         }
     }
 
@@ -30,7 +47,8 @@ export default class Altar {
         for(let i = 0; i < this.torchCount; i++) {
             let torch = this.torches[i];
             let nextTorch = this.torches[(i + 1) % this.torchCount];
-            r.line(torch.x - view.x, torch.y - view.y, nextTorch.x - view.x, nextTorch.y - view.y, 2);
+            let lineColor = torch.lit && nextTorch.lit ? 22 : 1;
+            r.line(torch.x - view.x, torch.y - view.y, nextTorch.x - view.x, nextTorch.y - view.y, lineColor);
         }
         //draw lines connecting torches to altar
         for(let i = 0; i < this.torchCount; i++) {

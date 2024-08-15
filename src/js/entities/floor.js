@@ -1,5 +1,6 @@
 import Room from './room';
 import Altar from './altar';
+import Portal from './portal';
 
 export default class Floor {
     constructor(width, height, maxRoomWidth, maxRoomHeight) {
@@ -109,12 +110,21 @@ export default class Floor {
     }
 
     placeAltars(featureRooms) {
+        let portalPlaced = false;
         featureRooms.forEach(room => {
             const x = room.x + Math.floor(room.width / 2);
             const y = room.y + Math.floor(room.height / 2);
             //push a random number of torches into the room, arranged in a circle
-            const numTorches = Math.floor(Math.random() * 9) + 3;
-            room.altar = new Altar(x, y, numTorches);
+            const numTorches = Math.floor(Math.random() * 5) + 3;
+            if (!portalPlaced) {
+                console.log('portal placed');
+                room.portal = new Portal(x, y);
+                portalLocation = {x, y};
+                console.log(portalLocation);
+                portalPlaced = true;
+            } else {
+                room.altar = new Altar(x, y, numTorches)
+            };
         });
     }
 

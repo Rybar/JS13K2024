@@ -24,7 +24,17 @@ export function callOnce(fn){
     called = true;
     fn();
   }
-}   
+}
+
+export function tileCollisionCheck(map, entity) {
+  if(map.getTileAtPixel(entity.x, entity.y) === 0 |
+      map.getTileAtPixel(entity.x+entity.width, entity.y) === 0 |
+      map.getTileAtPixel(entity.x, entity.y-entity.height) === 0 |
+      map.getTileAtPixel(entity.x+entity.width, entity.y-entity.height) === 0) {
+      return true
+  }
+  return false
+}
 
 export function playSound(buffer, playbackRate = 1, pan = 0, volume = .5, loop = false) {
 

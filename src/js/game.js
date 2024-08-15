@@ -53,11 +53,15 @@ import Gremlin from './entities/gremlin.js';
     GAMESCREEN = 1;
     gamestate = 0;
     started = false;
-    entitiesArray = [];
+    window.entitiesArray = [];
+    window.gremlinsArray = [];
+    window.portalLocation = { x: 0, y: 0 };
     floors = [];
     rooms = [];
     map = null;
+    fps = 0;
     lastFrameTime = 0;
+    frameCount = 0;
     paused = false;
     tileSize = 8;
     view = {
@@ -70,6 +74,7 @@ import Gremlin from './entities/gremlin.js';
     function initGameData() {
         //initialize game data
         entitiesArray = [];
+        gremlinsArray = [];
         floors.push(new Floor(480, 270, 40,25));
         rooms = floors[0].rooms;
         window.rooms = rooms;
@@ -79,7 +84,7 @@ import Gremlin from './entities/gremlin.js';
         let startY = room.y + room.height / 2;
         player = new Player(startX * tileSize, startY * tileSize);
         gremlin = new Gremlin((startX + 2) * tileSize, (startY + 2) * tileSize);
-        entitiesArray.push(gremlin);
+        gremlinsArray.push(gremlin);
         entitiesArray.push(player);
         
         window.map = new Map(480, 270, tileSize, r.PAGE_3);
@@ -128,12 +133,18 @@ import Gremlin from './entities/gremlin.js';
     }
 
     function updateGame(deltaTime) {
-        if(paused) { return; }
         handleInput();
+        if(paused) { return; }
         t += deltaTime;
-        entitiesArray.forEach(entity => entity.update());
-       
         rooms.forEach(room => {room.update(player);});
+        entitiesArray.forEach(entity => entity.update());
+        gremlinsArray.forEach(gremlin => gremlin.update());
+
+        //spawn another gremlin near player every 5 seconds
+        if(t % 5000 < deltaTime) {
+            spawnGremlin();
+        }
+       
         map.update();
         
         cameraFollow();
@@ -148,15 +159,14 @@ import Gremlin from './entities/gremlin.js';
 
         //draw things
         map.draw(r, view);
-        drawEntities(entitiesArray);
         rooms.forEach(room => {room.drawAltar(r, view);});
+        drawEntities(entitiesArray);
+        drawEntities(gremlinsArray);
 
         if (paused) { drawPaused(); }
-
-        text = "GAME"
-        r.text(text, w / 2, 10, 1, 1, 'center', 'top', 1, 22);
+;
         // Draw debug text
-        debugText= `FPS: ${Math.round(1000 / (t - lastFrameTime))}\nPLAYER: ${player.x}, ${player.y}`;
+        debugText= `FPS: ${fps.toFixed(2)}\nPLAYER: ${player.x}, ${player.y}`;
         r.text(debugText, 10, 10, 1, 1, 'left', 'top', 1, 22);
 
         //draw Minimum Spanning Tree of floor 
@@ -212,9 +222,9 @@ import Gremlin from './entities/gremlin.js';
         if (soundsReady == totalSounds) {
             audioTxt = "ALL ASSETS CREATED.\nPRESS UP/W/Z TO CONTINUE";
         } else if (started) {
-            audioTxt = "SOUNDS RENDERING... " + soundsReady;
+            audioTxt = "RETICULATING SPLINES... " + soundsReady;
         } else {
-            audioTxt = "CLICK TO ALLOW AUDIOCONTEXT TO CONTINUE";
+            audioTxt = "CLICK TO BEGIN GENERATION PROCESS\n";
         }
         r.render();
     }
@@ -286,37 +296,41 @@ import Gremlin from './entities/gremlin.js';
     function drawEntities(entitiesArray) {
         for (let i = 0; i < entitiesArray.length; i++) {
             let e = entitiesArray[i];
-            if(inView(e, 240)){e.draw(r, view);}
+            if(inView(e, 8)){e.draw(r, view);}
         }
     }
 
-    function gameloop(timestamp) {
+    function gameloop() {
+        const timestamp = performance.now();
         const deltaTime = timestamp - lastFrameTime;
-        lastFrameTime = timestamp;
-
+        const fpsInterval = 1000 / 60;
+        frameCount++;
+        if (timestamp - lastFrameTime >= fpsInterval) {
+            fps = (frameCount * 1000) / (timestamp - lastFrameTime);
+            lastFrameTime = timestamp;
+            frameCount = 0;
+            //console.log(`FPS: ${fps.toFixed(2)}`);
+        }
+    
         if (1 == 1) {
-            //stats.begin();
             switch (gamestate) {
                 case 0:
                     preload();
-                    //updateGame(deltaTime);
                     break;
-                case 1: //game
+                case 1:
                     updateGame(deltaTime);
                     drawGame();
                     break;
                 case 2:
-                    //updateGame(deltaTime);
                     titlescreen();
                     break;
             }
-            //pruneDead(entitiesArray);
-            //pruneScreen(entitiesArray);
             Key.update();
-            // stats.end();
+            pruneDead(entitiesArray);
             requestAnimationFrame(gameloop);
         }
     }
+    
 
     function cameraFollow() {
         //implement deadzone
@@ -352,6 +366,35 @@ import Gremlin from './entities/gremlin.js';
         r.fRect(0, 0, w, h, 66, 67, 8);
         text = "PAUSED";
         r.text(text, w / 2, h / 2, 1, 1, 'center', 'middle', 1, 22);
+        drawMiniMap();
     }
+
+    function drawMiniMap() {
+        r.renderSource = r.PAGE_3;
+        r.renderTarget = r.SCREEN;
+        r.fRect(0, 0, 480,270,0);
+        r.spr(0,0,480,270,0,0);
+        //draw player position
+        r.fRect(player.x/8-1, player.y/8-1, 2, 2, 22);
+        //draw portal position
+        r.fRect(portalLocation.x-1, portalLocation.y-1, 3, 3, 7);
+        
+    }
+
+    function spawnGremlin() {
+        //find a walkable tile near player to spawn gremlin
+        let x = player.x + rand(-90, 90);
+        let y = player.y + rand(-90, 90);
+        let tries = 0;
+        while(map.getTileAtPixel(x, y) == 0 && tries < 100) {
+            x = player.x + rand(-90, 90);
+            y = player.y + rand(-90, 90);
+            tries++;
+        }
+        if(tries < 100) {
+            gremlinsArray.push(new Gremlin(x, y));
+        }
+    }
+
 
 })();

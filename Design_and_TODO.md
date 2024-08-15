@@ -9,26 +9,43 @@ Higher numbered rooms, while easier to activate, raise more alarm and difficulty
 
 
 TODO:
--player
-    -has an attack verb that damages enemies.
-    -action verb required to 
--Enemies
-    -move towards torches if lit, extinguish them on contact
-    -move towards player if close enough
-    -damage player if contact made with player
-    -stay seperate from each other / dont clump together
+### player
+- [x] has an attack verb that damages enemies.
+- [x] action verb required to light torches
+- [x] collision reworked/debugged
+- [ ] can dodge 
 
-Room / torch logic refinement
-    new object: altar. altar will have and track torches.
-    Altar has a minimum of 3 torches (triangle)
-    Once torches are lit, the altar must be annointed with gremlin blood in it's center. the more torches the altar has, the more blood is required to fully activate the altar.
+### Enemies
+- [x] move towards torches if lit, extinguish them on contact
+- [x] move towards player if close enough
+- [x] damage player if contact made with player
+- [ ] stay seperate from each other / dont clump together
+- [x] drop gremlin blood when killed
+- [x] uses player collision
+- [ ] telegraphs attack before attacking
+- [ ] brute gremlin type
 
-    new object: Exit portal
-    activated when altars are complete that sum 13.
-    stand in its center to be evaporated to the next floor.
+### Room / torch logic refinement
+- [x] new object: altar. altar will have and track torches.
+- [x] Altar has a minimum of 3 torches (triangle)
+- [x] Once torches are lit, the altar must be annointed with gremlin blood in it's center
+- [ ]the more torches the altar has, the more blood is required to fully activate the altar.
+- [ ] As more altars are lit, stronger gremlins are deployed to your position.
+- [ ] altars with higher number of torch points attract more aggression.
+- [ ] hitting 13 complete altar points triggers a ton of enemy spawns
 
-    As more altars are lit, stronger gremlins are deployed to your position. altars with higher number of torch points attract more aggression.
-    
+### Map Generation
+- [x] no connections too small for player to get through
+- [ ] fewer noise/garbage rooms kept
 
+### new object: Exit portal
+- [ ] activated when altars are complete that sum 13.
+- [ ] stand in its center to be evaporated to the next floor.
+
+
+### general todos
+- [ ] gamepad support
+- [ ] floor win condition, next floor generation
+- [ ] particles
 
 

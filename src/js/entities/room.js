@@ -1,9 +1,10 @@
 export default class Room {
-    constructor(x, y, width, height, torches=[]) {
+    constructor(x, y, width, height) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+        this.portal = null;
         this.altar = null;
         this.complete = false;
         this.fill = 2;
@@ -31,11 +32,14 @@ export default class Room {
         if(this.altar) {
             this.altar.draw(r, view);
         }
+        if(this.portal) {
+            this.portal.draw(r, view);
+        }
     }   
 
     update(player) {
         let playerInRoom = this.containsPlayer(player, 8);
-        
+        player.currentRoom = playerInRoom ? this : player.currentRoom;
         
         if(this.altar) {
             this.altar.update(player);

@@ -36,9 +36,9 @@ export default class Splode {
     draw(buffer, view) {
       buffer.pat = buffer.dither[15 - Math.floor((this.life / this.lifeMax) * 15)];
       for (let i = Math.floor(this.life / 10); i > 0; i--) {
-        buffer.circle(this.x - view.x, this.y - view.y, this.lifeMax - this.life - i, this.color);
+        buffer.lCircle(this.x - view.x, this.y - view.y, this.lifeMax - this.life - i, this.color, 0);
       }
-      buffer.circle(this.x - view.x, this.y - view.y, this.lifeMax - this.life, this.color);
+      buffer.lCircle(this.x - view.x, this.y - view.y, this.lifeMax - this.life, this.color, 0);
       buffer.pat = buffer.dither[0];
     }
   }

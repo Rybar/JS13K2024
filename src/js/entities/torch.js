@@ -3,6 +3,7 @@ export default class Torch {
         this.x = x;
         this.y = y;
         this.size = 3;
+        this.health = 25;
         this.lit = false;
         this.fill=2;
     }
@@ -21,7 +22,11 @@ export default class Torch {
         let dy = player.y - this.y;
         let dist = Math.sqrt(dx*dx + dy*dy);
         if(dist < 20 && player.isFiring) {
+            this.health = 25;
             this.lit = true;
+        }
+        if(this.health <= 0) {
+            this.lit = false;
         }
     }
 }
