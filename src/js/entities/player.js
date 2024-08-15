@@ -1,7 +1,9 @@
 export default class Player {
     constructor(x,y) {
-        this.width = 2;
-        this.height = 2;
+        this.width = 4;
+        this.height = 8;
+        this.oldX = x;
+        this.oldY = y;
         this.x = x;
         this.y = y;
         this.alive = true;
@@ -13,19 +15,38 @@ export default class Player {
     }
     
     update() {
+        this.oldX = this.x;
+        this.oldY = this.y;
+
         this.velocity.x += this.acceleration.x;
-        this.velocity.y += this.acceleration.y;
-        this.x += this.velocity.x;
-        this.y += this.velocity.y;
         this.velocity.x *= this.drag;
+        this.x += this.velocity.x;
+        if(map.getTileAtPixel(this.x, this.y) === 0) {
+            this.x = this.oldX;
+        }
+        //check right edge
+        if(map.getTileAtPixel(this.x+this.width, this.y) === 0) {
+            this.x = this.oldX;
+        }
+
+        this.velocity.y += this.acceleration.y;
         this.velocity.y *= this.drag;
+        this.y += this.velocity.y;
+        if(map.getTileAtPixel(this.x, this.y) === 0) {
+            this.y = this.oldY;
+        }
+        //check top
+        if(map.getTileAtPixel(this.x, this.y-this.height) === 0) {
+            this.y = this.oldY;
+        }
+
         this.acceleration.x = 0;
         this.acceleration.y = 0;
         this.isFiring = false;
     }
 
     draw(r, view) {
-        r.fRect(this.x - view.x, this.y - view.y, 1, 1, 22, 22);
+        r.fRect(this.x - view.x, this.y - view.y-8, 4, 8, 22, 22);
     }
 
     handleInput(Key) {

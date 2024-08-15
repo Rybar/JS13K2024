@@ -7,12 +7,15 @@ export default class Room {
         this.torches = torches;
         this.complete = false;
         this.fill = 2;
-        this.completeColor = 2;
+        this.completeColor = 7;
     }
 
     containsPlayer(player, tileSize) {
         //check if player is in the room
-        if(player.x > this.x && player.x < this.x + this.width && player.y > this.y && player.y < this.y + this.height) {
+        if(player.x / tileSize > this.x
+            && player.x / tileSize < this.x + this.width
+            && player.y / tileSize > this.y
+            && player.y / tileSize < this.y + this.height) {
             return true;
         }
         return false;
@@ -21,10 +24,13 @@ export default class Room {
     draw(r, view) {
         r.fRect(this.x - view.x, this.y - view.y, this.width, this.height, this.fill);
         //r.lRect(this.x - view.x, this.y - view.y, this.width, this.height, this.completeColor)
+        
+    }
 
-        this.torches.forEach(torch => {
-            torch.draw(r, view);
-        });
+    drawTorches(r, view) {
+        for (let i = 0; i < this.torches.length; i++) {
+            this.torches[i].draw(r, view);
+        }
     }
 
     update(player) {
@@ -36,8 +42,9 @@ export default class Room {
         }
         this.complete = this.torches.length > 0 && this.torches.every(torch => torch.lit);
 
-        this.fill = playerInRoom ? 3 : 2;
-        this.completeColor = this.complete ? 13 : 63;
+        this.fill = playerInRoom ? 4 : 2;
+        this.fill = this.complete ? 5 : this.fill;
+        
     }
     
 }

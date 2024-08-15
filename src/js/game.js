@@ -71,19 +71,15 @@ import Map from './entities/map.js';
         entitiesArray = [];
         floors.push(new Floor(480, 270, 40,25));
         rooms = floors[0].rooms;
+        window.rooms = rooms;
         //pick random room
         let room = rooms[Math.floor(Math.random() * rooms.length)];
         let startX = room.x + room.width / 2;
         let startY = room.y + room.height / 2;
         player = new Player(startX * tileSize, startY * tileSize);
         entitiesArray.push(player);
-
-        //draw to buffer for tilemap
-        r.renderTarget = r.PAGE_3;
-        drawEntities(rooms);
-        r.renderTarget = r.SCREEN;
-
-        map = new Map(480, 270, tileSize, r, r.PAGE_3);
+        
+        window.map = new Map(480, 270, tileSize, r.PAGE_3);
 
     }
 
@@ -133,7 +129,11 @@ import Map from './entities/map.js';
         handleInput();
         t += deltaTime;
         entitiesArray.forEach(entity => entity.update());
-        rooms.forEach(room => {room.update(player);});
+        //only update rooms every 10 frames
+       
+            rooms.forEach(room => {room.update(player);});
+            map.update();
+        
         cameraFollow();
     }
 
@@ -147,6 +147,7 @@ import Map from './entities/map.js';
         //draw things
         map.draw(r, view);
         drawEntities(entitiesArray);
+        rooms.forEach(room => {room.drawTorches(r, view);});
 
         if (paused) { drawPaused(); }
 

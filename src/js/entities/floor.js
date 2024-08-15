@@ -25,6 +25,7 @@ export default class Floor {
         this.separateRooms();
 
         const featureRooms = this.identifyFeatureRooms(this.featureRoomSize);
+        this.putTorchesInRooms(featureRooms);
         const edges = this.createGraph(featureRooms);
         this.mst = this.createMSTWithExtraEdges(edges);
         const connected = this.connectRooms(this.mst);
@@ -101,6 +102,21 @@ export default class Floor {
 
     identifyFeatureRooms(size) {
         return this.rooms.filter(room => room.width > size.width && room.height > size.height);
+    }
+
+    putTorchesInRooms(featureRooms) {
+        featureRooms.forEach(room => {
+            const x = room.x + Math.floor(room.width / 2);
+            const y = room.y + Math.floor(room.height / 2);
+            //push a random number of torches into the room, arranged in a circle
+            const numTorches = Math.floor(Math.random() * 5) + 1;
+            for (let i = 0; i < numTorches; i++) {
+                const angle = (i / numTorches) * Math.PI * 2;
+                const torchX = x + Math.floor(Math.cos(angle) * 5);
+                const torchY = y + Math.floor(Math.sin(angle) * 5);
+                room.torches.push(new Torch(torchX, torchY));
+            }
+        });
     }
 
     createGraph(featureRooms) {
