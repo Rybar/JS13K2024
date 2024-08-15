@@ -10,8 +10,10 @@ export default class Player {
         this.velocity = {x: 0, y: 0};
         this.acceleration = {x: 0, y: 0};
         this.drag = 0.8;
-        this.speed = 0.4;
+        this.speed = 0.3;
         this.isFiring = false;
+        this.gremlinBlood = 0;
+        
     }
     
     update() {
@@ -25,7 +27,7 @@ export default class Player {
             this.x = this.oldX;
         }
         //check right edge
-        if(map.getTileAtPixel(this.x+this.width, this.y) === 0) {
+        if(map.getTileAtPixel(this.x+this.width-1, this.y) === 0) {
             this.x = this.oldX;
         }
 
@@ -36,17 +38,19 @@ export default class Player {
             this.y = this.oldY;
         }
         //check top
-        if(map.getTileAtPixel(this.x, this.y-this.height) === 0) {
+        if(map.getTileAtPixel(this.x, this.y-this.height-1) === 0) {
             this.y = this.oldY;
         }
 
         this.acceleration.x = 0;
         this.acceleration.y = 0;
-        this.isFiring = false;
     }
 
     draw(r, view) {
         r.fRect(this.x - view.x, this.y - view.y-8, 4, 8, 22, 22);
+        if (this.isFiring) {
+            r.fRect(this.x - view.x, this.y - view.y-8, 8, 12, 22, 23);
+        }
     }
 
     handleInput(Key) {
@@ -60,6 +64,7 @@ export default class Player {
         } else if (Key.isDown(Key.DOWN) || Key.isDown(Key.s)) {
             this.acceleration.y = this.speed;
         }
+        this.isFiring = Key.isDown(Key.SPACE);
     }
 
 

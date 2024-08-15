@@ -4,7 +4,7 @@ export default class Room {
         this.y = y;
         this.width = width;
         this.height = height;
-        this.torches = torches;
+        this.altar = null;
         this.complete = false;
         this.fill = 2;
         this.completeColor = 7;
@@ -27,20 +27,20 @@ export default class Room {
         
     }
 
-    drawTorches(r, view) {
-        for (let i = 0; i < this.torches.length; i++) {
-            this.torches[i].draw(r, view);
+    drawAltar(r, view) {
+        if(this.altar) {
+            this.altar.draw(r, view);
         }
-    }
+    }   
 
     update(player) {
         let playerInRoom = this.containsPlayer(player, 8);
         
         
-        for (let i = 0; i < this.torches.length; i++) {
-            this.torches[i].update(player);
+        if(this.altar) {
+            this.altar.update(player);
         }
-        this.complete = this.torches.length > 0 && this.torches.every(torch => torch.lit);
+        this.complete = this.altar && this.altar.annointed;
 
         this.fill = playerInRoom ? 4 : 2;
         this.fill = this.complete ? 5 : this.fill;

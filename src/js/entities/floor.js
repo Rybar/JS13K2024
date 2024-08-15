@@ -1,5 +1,5 @@
 import Room from './room';
-import Torch from './torch';
+import Altar from './altar';
 
 export default class Floor {
     constructor(width, height, maxRoomWidth, maxRoomHeight) {
@@ -13,7 +13,7 @@ export default class Floor {
         this.rooms = [];
         this.sizeBias = 5;
         this.biasInfluence = 0.6;
-        this.featureRoomSize = { width: 25, height: 10 };
+        this.featureRoomSize = { width: 20, height: 15 };
         this.maxGenerationTries = 10;
         this.generateFloor();
         
@@ -25,7 +25,7 @@ export default class Floor {
         this.separateRooms();
 
         const featureRooms = this.identifyFeatureRooms(this.featureRoomSize);
-        this.putTorchesInRooms(featureRooms);
+        this.placeAltars(featureRooms);
         const edges = this.createGraph(featureRooms);
         this.mst = this.createMSTWithExtraEdges(edges);
         const connected = this.connectRooms(this.mst);
@@ -33,6 +33,10 @@ export default class Floor {
 
         //sort rooms by size so that smaller rooms are drawn first
         this.rooms.sort((a, b) => (a.width * a.height) - (b.width * b.height));
+        //get largest room to place exit portal in
+        const largestRoom = this.rooms[this.rooms.length - 1];
+        //place exit portal in the center of the largest room
+         
         //if there are no rooms, try again, up to 10 times
         let tries = this.maxGenerationTries;
         if(this.rooms.length === 0 && tries > 0) {
@@ -104,18 +108,13 @@ export default class Floor {
         return this.rooms.filter(room => room.width > size.width && room.height > size.height);
     }
 
-    putTorchesInRooms(featureRooms) {
+    placeAltars(featureRooms) {
         featureRooms.forEach(room => {
             const x = room.x + Math.floor(room.width / 2);
             const y = room.y + Math.floor(room.height / 2);
             //push a random number of torches into the room, arranged in a circle
-            const numTorches = Math.floor(Math.random() * 5) + 1;
-            for (let i = 0; i < numTorches; i++) {
-                const angle = (i / numTorches) * Math.PI * 2;
-                const torchX = x + Math.floor(Math.cos(angle) * 5);
-                const torchY = y + Math.floor(Math.sin(angle) * 5);
-                room.torches.push(new Torch(torchX, torchY));
-            }
+            const numTorches = Math.floor(Math.random() * 9) + 3;
+            room.altar = new Altar(x, y, numTorches);
         });
     }
 
@@ -216,8 +215,8 @@ createCorridor(roomA, roomB, connectedRooms) {
         nextY = Math.min(Math.max(nextY, Math.min(currentY, targetY)), Math.max(currentY, targetY));
 
         // Create a small room at the current step
-        let sizeVariationX = Math.floor(Math.random() * 5);
-        let sizeVariationY = Math.floor(Math.random() * 5);
+        let sizeVariationX = Math.floor(Math.random() * 5) + 1;
+        let sizeVariationY = Math.floor(Math.random() * 5) + 1;
         let corridorRoom = new Room(
             Math.min(currentX, nextX),
             Math.min(currentY, nextY),

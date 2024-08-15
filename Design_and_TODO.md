@@ -8,3 +8,27 @@ Main rooms will be numbered 1 thru 12. Exit room will be numbered 1 thru 12. Act
 Higher numbered rooms, while easier to activate, raise more alarm and difficulty.
 
 
+TODO:
+-player
+    -has an attack verb that damages enemies.
+    -action verb required to 
+-Enemies
+    -move towards torches if lit, extinguish them on contact
+    -move towards player if close enough
+    -damage player if contact made with player
+    -stay seperate from each other / dont clump together
+
+Room / torch logic refinement
+    new object: altar. altar will have and track torches.
+    Altar has a minimum of 3 torches (triangle)
+    Once torches are lit, the altar must be annointed with gremlin blood in it's center. the more torches the altar has, the more blood is required to fully activate the altar.
+
+    new object: Exit portal
+    activated when altars are complete that sum 13.
+    stand in its center to be evaporated to the next floor.
+
+    As more altars are lit, stronger gremlins are deployed to your position. altars with higher number of torch points attract more aggression.
+    
+
+
+

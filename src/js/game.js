@@ -15,6 +15,7 @@ import background1 from '../assets/background1.js';
 import Player from './entities/player.js';
 import Floor from './entities/floor.js';
 import Map from './entities/map.js';
+import Gremlin from './entities/gremlin.js';
 
 (function () {
     document.body.style = "margin:0; background-color:black; overflow:hidden";
@@ -42,7 +43,7 @@ import Map from './entities/map.js';
 
     window.t = 0;
     text = "";
-    player = null;
+    window.player = null;
     sounds = {};
     soundsReady = 0;
     totalSounds = 8;
@@ -77,6 +78,8 @@ import Map from './entities/map.js';
         let startX = room.x + room.width / 2;
         let startY = room.y + room.height / 2;
         player = new Player(startX * tileSize, startY * tileSize);
+        gremlin = new Gremlin((startX + 2) * tileSize, (startY + 2) * tileSize);
+        entitiesArray.push(gremlin);
         entitiesArray.push(player);
         
         window.map = new Map(480, 270, tileSize, r.PAGE_3);
@@ -129,10 +132,9 @@ import Map from './entities/map.js';
         handleInput();
         t += deltaTime;
         entitiesArray.forEach(entity => entity.update());
-        //only update rooms every 10 frames
        
-            rooms.forEach(room => {room.update(player);});
-            map.update();
+        rooms.forEach(room => {room.update(player);});
+        map.update();
         
         cameraFollow();
     }
@@ -147,7 +149,7 @@ import Map from './entities/map.js';
         //draw things
         map.draw(r, view);
         drawEntities(entitiesArray);
-        rooms.forEach(room => {room.drawTorches(r, view);});
+        rooms.forEach(room => {room.drawAltar(r, view);});
 
         if (paused) { drawPaused(); }
 
