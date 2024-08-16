@@ -8,9 +8,6 @@ import missileWhoosh from './sounds/missileWhoosh.js';
 import boom1 from './sounds/boom1.js';
 import spawn from './sounds/spawn.js';
 
-//tile assets
-import background1 from '../assets/background1.js';
-
 //entities
 import Player from './entities/player.js';
 import Floor from './entities/floor.js';
@@ -26,7 +23,7 @@ import Gremlin from './entities/gremlin.js';
     atlasImage.src = atlasURL;
 
     loadAtlas(atlasURL, (atlas) => {
-        const r = new RetroBuffer(w, h, atlas, 5);
+        const r = new RetroBuffer(w, h, atlas, 10);
         window.r = r;
         document.getElementById('game').appendChild(r.c);
         document.getElementById('game').style.background = "none";
@@ -56,6 +53,10 @@ import Gremlin from './entities/gremlin.js';
     window.entitiesArray = [];
     window.gremlinsArray = [];
     window.portalLocation = { x: 0, y: 0 };
+    window.gameInitialized = false;
+    window.generatingNewFloor = false;
+    window.currentFloor = 0;
+    window.nextLevel = nextLevel;
     floors = [];
     rooms = [];
     map = null;
@@ -84,10 +85,9 @@ import Gremlin from './entities/gremlin.js';
         let startY = room.y + room.height / 2;
         player = new Player(startX * tileSize, startY * tileSize);
         gremlin = new Gremlin((startX + 2) * tileSize, (startY + 2) * tileSize);
-        gremlinsArray.push(gremlin);
-        entitiesArray.push(player);
-        
+        gremlinsArray.push(gremlin);        
         window.map = new Map(480, 270, tileSize, r.PAGE_3);
+        gameInitialized = true;
 
     }
 
@@ -139,6 +139,7 @@ import Gremlin from './entities/gremlin.js';
         rooms.forEach(room => {room.update(player);});
         entitiesArray.forEach(entity => entity.update());
         gremlinsArray.forEach(gremlin => gremlin.update());
+        player.update();
 
         //spawn another gremlin near player every 5 seconds
         if(t % 5000 < deltaTime) {
@@ -155,15 +156,24 @@ import Gremlin from './entities/gremlin.js';
 
         // Draw background
         r.pat = 0b1111111111111111;
-        //r.drawTileAsset(0-view.x, 50-view.y, background1);
 
         //draw things
         map.draw(r, view);
         rooms.forEach(room => {room.drawAltar(r, view);});
         drawEntities(entitiesArray);
         drawEntities(gremlinsArray);
+        player.draw(r, view);
 
         if (paused) { drawPaused(); }
+
+        if(generatingNewFloor) {
+            r.fRect(0, 0, w, h, 3);
+            text = "LOADING THE NEXT FLOOR";
+            r.text(text, w / 2, h / 2, 1, 1, 'center', 'middle', 1, 22);
+        }
+
+
+
 ;
         // Draw debug text
         debugText= `FPS: ${fps.toFixed(2)}\nPLAYER: ${player.x}, ${player.y}`;
@@ -189,14 +199,30 @@ import Gremlin from './entities/gremlin.js';
         r.text(text, w / 2, 100, 4, 1, 'center', 'top', 4, 22);
         text = "CLICK TO START";
         r.text(text, w / 2, 125, 1, 1, 'center', 'top', 1, 22);
-        //countdownLoop();
         r.render();
+        playSound(sounds.spawn);
     }
 
     function resetGame() {
         //reset arrays to emmpty, etc
         initGameData();
         gameState = 2;
+    }
+
+    function newFloor() {
+        //create new floor
+        //I don't think we will need to store floors, so just overwrite the first one
+        currentFloor++;
+        floors = [];
+        entitiesArray = [];
+        floors.push(new Floor(480, 270, 40, 25));
+        rooms = floors[floors.length - 1].rooms;
+        //pick random room
+        let room = rooms[Math.floor(Math.random() * rooms.length)];
+        let startX = room.x + room.width / 2;
+        let startY = room.y + room.height / 2;
+        player.x = startX * tileSize;
+        player.y = startY * tileSize;
     }
 
     function preload() {
@@ -206,25 +232,18 @@ import Gremlin from './entities/gremlin.js';
 
         text = "SIX AND SEVEN";
         r.text(text, w / 2, 100, 4, 1, 'center', 'top', 4, 2);
-
         r.text(audioTxt, w / 2 - 2, 130, 1, 1, 'center', 'top', 1, 22);
-        if (Key.justReleased(Key.UP) || Key.justReleased(Key.w) || Key.justReleased(Key.z)) {
-            if (soundsReady == 0 && !started) {
-                initGameData();
-                initAudio();
-                started = true;
-            } else {
-                gamestate = GAMESCREEN;
-            }
-        };
-
-        audioTxt = "CLICK TO BEGIN GENERATION PROCESS\n";
-        if (soundsReady == totalSounds) {
-            audioTxt = "ALL ASSETS CREATED.\nPRESS UP/W/Z TO CONTINUE";
-        } else if (started) {
-            audioTxt = "RETICULATING SPLINES... " + soundsReady;
+        if(started){
+            audioTxt = "RETICULATING SPLINES";
         } else {
-            audioTxt = "CLICK TO BEGIN GENERATION PROCESS\n";
+            audioTxt = "CLICK TO BEGIN GENERATION";
+        }
+
+        if (soundsReady == totalSounds && gameInitialized == true) {
+            audioTxt = "ALL ASSETS CREATED.\nPRESS UP/W/Z TO CONTINUE";
+        }
+        if (Key.justReleased(Key.UP) || Key.justReleased(Key.w) || Key.justReleased(Key.z)) {
+            gamestate = GAMESCREEN;
         }
         r.render();
     }
@@ -248,8 +267,8 @@ import Gremlin from './entities/gremlin.js';
     }
 
     onclick = e => {
-        const rect = r.c.getBoundingClientRect(); // Get the canvas position and size
-        const scaleX = r.c.width / rect.width;    // Calculate the horizontal scale
+        const rect = r.c.getBoundingClientRect(); 
+        const scaleX = r.c.width / rect.width;    
         const scaleY = r.c.height / rect.height;  // Calculate the vertical scale
         
         // Calculate the mouse coordinates relative to the canvas
@@ -260,9 +279,11 @@ import Gremlin from './entities/gremlin.js';
         switch (gamestate) {
             case 0: // react to clicks on screen 0s
                 if (soundsReady == 0 && !started) {
-                    initGameData();
-                    initAudio();
                     started = true;
+                    setTimeout(() => {
+                        initAudio();
+                        initGameData();
+                    }, 100); //wait a bit to give preload text a chance to render
                 }
                 break;
             case 1: // react to clicks on screen 1
@@ -359,6 +380,9 @@ import Gremlin from './entities/gremlin.js';
             paused = !paused;
             console.log('paused', paused);
         }
+        if (Key.justReleased(Key.r)) {
+            nextLevel();
+        }
         player.handleInput(Key);    
     }
 
@@ -394,6 +418,15 @@ import Gremlin from './entities/gremlin.js';
         if(tries < 100) {
             gremlinsArray.push(new Gremlin(x, y));
         }
+    }
+
+    function nextLevel() {
+        player.completeAltarTorchCount = 0;
+        generatingNewFloor = true;
+            setTimeout(() => {
+                newFloor();
+                generatingNewFloor = false;
+            }, 500);
     }
 
 

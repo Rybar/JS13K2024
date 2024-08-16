@@ -13,6 +13,8 @@ export default class Player {
         this.acceleration = {x: 0, y: 0};
         this.drag = 0.8;
         this.speed = 0.35;
+
+        this.maxSpeed = 0.6;
         this.isFiring = false;
         this.gremlinBlood = 0;
         this.currentRoom = null;
@@ -49,7 +51,7 @@ export default class Player {
             r.fRect(this.x - view.x-2, this.y - view.y-8, 8, 12, 22, 23);
         }
         //display health above player
-        r.text(`${this.health.toFixed(2)}\nGB: ${this.gremlinBlood}`, this.x - view.x, this.y - view.y - 20, 1, 1, 'center', 'top', 1, 22);
+        r.text(`${this.health.toFixed(2)}\nGB: ${this.gremlinBlood}\nAP ${this.completeAltarTorchCount}`, this.x - view.x, this.y - view.y - 28, 1, 1, 'center', 'top', 1, 22);
     }
 
     handleInput(Key) {

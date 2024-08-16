@@ -13,7 +13,11 @@ TODO:
 - [x] has an attack verb that damages enemies.
 - [x] action verb required to light torches
 - [x] collision reworked/debugged
-- [ ] can dodge 
+- [ ] can dodge
+- [x] has max accelleration to limit enemy pushing
+- [ ] separate collision box for attack
+= [ ] direction facing tracked
+
 
 ### Enemies
 - [x] move towards torches if lit, extinguish them on contact
@@ -36,16 +40,16 @@ TODO:
 
 ### Map Generation
 - [x] no connections too small for player to get through
-- [ ] fewer noise/garbage rooms kept
+- [x] fewer noise/garbage rooms kept
 
 ### new object: Exit portal
-- [ ] activated when altars are complete that sum 13.
-- [ ] stand in its center to be evaporated to the next floor.
+- [x] activated when altars are complete that sum 13.
+- [x] stand in its center to be evaporated to the next floor.
 
 
 ### general todos
 - [ ] gamepad support
-- [ ] floor win condition, next floor generation
+- [x] floor win condition, next floor generation
 - [ ] particles
 
 

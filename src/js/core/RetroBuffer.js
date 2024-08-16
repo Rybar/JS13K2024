@@ -162,15 +162,15 @@ pset(x, y, color, color2 = 64) {
       : (color | 0) % 64;
   }
 
-  // if (color2 >= 65 && color2 <= 69) {
-  //   let currentColor = this.pget(x, y, this.renderTarget);
-  //   let brightnessRow = color2 - 66 + 1; // Map 65 to 1, 66 to 2, ..., 70 to 6
-  //   color2 = this.brightness[brightnessRow * 64 + currentColor];
-  // } else {
-  //   color2 = this.stencil
-  //     ? this.pget(x, y, this.stencilSource) + this.stencilOffset
-  //     : (color2 | 0) % 64;
-  // }
+  if (color2 >= 65 && color2 <= 69) {
+    let currentColor = this.pget(x, y, this.renderTarget);
+    let brightnessRow = color2 - 66 + 1; // Map 65 to 1, 66 to 2, ..., 70 to 6
+    color2 = this.brightness[brightnessRow * 64 + currentColor];
+  } else {
+    color2 = this.stencil
+      ? this.pget(x, y, this.stencilSource) + this.stencilOffset
+      : (color2 | 0) % 64;
+  }
 
   let px = (y % 4) * 4 + (x % 4);
   let mask = this.pat & Math.pow(2, px);
@@ -484,60 +484,7 @@ span(x1, x2, y, color, color2 = 64) {
     this.span(x1, x2, y2, color, color2);
     this.pat = this.dither[0];
   }
-
-  /**
-   * Fills a rectangle with a gradient between two colors.
-   * @param {number} x - The x-coordinate of the rectangle.
-   * @param {number} y - The y-coordinate of the rectangle.
-   * @param {number} w - The width of the rectangle.
-   * @param {number} h - The height of the rectangle.
-   * @param {number} color1 - The starting color index.
-   * @param {number} color2 - The ending color index.
-   * @param {number} angle - The angle of the gradient in degrees.
-   */
-  // gradRect(x, y, w, h, color1, color2, angle) {
-  //   let prevPat = this.pat;
-  //   const rad = angle * (Math.PI / 180);
-  //   const cos = Math.cos(rad);
-  //   const sin = Math.sin(rad);
-
-  //   // Calculate the projection of the corners
-  //   const corners = [{ x: 0, y: 0 }, { x: w, y: 0 }, { x: 0, y: h }, { x: w, y: h }];
-
-  //   const projections = corners.map(corner => {
-  //     const dx = corner.x - w / 2;
-  //     const dy = corner.y - h / 2;
-  //     return dx * cos + dy * sin;
-  //   });
-
-  //   const minProjection = Math.min(...projections);
-  //   const maxProjection = Math.max(...projections);
-  //   const projectionRange = maxProjection - minProjection;
-
-  //   for (let i = 0; i < w; i++) {
-  //     for (let j = 0; j < h; j++) {
-  //       // Calculate position within the gradient
-  //       const dx = i - w / 2;
-  //       const dy = j - h / 2;
-  //       const distance = dx * cos + dy * sin;
-
-  //       // Normalize distance to range 0 to 1
-  //       const normalizedDistance = (distance - minProjection) / projectionRange;
-
-  //       // Map normalized distance to a range of 0 to 15 for dither patterns
-  //       const patternIndex = Math.floor(normalizedDistance * 15);
-  //       const pattern = Math.max(0, Math.min(15, patternIndex));
-
-  //       // Set the dither pattern
-  //       this.pat = this.dither[pattern];
-
-  //       // Draw the pixel with interpolated colors
-  //       this.pset(x + i, y + j, color1, color2);
-  //     }
-  //   }
-  //   this.pat = prevPat;
-  // }
-
+  
   /**
    * Draws a scaled sprite from a rectangular area in renderSource to a rectangular area in renderTarget.
    * @param {number} sx - The x-coordinate of the top-left corner of the sprite in the source image.
@@ -614,6 +561,7 @@ spr(sx = 0, sy = 0, sw = 8, sh = 8, x = 0, y = 0) {
     this.pal[22] = color2;
     let tileX = (tileIndex % 8) * 8;
     let tileY = Math.floor(tileIndex / 8) * 8;
+    this.renderSource = this.PAGE_1;
     this.spr(tileX, tileY, 8, 8, x, y);
     this.pal = this.palDefault.slice();
   }

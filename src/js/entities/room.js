@@ -46,6 +46,9 @@ export default class Room {
         }
         this.complete = this.altar && this.altar.annointed;
 
+        if(this.portal) {
+            this.portal.update(player);
+        }
         this.fill = playerInRoom ? 4 : 2;
         this.fill = this.complete ? 5 : this.fill;
         

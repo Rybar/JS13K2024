@@ -1,4 +1,5 @@
 import Torch from './torch.js';
+import { callOnce } from '../core/utils.js';
 export default class Altar {
     constructor(x, y, torchCount=3) {
         this.x = x*8;
@@ -12,6 +13,9 @@ export default class Altar {
         this.completeColor = 13;
         this.generateTorches();
         this.bloodRequired = 20;
+        this.playerCompleted = callOnce(() => {
+            player.completeAltarTorchCount += this.torchCount;
+        })
     }
 
     update() {
@@ -23,7 +27,7 @@ export default class Altar {
             //can't be unlit
             this.lit = true;
             this.torches.forEach(torch => torch.health = 25);
-
+            this.playerCompleted();
         }
         this.fill = this.annointed ? this.completeColor : 12;
         if(this.lit && this.bloodRequired > 0) {

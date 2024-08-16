@@ -127,8 +127,8 @@ export default class Gremlin {
         if(player.health > 0) {
             player.health-=.1;
             //push player away
-            player.acceleration.x = Math.cos(angle) * 2;
-            player.acceleration.y = Math.sin(angle) * 2;
+            player.acceleration.x = Math.cos(angle) * player.maxSpeed;
+            player.acceleration.y = Math.sin(angle) * player.maxSpeed;
         }
     }
 

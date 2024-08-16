@@ -1,3 +1,5 @@
+import { callOnce } from "../core/utils";
+
 export default class Portal {
     constructor(x, y) {
         this.x = x*8;
@@ -5,6 +7,9 @@ export default class Portal {
         this.size = 20;
         this.fill = 39;
         this.active = false;
+        this.nextLevel = callOnce(() => {
+            nextLevel();
+        })
     }
 
     draw(r, view) {
@@ -16,9 +21,11 @@ export default class Portal {
         let dx = player.x - this.x;
         let dy = player.y - this.y;
         let dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 20 && player.currentRoom.complete) {
-            this.active = true;
-            
+        if (player.completeAltarTorchCount >= 13) { 
+            this.active = true;   
+        }
+        if(dist < 10 && this.active) {
+            this.nextLevel();
         }
     }
 }
