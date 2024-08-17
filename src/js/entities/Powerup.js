@@ -6,15 +6,15 @@ export default class Powerup {
 
         this.types = {
             HEALTH: {
-                life: 10000,
-                color: 22,
+                life: 5000,
+                color: 5,
                 effect : function (player) {
                     player.health = Math.min(player.health + 1, player.maxHealth);
                 }
             },
             GREMLIN_BLOOD: {
-                life: 10000,
-                color: 15,
+                life: 5000,
+                color: 11,
                 effect : function (player) {
                     player.gremlinBlood += 1;
                 }   

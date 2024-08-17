@@ -15,8 +15,10 @@ TODO:
 - [x] collision reworked/debugged
 - [ ] can dodge
 - [x] has max accelleration to limit enemy pushing
-- [ ] separate collision box for attack
-= [ ] direction facing tracked
+- [x] separate collision box for attack
+- [ ] polish position of attack boxes
+- [ ] legs
+- [x] direction facing tracked
 
 
 ### Enemies
@@ -26,6 +28,8 @@ TODO:
 - [ ] stay seperate from each other / dont clump together
 - [x] drop gremlin blood when killed
 - [x] uses player collision
+- [ ] spider legs
+- [ ] make combat more interesting
 - [ ] telegraphs attack before attacking
 - [ ] brute gremlin type
 
@@ -33,10 +37,12 @@ TODO:
 - [x] new object: altar. altar will have and track torches.
 - [x] Altar has a minimum of 3 torches (triangle)
 - [x] Once torches are lit, the altar must be annointed with gremlin blood in it's center
+- [ ] altar center lines light up and torch flames change color when altar is annointed
 - [ ]the more torches the altar has, the more blood is required to fully activate the altar.
 - [ ] As more altars are lit, stronger gremlins are deployed to your position.
 - [ ] altars with higher number of torch points attract more aggression.
 - [ ] hitting 13 complete altar points triggers a ton of enemy spawns
+- [ ] rooms spawn enemies in the corners
 
 ### Map Generation
 - [x] no connections too small for player to get through

@@ -80,17 +80,17 @@ export default class map {
                         let currentTile = this.tiles[y * this.width + x];
                         if(currentTile === 0){
                             r.drawTile(
-                                rand(1,63),
+                                7,
                                 x * this.tileSize - view.x,
                                 y * this.tileSize - view.y,
-                                color1, color2
+                                1, 2
                             );
                         }else {
                             r.drawTile(
-                                1,
+                                38,
                                 x * this.tileSize - view.x,
                                 y * this.tileSize - view.y,
-                                color1, color2
+                                62, 63
                             );
                         }
                     // r.fRect(x * this.tileSize - view.x,

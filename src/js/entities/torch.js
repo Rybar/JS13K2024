@@ -1,3 +1,5 @@
+import Particle from './particle';
+import { randFloat, rand } from '../core/utils';
 export default class Torch {
     constructor(x, y) {
         this.x = x;
@@ -16,6 +18,12 @@ export default class Torch {
 
     update() {
         this.fill = this.lit ? 6 : 63;
+        if(this.lit){
+            entitiesArray.push(new Particle(
+                this.x + rand(-2,2), this.y,
+                randFloat(-0.05,0.05),
+                -0.25, {color: [22,8,7,6,5,4,3,2,1], life: 70}));
+        }
         //check for overlap with player. If so, light the torch.
         //will require action to light the torch in the future
         let dx = player.x - this.x;

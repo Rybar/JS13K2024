@@ -1,6 +1,7 @@
-import { tileCollisionCheck } from "../core/utils";
+import { tileCollisionCheck, rand, randFloat } from "../core/utils";
 import Splode from "../gfx/Splode";
 import Powerup from "./Powerup";
+import Particle from './particle.js';
 export default class Gremlin {
     constructor(x, y) {
         this.x = x;
@@ -28,6 +29,17 @@ export default class Gremlin {
         }
     }
 
+    draw (r, view) {
+        if(!this.alive) return;
+        //body
+        r.fRect(this.x - view.x, this.y - view.y-8, 8, 10, 16, 16);
+        //horns
+        r.fRect(this.x - view.x-2, this.y - view.y-10, 2, 4, 16, 16);
+        r.fRect(this.x - view.x+4, this.y - view.y-10, 2, 4, 16, 16);
+        //display health above gremlin
+        r.text(`${this.health}`, this.x - view.x, this.y - view.y - 16, 1, 1, 'center', 'top', 1, 22);
+    }
+
     update() {
         if(!this.alive) return;
         if(this.health <= 0) {
@@ -37,7 +49,16 @@ export default class Gremlin {
         this.oldY = this.y;
         this.target.x = player.x;
         this.target.y = player.y;
-        
+
+        entitiesArray.push(new Particle(
+            this.x+4 + rand(-3, 3), this.y-10,
+            randFloat(-0.1,0.1), -0.25,
+            {color: 1, life: 15,
+                customUpdate: function(p) {
+                    p.xVelocity += randFloat(-0.1,0.1);
+                    p.yVelocity += randFloat(-0.1,0.1);
+                }
+            }));        
 
         // Random wandering
         if (Math.random() < 0.1) {
@@ -121,10 +142,12 @@ export default class Gremlin {
         const angle = Math.atan2(this.target.y - this.y, this.target.x - this.x);
         if(player.isFiring) {
             this.health--;
+            entitiesArray.push(new Splode(this.x, this.y, 25, 5));
             this.acceleration.x = Math.cos(angle) * 2;
             this.acceleration.y = Math.sin(angle) * 2;
             }
         if(player.health > 0) {
+            entitiesArray.push(new Splode(this.x, this.y, 25, 5));
             player.health-=.1;
             //push player away
             player.acceleration.x = Math.cos(angle) * player.maxSpeed;
@@ -132,24 +155,20 @@ export default class Gremlin {
         }
     }
 
-    draw (r, view) {
-        if(!this.alive) return;
-        //body
-        r.fRect(this.x - view.x, this.y - view.y-8, 4, 10, 16, 16);
-        //horns
-        r.fRect(this.x - view.x-2, this.y - view.y-10, 2, 2, 16, 16);
-        r.fRect(this.x - view.x+4, this.y - view.y-10, 2, 2, 16, 16);
-        //display health above gremlin
-        r.text(`${this.health}`, this.x - view.x, this.y - view.y - 16, 1, 1, 'center', 'top', 1, 22);
-    }
+
 
     die() {
-        entitiesArray.push(new Splode(this.x, this.y, 50, 15));
+        entitiesArray.push(new Splode(this.x, this.y, 50, 11));
         //throw out a random amount of Powerups
-        const powerupCount = Math.floor(Math.random() * 3) + 1;
+        const powerupCount = Math.floor(Math.random() * 5) + 1;
         for(let i = 0; i < powerupCount; i++) {
             entitiesArray.push(new Powerup(
                 "GREMLIN_BLOOD",
+                this.x + Math.random() * 20 + 8,
+                this.y + Math.random() * 20 + 8
+            ));
+            entitiesArray.push(new Powerup(
+                "HEALTH",
                 this.x + Math.random() * 20 + 8,
                 this.y + Math.random() * 20 + 8
             ));

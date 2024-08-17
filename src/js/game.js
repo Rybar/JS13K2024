@@ -1,6 +1,6 @@
 import RetroBuffer from './core/RetroBuffer.js';
 import MusicPlayer from './core/musicplayer.js';
-import { playSound, Key, inView, callOnce, rand, resizeCanvas, loadAtlas, lerp } from './core/utils.js';
+import { playSound, Key, inView, callOnce, rand, resizeCanvas, loadAtlas, lerp, randFloat } from './core/utils.js';
 
 //sound assets
 import tada from './sounds/tada.js';
@@ -13,6 +13,7 @@ import Player from './entities/player.js';
 import Floor from './entities/floor.js';
 import Map from './entities/map.js';
 import Gremlin from './entities/gremlin.js';
+import Particle from './entities/particle.js';
 
 (function () {
     document.body.style = "margin:0; background-color:black; overflow:hidden";
@@ -229,6 +230,47 @@ import Gremlin from './entities/gremlin.js';
 
         r.clear(64, r.SCREEN);
         r.renderTarget = r.SCREEN;
+        entitiesArray.push(new Particle(
+            w/2, h/2-40,
+            randFloat(-0.1,0.1), -0.25,
+            {color: [22,8,7,6,5,4,3,2,1],
+                customUpdate: function(p) {
+                    p.xVelocity += randFloat(-0.1,0.1);
+                    p.yVelocity += randFloat(-0.1,0.1);
+                }
+            }));
+
+        entitiesArray.push(new Particle(
+            w/4 + rand(-10,10), h/2-80,
+            randFloat(-0.1,0.1), 0.25,
+            {color: [22,21,20,19,18,17,16,2,1],
+                customUpdate: function(p) {
+                   // p.xVelocity += randFloat(-0.05,0.05);
+                    p.yVelocity += randFloat(-0.01,0.01);
+                }
+            }));
+
+        entitiesArray.push(new Particle(
+            w/4, h/2+10 + rand(-5,5),
+            3, randFloat(-0.05,0.05),
+            {color: [22,9,10,11,12,13,14,15,1],
+            life: rand(50,100),
+            }));
+        entitiesArray.push(new Particle(
+            w/4, h/2+10 + rand(-5,5),
+            3, randFloat(-0.05,0.05),
+            {color: [22,9,10,11,12,13,14,15,1],
+            life: rand(50,100),
+            }));
+        entitiesArray.push(new Particle(
+            w/4, h/2+10 + rand(-5,5),
+            3, randFloat(-0.05,0.05),
+            {color: [22,9,10,11,12,13,14,15,1],
+            life: rand(50,100),
+            }));
+        
+        drawEntities(entitiesArray);
+        entitiesArray.forEach(entity => entity.update());
 
         text = "SIX AND SEVEN";
         r.text(text, w / 2, 100, 4, 1, 'center', 'top', 4, 2);
