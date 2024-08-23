@@ -35,6 +35,7 @@ export default class Room {
         if(this.portal) {
             this.portal.draw(r, view);
         }
+        
     }   
 
     update(player) {

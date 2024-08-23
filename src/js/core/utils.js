@@ -30,6 +30,17 @@ export function callOnce(fn){
   }
 }
 
+export function lightRadial(cx, cy, radius, colors) {
+  //draw halo on lights layer
+  r.renderTarget = LIGHTS;
+  r.paintTransparent = true;
+  r.lightMode = true;
+  r.radialCircle(cx, cy, radius, colors);
+  r.renderTarget = r.SCREEN;
+  r.paintTransparent = false;
+  r.lightMode = false;
+  }
+
 export function tileCollisionCheck(map, entity) {
   if(map.getTileAtPixel(entity.x, entity.y) === 0 |
       map.getTileAtPixel(entity.x+entity.width, entity.y) === 0 |

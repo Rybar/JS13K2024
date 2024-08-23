@@ -1,5 +1,5 @@
 import Torch from './torch.js';
-import { callOnce } from '../core/utils.js';
+import { callOnce, inView, lightRadial } from '../core/utils.js';
 export default class Altar {
     constructor(x, y, torchCount=3) {
         this.x = x*8;
@@ -47,6 +47,7 @@ export default class Altar {
     }
 
     draw(r, view) {
+        if(!inView({x: this.x, y: this.y}, 40)) return
         //draw lines connecting torches
         for(let i = 0; i < this.torchCount; i++) {
             let torch = this.torches[i];
@@ -66,11 +67,15 @@ export default class Altar {
             this.torches[i].draw(r, view);
         }
 
+        //ambient light
+        lightRadial(
+            this.x - view.x,
+            this.y - view.y,
+             100, 
+             [2, 3, 4]);
+
         //bloodRequired text
         r.text(this.bloodRequired.toString(), this.x - view.x, this.y - view.y + 8, 1, 1, 'center', 'top', 1, 22);
-
-        //text = "GAME"
-        //r.text(text, w / 2, 10, 1, 1, 'center', 'top', 1, 22);
         
     }
 

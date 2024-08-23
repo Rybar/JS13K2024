@@ -23,5 +23,9 @@ export default class LCG {
 
     coinFlip(){
       return this.next() > 0.5;
-    } 
+    }
+
+    choice(arr){
+      return arr[this.randomInt(0, arr.length - 1)];
+    }
   }

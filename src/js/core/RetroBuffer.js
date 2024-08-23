@@ -18,6 +18,8 @@ class RetroBuffer {
     this.PAGES = pages;
     this.atlas = atlas;
     this.LCG = new LCG(0xdeadbeef);
+    this.paintTransparent = false;
+    this.lightMode = false;
 
     this.SCREEN = 0;
 
@@ -66,7 +68,7 @@ class RetroBuffer {
       }
     }
 
-    this.pal = Array.from({ length: 65 }, (_, i) => i);
+    this.pal = Array.from({ length: 64 }, (_, i) => i);
 
     /**
      * The dither pattern table used for gradients and 2-color pattern fills.
@@ -150,35 +152,41 @@ pset(x, y, color, color2 = 64) {
   if (x < 0 || x > this.WIDTH - 1) return;
   if (y < 0 || y > this.HEIGHT - 1) return;
 
-  // Check for color indices 65 thru 70 and adjust based on brightness table
-  
-  if (color >= 65 && color <= 69) {
-    let currentColor = this.pget(x, y, this.renderTarget);
-    let brightnessRow = color - 66 + 1; // Map 65 to 1, 66 to 2, ..., 70 to 6
-    color = this.brightness[brightnessRow * 64 + currentColor];
+  const ramIndex = this.renderTarget + y * this.WIDTH + x;
+  const currentColor = this.ram[ramIndex];
+
+  // Adjust color based on brightness table if within the shade range
+  if (color >= 65 && color <= 70) {
+    color = this.brightness[(color - 65) * 64 + currentColor];
   } else {
-    color = this.stencil
-      ? this.pget(x, y, this.stencilSource) + this.stencilOffset
-      : (color | 0) % 64;
+    color = color % 64;
   }
 
-  if (color2 >= 65 && color2 <= 69) {
-    let currentColor = this.pget(x, y, this.renderTarget);
-    let brightnessRow = color2 - 66 + 1; // Map 65 to 1, 66 to 2, ..., 70 to 6
-    color2 = this.brightness[brightnessRow * 64 + currentColor];
+  // Adjust color2 based on brightness table if within the shade range
+  if (color2 >= 65 && color2 <= 70) {
+    color2 = this.brightness[(color2 - 65) * 64 + currentColor];
   } else {
-    color2 = this.stencil
-      ? this.pget(x, y, this.stencilSource) + this.stencilOffset
-      : (color2 | 0) % 64;
+    color2 = color2 % 64;
   }
 
+  if(r.lightMode){
+    color = color < currentColor ? color : currentColor;
+    color2 = color2 < currentColor ? color2 : currentColor;
+  }
+
+  // Determine the dithered color
   let px = (y % 4) * 4 + (x % 4);
-  let mask = this.pat & Math.pow(2, px);
-  let pcolor = mask ? color : color2;
-  if (pcolor == 0) return;
+  let pcolor = (this.pat & (1 << px)) ? color : color2;
 
-  this.ram[this.renderTarget + y * this.WIDTH + x] = pcolor;
+  if (pcolor != 0) {
+    this.ram[ramIndex] = pcolor;
+  }
+  else if (this.paintTransparent) {
+    this.ram[ramIndex] = pcolor;
+  }
+
 }
+
 
   /**
    * Gets the color of the pixel at the specified coordinates.
@@ -420,6 +428,61 @@ fCircle(xm, ym, r, color, color2 = 64) {
 }
 
 /**
+ * Lerps between multiple colors and returns the two colors and a dither step.
+ * @param {Array<number>} colors - An array of color indices.
+ * @param {number} t - A normalized percentage (0 to 1) representing position along the gradient.
+ * @returns {Object} - An object with color1, color2, and ditherStep.
+ */
+colorLerp(colors, t) {
+  // Ensure t is between 0 and 1
+  t = Math.max(0, Math.min(1, t));
+  
+  // Calculate the total number of steps in the gradient
+  const steps = (colors.length - 1) * 16;
+  
+  // Determine the exact position in the gradient
+  const exactPosition = t * steps;
+  
+  // Determine the current segment
+  const segment = Math.floor(exactPosition / 16);
+  
+  // Determine the position within the segment
+  const stepWithinSegment = Math.floor(exactPosition % 16);
+  
+  // Assign the two colors
+  const color1 = colors[segment];
+  const color2 = colors[segment + 1] || colors[segment]; // Fallback to the last color if needed
+  
+  return {
+      color1,
+      color2,
+      ditherStep: stepWithinSegment
+  };
+}
+
+/**
+ * Draws a radial gradient filled circle with a smooth transition between colors.
+ * @param {number} cx - The x-coordinate of the center of the circle.
+ * @param {number} cy - The y-coordinate of the center of the circle.
+ * @param {number} radius - The radius of the circle.
+ * @param {Array<number>} colors - An array of color indices for the gradient.
+ */
+radialCircle(cx, cy, radius, colors) {
+  for (let y = -radius; y <= radius; y++) {
+      for (let x = -radius; x <= radius; x++) {
+          const distance = Math.sqrt(x * x + y * y);
+          if (distance <= radius) {
+              const t = distance / radius;
+              const { color1, color2, ditherStep } = this.colorLerp(colors, t);
+              this.pat = this.dither[ditherStep];
+              this.pset(cx + x, cy + y, color1, color2);
+          }
+      }
+  }
+  this.pat = this.dither[0]; // Reset pattern to solid fill after drawing
+}
+
+/**
  * Draws a horizontal line from x1 to x2 at the specified y coordinate.
  * more efficent in fill functions that only need to draw horizontal lines
  * @param {number} x1 - The starting x-coordinate.
@@ -539,6 +602,7 @@ span(x1, x2, y, color, color2 = 64) {
 spr(sx = 0, sy = 0, sw = 8, sh = 8, x = 0, y = 0) {
   for (let i = 0; i < sh; i++) {
       for (let j = 0; j < sw; j++) {
+          //replace pget with ram lookup
           const source = this.pget(sx + j, sy + i, this.renderSource);
           const color = this.pal[source];
           if (color == 0) continue; // Skip transparent pixels

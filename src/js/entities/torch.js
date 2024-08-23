@@ -1,5 +1,5 @@
 import Particle from './particle';
-import { randFloat, rand } from '../core/utils';
+import { randFloat, rand, lightRadial } from '../core/utils';
 export default class Torch {
     constructor(x, y) {
         this.x = x;
@@ -14,11 +14,15 @@ export default class Torch {
         //console.log('Torch draw');
         r.renderTarget = r.SCREEN;
         r.fCircle(this.x - view.x, this.y - view.y, this.size, this.fill);
+        if(this.lit) {
+            lightRadial(this.x - view.x, this.y - view.y, 25, [0,1,2,3, 4]);
+        }
     }
 
     update() {
         this.fill = this.lit ? 6 : 63;
         if(this.lit){
+
             entitiesArray.push(new Particle(
                 this.x + rand(-2,2), this.y,
                 randFloat(-0.05,0.05),

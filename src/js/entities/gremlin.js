@@ -1,4 +1,4 @@
-import { tileCollisionCheck, rand, randFloat } from "../core/utils";
+import { tileCollisionCheck, rand, randFloat, Rectangle, lightRadial } from "../core/utils";
 import Splode from "../gfx/Splode";
 import Powerup from "./Powerup";
 import Particle from './particle.js';
@@ -16,7 +16,16 @@ export default class Gremlin {
         this.acceleration = {x: 0, y: 0};
         this.drag = 0.8;
         this.speed = 0.25;
+        this.attackRange = 12;
+        this.attackCooldown = 1000;
+        this.attackTelegraphTime = 500;
+        this.isAttacking = false;
+        this.attackBox = new Rectangle(0, 0, 0, 0);
+        this.lastAttackTime = 0;
+        this.telegraphStartTime = 0;
+        this.damage = 10;
         this.isFiring = false;
+        this.rectangle = new Rectangle(this.x, this.y, this.width, this.height);
 
         this.targetTypes = {
             PLAYER: 1,
@@ -33,9 +42,11 @@ export default class Gremlin {
         if(!this.alive) return;
         //body
         r.fRect(this.x - view.x, this.y - view.y-8, 8, 10, 16, 16);
+        lightRadial(this.x - view.x, this.y - view.y, 30, [2, 4]);
         //horns
-        r.fRect(this.x - view.x-2, this.y - view.y-10, 2, 4, 16, 16);
-        r.fRect(this.x - view.x+4, this.y - view.y-10, 2, 4, 16, 16);
+        const hornColor = this.isAttacking ?  6 : 16;
+        r.fRect(this.x - view.x-2, this.y - view.y-10, 2, 4, hornColor);
+        r.fRect(this.x - view.x+4, this.y - view.y-10, 2, 4, hornColor);
         //display health above gremlin
         r.text(`${this.health}`, this.x - view.x, this.y - view.y - 16, 1, 1, 'center', 'top', 1, 22);
     }
@@ -102,7 +113,7 @@ export default class Gremlin {
                         player.currentRoom.altar.torches.forEach(torch => {
                             if(torch.x === this.target.x && torch.y === this.target.y) {
                                 torch.health--;
-                                this.health--;
+                                //this.health--;
                             }
                         });
                     }
@@ -135,30 +146,68 @@ export default class Gremlin {
     
         this.acceleration.x = 0;
         this.acceleration.y = 0;
+
+        this.rectangle.x = this.x;
+        this.rectangle.y = this.y;
     }
     
-    interactWithPlayer() {
-        //calculate angle between player and gremlin
-        const angle = Math.atan2(this.target.y - this.y, this.target.x - this.x);
-        if(player.isFiring) {
-            this.health--;
-            entitiesArray.push(new Splode(this.x, this.y, 25, 5));
-            this.acceleration.x = Math.cos(angle) * 2;
-            this.acceleration.y = Math.sin(angle) * 2;
+    // In the Gremlin class (inside interactWithPlayer or update method):
+interactWithPlayer() {
+    if (player.isFiring && player.attackBox) {
+        // Check collision between attack box and gremlin's rectangle
+        if (player.attackBox.intersects(this.rectangle)) {
+            // Decrease gremlin health
+            this.health -= 20; // Adjust damage value as needed
+
+            // Calculate knockback direction based on player's facing direction
+            const knockbackForce = 4; // Adjust the force of knockback
+            switch (player.direction) {
+                case 'up':
+                    this.acceleration.y = -knockbackForce;
+                    break;
+                case 'down':
+                    this.acceleration.y = knockbackForce;
+                    break;
+                case 'left':
+                    this.acceleration.x = -knockbackForce;
+                    break;
+                case 'right':
+                    this.acceleration.x = knockbackForce;
+                    break;
             }
-        if(player.health > 0) {
-            entitiesArray.push(new Splode(this.x, this.y, 25, 5));
-            player.health-=.1;
-            //push player away
-            player.acceleration.x = Math.cos(angle) * player.maxSpeed;
-            player.acceleration.y = Math.sin(angle) * player.maxSpeed;
+            
+            // Add visual feedback for the hit (e.g., particle effect, sound)
+            entitiesArray.push(new Splode(this.x, this.y, 25, 5,64));
+        }
+    } else {
+        const knockbackForce = 1; // Adjust the force of knockback
+        switch (player.direction) {
+            case 'up':
+                player.acceleration.y = -knockbackForce;
+                break;
+            case 'down':
+                player.acceleration.y = knockbackForce;
+                break;
+            case 'left':
+                player.acceleration.x = -knockbackForce;
+                break;
+            case 'right':
+                player.acceleration.x = knockbackForce;
+                break;
         }
     }
+    
+
+    if (this.health <= 0) {
+        this.die();
+    }
+}
+
 
 
 
     die() {
-        entitiesArray.push(new Splode(this.x, this.y, 50, 11));
+        entitiesArray.push(new Splode(this.x, this.y, 50, 11,64));
         //throw out a random amount of Powerups
         const powerupCount = Math.floor(Math.random() * 5) + 1;
         for(let i = 0; i < powerupCount; i++) {
@@ -176,4 +225,26 @@ export default class Gremlin {
 
         this.alive = false;
     }
+
+    updateAttackBox() {
+        // Update the attack box based on the gremlin's current position
+        const attackSize = 8;
+        this.attackBox.x = this.x;
+        this.attackBox.y = this.y;
+        this.attackBox.width = attackSize;
+        this.attackBox.height = attackSize;
+    }
+
+    canAttack() {
+        // Check if gremlin can attack again based on the cooldown
+        return performance.now() - this.lastAttackTime >= this.attackCooldown;
+    }
+
+    startAttack() {
+        this.isAttacking = true;
+        this.telegraphStartTime = performance.now();
+        // Change color or show some visual cue
+    }
+
+    
 }

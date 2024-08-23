@@ -1,19 +1,23 @@
 import RetroBuffer from './core/RetroBuffer.js';
 import MusicPlayer from './core/musicplayer.js';
-import { playSound, Key, inView, callOnce, rand, resizeCanvas, loadAtlas, lerp, randFloat } from './core/utils.js';
+import { playSound, Key, inView, rand, resizeCanvas, loadAtlas, lerp } from './core/utils.js';
 
 //sound assets
 import tada from './sounds/tada.js';
 import missileWhoosh from './sounds/missileWhoosh.js';
 import boom1 from './sounds/boom1.js';
 import spawn from './sounds/spawn.js';
+// import demoSong from './sounds/demoSong.js';
 
+//gfx assets
+// import background1 from '../assets/background1.js';
+// import platformerTest from '../assets/platformerTest.js';
+// import tileAssetTest from '../assets/tileAssetTest.js';
 //entities
 import Player from './entities/player.js';
 import Floor from './entities/floor.js';
 import Map from './entities/map.js';
 import Gremlin from './entities/gremlin.js';
-import Particle from './entities/particle.js';
 
 (function () {
     document.body.style = "margin:0; background-color:black; overflow:hidden";
@@ -26,6 +30,7 @@ import Particle from './entities/particle.js';
     loadAtlas(atlasURL, (atlas) => {
         const r = new RetroBuffer(w, h, atlas, 10);
         window.r = r;
+        window.LIGHTS = r.PAGE_7;
         document.getElementById('game').appendChild(r.c);
         document.getElementById('game').style.background = "none";
         gameInit();
@@ -110,6 +115,7 @@ import Particle from './entities/particle.js';
             { name: 'missileWhoosh', data: missileWhoosh },
             { name: 'boom1', data: boom1 },
             { name: 'spawn', data: spawn },
+            // { name: 'demoSong', data: demoSong }
         ]
         totalSounds = sndData.length;
         soundsReady = 0;
@@ -155,12 +161,18 @@ import Particle from './entities/particle.js';
     function drawGame() {
         r.clear(1, r.SCREEN);
 
+        drawLightLayerBase();
+
+
         // Draw background
         r.pat = 0b1111111111111111;
 
         //draw things
         map.draw(r, view);
-        rooms.forEach(room => {room.drawAltar(r, view);});
+        rooms.forEach(room => {
+            room.drawAltar(r, view);
+        });
+
         drawEntities(entitiesArray);
         drawEntities(gremlinsArray);
         player.draw(r, view);
@@ -172,29 +184,57 @@ import Particle from './entities/particle.js';
             text = "LOADING THE NEXT FLOOR";
             r.text(text, w / 2, h / 2, 1, 1, 'center', 'middle', 1, 22);
         }
-
-
-
 ;
-        // Draw debug text
-        debugText= `FPS: ${fps.toFixed(2)}\nPLAYER: ${player.x}, ${player.y}`;
-        r.text(debugText, 10, 10, 1, 1, 'left', 'top', 1, 22);
+        drawLightsOverlay();
 
-        //draw Minimum Spanning Tree of floor 
+        drawUI();
 
-        // floors[0].mst.forEach(edge => {
-        //     r.line(edge.roomA.x - view.x + edge.roomA.width / 2,
-        //         edge.roomA.y - view.y + edge.roomA.height / 2,
-        //         edge.roomB.x - view.x + edge.roomB.width / 2,
-        //         edge.roomB.y - view.y + edge.roomB.height / 2, 22);
-        // })
 
         r.render();
+    }
+
+    function drawLightLayerBase() {
+        r.renderTarget = LIGHTS;
+        r.clear(0, LIGHTS);
+        r.fRect(0, 0, 480, 270, 4, 5, 8);
+        r.renderTarget = r.SCREEN;
+    }
+
+    function drawLightsOverlay() {
+       
+        //remap palette to shade colors
+        r.pal=[65,66,67,68,69,70];
+
+        //render lights layer over screen layer
+        r.renderSource = LIGHTS;
+        r.renderTarget = r.SCREEN;
+        r.spr(0, 0, 480, 270, 0, 0);
+
+        //reset palette
+        r.pal = r.palDefault.slice();
+        r.renderSource = r.PAGE_1;
+    }
+
+    function drawUI() {
+        // Draw debug text
+        debugText= `FPS: ${fps.toFixed(2)}`;
+        r.text(debugText, 10, 10, 1, 1, 'left', 'top', 1, 22);
+
+        debugText = `${player.health.toFixed(2)}\nGB: ${player.gremlinBlood}\nAP: ${player.completeAltarTorchCount}`
+        r.text(debugText, player.x - view.x, player.y - view.y - 28, 1, 1, 'center', 'top', 1, 22);
+    
+        debugText = `FLOOR: ${currentFloor}`;
+        r.text(debugText, w - 10, 10, 1, 1, 'right', 'top', 2, 22);
+        debugText = `TORCHES: ${player.completeAltarTorchCount}`;
+        r.text(debugText, w - 10, 30, 1, 1, 'right', 'top', 2, 22);
+
     }
 
     function titlescreen() {
         r.clear(64, r.SCREEN);
         r.drawTileAsset(0, 0, background1);
+        r.drawTileAsset(0, 0, platformerTest);
+        r.drawTileAsset(0, 0, tileAssetTest);
         drawEntities(entitiesArray);
         text = "SIX AND SEVEN";
         r.text(text, w / 2, 100, 4, 1, 'center', 'top', 4, 22);
@@ -230,48 +270,7 @@ import Particle from './entities/particle.js';
 
         r.clear(64, r.SCREEN);
         r.renderTarget = r.SCREEN;
-        entitiesArray.push(new Particle(
-            w/2, h/2-40,
-            randFloat(-0.1,0.1), -0.25,
-            {color: [22,8,7,6,5,4,3,2,1],
-                customUpdate: function(p) {
-                    p.xVelocity += randFloat(-0.1,0.1);
-                    p.yVelocity += randFloat(-0.1,0.1);
-                }
-            }));
-
-        entitiesArray.push(new Particle(
-            w/4 + rand(-10,10), h/2-80,
-            randFloat(-0.1,0.1), 0.25,
-            {color: [22,21,20,19,18,17,16,2,1],
-                customUpdate: function(p) {
-                   // p.xVelocity += randFloat(-0.05,0.05);
-                    p.yVelocity += randFloat(-0.01,0.01);
-                }
-            }));
-
-        entitiesArray.push(new Particle(
-            w/4, h/2+10 + rand(-5,5),
-            3, randFloat(-0.05,0.05),
-            {color: [22,9,10,11,12,13,14,15,1],
-            life: rand(50,100),
-            }));
-        entitiesArray.push(new Particle(
-            w/4, h/2+10 + rand(-5,5),
-            3, randFloat(-0.05,0.05),
-            {color: [22,9,10,11,12,13,14,15,1],
-            life: rand(50,100),
-            }));
-        entitiesArray.push(new Particle(
-            w/4, h/2+10 + rand(-5,5),
-            3, randFloat(-0.05,0.05),
-            {color: [22,9,10,11,12,13,14,15,1],
-            life: rand(50,100),
-            }));
         
-        drawEntities(entitiesArray);
-        entitiesArray.forEach(entity => entity.update());
-
         text = "SIX AND SEVEN";
         r.text(text, w / 2, 100, 4, 1, 'center', 'top', 4, 2);
         r.text(audioTxt, w / 2 - 2, 130, 1, 1, 'center', 'top', 1, 22);
@@ -394,7 +393,6 @@ import Particle from './entities/particle.js';
         }
     }
     
-
     function cameraFollow() {
         //implement deadzone
         deadzone = { x: 200, y: 100 };

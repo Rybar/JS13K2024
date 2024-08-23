@@ -9,7 +9,7 @@ export default class Floor {
         this.maxRoomWidth = maxRoomWidth;
         this.maxRoomHeight = maxRoomHeight;
 
-        this.roomCount = 3;
+        this.roomCount = 120;
         this.maxSeparationTries = 20000;
         this.rooms = [];
         this.sizeBias = 5;
@@ -40,7 +40,7 @@ export default class Floor {
          
         //if there are no rooms, try again, up to 10 times
         let tries = this.maxGenerationTries;
-        if(this.rooms.length === 0 && tries > 0) {
+        if(this.rooms.length < 5 && tries > 0) {
             this.generateFloor();
             tries--;
         }
