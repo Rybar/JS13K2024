@@ -1,4 +1,4 @@
-import { tileCollisionCheck, Rectangle, lightRadial } from "../core/utils";
+import { tileCollisionCheck, Rectangle, lightRadial, playSound } from "../core/utils";
 import Arm from "./arm"; // Assuming you have the correct path to arm.js
 
 export default class Player {
@@ -119,7 +119,6 @@ export default class Player {
         if (this.isFiring && this.attackBox) {
             r.fRect(this.attackBox.x - view.x, this.attackBox.y - view.y, this.attackBox.width, this.attackBox.height, this.attackBoxColor);
         }
-    
         
         lightRadial(this.x - view.x + 2, this.y - view.y + 2, 50, [0,1,2,3,4]);
     }
@@ -170,6 +169,7 @@ export default class Player {
             const distance = Math.hypot(targetX - legTarget.x, targetY - legTarget.y);
             if (distance > this.stepDistance) {
                 this.legTargets[index] = { x: targetX + (index === 0 ? 0 : 3), y: targetY };
+                playSound(sounds.footstep, 1, 0, 0.1)
             }
         });
     }

@@ -1,4 +1,4 @@
-import { tileCollisionCheck, rand, randFloat, Rectangle, lightRadial } from "../core/utils";
+import { tileCollisionCheck, rand, randFloat, Rectangle, lightRadial, playSound } from "../core/utils";
 import Splode from "../gfx/Splode";
 import Powerup from "./Powerup";
 import Particle from './particle.js';
@@ -178,6 +178,7 @@ interactWithPlayer() {
             
             // Add visual feedback for the hit (e.g., particle effect, sound)
             entitiesArray.push(new Splode(this.x, this.y, 25, 5,64));
+            playSound(sounds.gremlinHurt);
         }
     } else {
         const knockbackForce = 1; // Adjust the force of knockback
@@ -195,6 +196,7 @@ interactWithPlayer() {
                 player.acceleration.x = knockbackForce;
                 break;
         }
+        playSound(sounds.playerHurt);
     }
     
 

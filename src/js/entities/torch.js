@@ -1,5 +1,5 @@
 import Particle from './particle';
-import { randFloat, rand, lightRadial } from '../core/utils';
+import { randFloat, rand, lightRadial, playSound} from '../core/utils';
 export default class Torch {
     constructor(x, y) {
         this.x = x;
@@ -7,6 +7,7 @@ export default class Torch {
         this.size = 3;
         this.health = 25;
         this.lit = false;
+        this.igniting = false;
         this.fill=2;
     }
 
@@ -22,7 +23,6 @@ export default class Torch {
     update() {
         this.fill = this.lit ? 6 : 63;
         if(this.lit){
-
             entitiesArray.push(new Particle(
                 this.x + rand(-2,2), this.y,
                 randFloat(-0.05,0.05),
@@ -33,12 +33,17 @@ export default class Torch {
         let dx = player.x - this.x;
         let dy = player.y - this.y;
         let dist = Math.sqrt(dx*dx + dy*dy);
-        if(dist < 20 && player.isFiring) {
+        if(dist < 20 && player.isFiring && !this.lit && !this.igniting) {
             this.health = 25;
             this.lit = true;
+            this.igniting = true;
         }
         if(this.health <= 0) {
             this.lit = false;
+        }
+        if(this.igniting) {
+            playSound(sounds.torch);
+            this.igniting = false;
         }
     }
 }

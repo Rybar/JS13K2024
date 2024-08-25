@@ -1,3 +1,5 @@
+import { playSound } from "../core/utils";
+
 export default class Powerup {
 
     
@@ -43,6 +45,7 @@ export default class Powerup {
         if(distanceToPlayer < 8){
             this.effect(player);
             this.alive = false;
+            playSound(sounds.pickup);
         }
     }
 

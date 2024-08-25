@@ -3,10 +3,14 @@ import MusicPlayer from './core/musicplayer.js';
 import { playSound, Key, inView, rand, resizeCanvas, loadAtlas, lerp } from './core/utils.js';
 
 //sound assets
-import tada from './sounds/tada.js';
-import missileWhoosh from './sounds/missileWhoosh.js';
-import boom1 from './sounds/boom1.js';
+import potBreak from './sounds/potBreak.js';
+import torch from './sounds/torch.js';
 import spawn from './sounds/spawn.js';
+import tada from './sounds/tada.js';
+import footstep from './sounds/footstep.js';
+import gremlinHurt from './sounds/gremlinHurt.js';
+import playerHurt from './sounds/playerHurt.js';
+import pickup from './sounds/pickup.js';
 // import demoSong from './sounds/demoSong.js';
 
 //gfx assets
@@ -49,7 +53,7 @@ import Gremlin from './entities/gremlin.js';
     window.player = null;
     sounds = {};
     soundsReady = 0;
-    totalSounds = 8;
+    totalSounds = 4;
     audioTxt = "";
     debugText = "";
     TITLESCREEN = 2;
@@ -112,10 +116,13 @@ import Gremlin from './entities/gremlin.js';
 
         sndData = [
             { name: 'tada', data: tada },
-            { name: 'missileWhoosh', data: missileWhoosh },
-            { name: 'boom1', data: boom1 },
+            { name: 'potBreak', data: potBreak },
+            { name: 'torch', data: torch },
             { name: 'spawn', data: spawn },
-            // { name: 'demoSong', data: demoSong }
+            { name: 'footstep', data: footstep },
+            { name: 'gremlinHurt', data: gremlinHurt },
+            { name: 'playerHurt', data: playerHurt },
+            { name: 'pickup', data: pickup },
         ]
         totalSounds = sndData.length;
         soundsReady = 0;
@@ -177,7 +184,6 @@ import Gremlin from './entities/gremlin.js';
         drawEntities(gremlinsArray);
         player.draw(r, view);
 
-        if (paused) { drawPaused(); }
 
         if(generatingNewFloor) {
             r.fRect(0, 0, w, h, 3);
@@ -186,6 +192,8 @@ import Gremlin from './entities/gremlin.js';
         }
 ;
         drawLightsOverlay();
+
+        if (paused) { drawPaused(); }
 
         drawUI();
 
@@ -457,7 +465,9 @@ import Gremlin from './entities/gremlin.js';
         }
         if(tries < 100) {
             gremlinsArray.push(new Gremlin(x, y));
+            playSound(sounds.spawn);
         }
+        
     }
 
     function nextLevel() {

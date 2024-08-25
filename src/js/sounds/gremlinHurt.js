@@ -5,45 +5,45 @@
     // use it in a demo.
 
     // Song data
-    export default spawn = {
+    export default gremlinHurt= {
       songData: [
         { // Instrument 0
           i: [
-          0, // OSC1_WAVEFORM
-          160, // OSC1_VOL
+          2, // OSC1_WAVEFORM
+          100, // OSC1_VOL
           128, // OSC1_SEMI
-          37, // OSC1_XENV
-          0, // OSC2_WAVEFORM
-          160, // OSC2_VOL
+          135, // OSC1_XENV
+          3, // OSC2_WAVEFORM
+          201, // OSC2_VOL
           128, // OSC2_SEMI
-          38, // OSC2_DETUNE
-          64, // OSC2_XENV
-          210, // NOISE_VOL
-          23, // ENV_ATTACK
-          7, // ENV_SUSTAIN
-          52, // ENV_RELEASE
-          85, // ENV_EXP_DECAY
+          0, // OSC2_DETUNE
+          101, // OSC2_XENV
+          0, // NOISE_VOL
+          5, // ENV_ATTACK
+          6, // ENV_SUSTAIN
+          58, // ENV_RELEASE
+          0, // ENV_EXP_DECAY
           0, // ARP_CHORD
           0, // ARP_SPEED
           0, // LFO_WAVEFORM
-          20, // LFO_AMT
-          3, // LFO_FREQ
+          195, // LFO_AMT
+          6, // LFO_FREQ
           1, // LFO_FX_FREQ
           2, // FX_FILTER
-          69, // FX_FREQ
-          0, // FX_RESONANCE
-          0, // FX_DIST
-          13, // FX_DRIVE
-          61, // FX_PAN_AMT
-          5, // FX_PAN_FREQ
-          76, // FX_DELAY_AMT
-          2 // FX_DELAY_TIME
+          49, // FX_FREQ
+          168, // FX_RESONANCE
+          18, // FX_DIST
+          32, // FX_DRIVE
+          147, // FX_PAN_AMT
+          6, // FX_PAN_FREQ
+          107, // FX_DELAY_AMT
+          1 // FX_DELAY_TIME
           ],
           // Patterns
           p: [1],
           // Columns
           c: [
-            {n: [147],
+            {n: [142],
              f: []}
           ]
         },

@@ -8,7 +8,7 @@ Main rooms will be numbered 1 thru 12. Exit room portal activated when torches o
 Higher numbered rooms, while easier to activate, raise more alarm and difficulty.
 
 
-TODO:
+### TODO moved to kanban board
 ### player
 - [x] has an attack verb that damages enemies.
 - [x] action verb required to light torches
@@ -66,6 +66,10 @@ TODO:
 ### new object: Exit portal
 - [x] activated when altars are complete that sum 13.
 - [x] stand in its center to be evaporated to the next floor.
+- [ ] completed torch shapes visual in center of portal
+- [ ] light on portal
+- [ ] particles flowing inward around perimeter of portal
+
 
 
 ### general todos
@@ -83,6 +87,7 @@ TODO:
 - [ ] gremlin attack
 - [ ] torch lit
 - [ ] alter complete
-- [ ] 
+
+
 
 

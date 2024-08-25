@@ -9,7 +9,7 @@ export default class Floor {
         this.maxRoomWidth = maxRoomWidth;
         this.maxRoomHeight = maxRoomHeight;
 
-        this.roomCount = 120;
+        this.roomCount = 200;
         this.maxSeparationTries = 20000;
         this.rooms = [];
         this.sizeBias = 5;

@@ -1,3 +1,4 @@
+import { lightRadial } from "../core/utils";
 export default class Splode {
     /**
      * Creates an instance of Splode.
@@ -37,6 +38,7 @@ export default class Splode {
       buffer.pat = buffer.dither[15 - Math.floor((this.life / this.lifeMax) * 15)];
       for (let i = Math.floor(this.life / 10); i > 0; i--) {
         buffer.lCircle(this.x - view.x, this.y - view.y, this.lifeMax - this.life - i, this.color, 0);
+        lightRadial(this.x - view.x, this.y - view.y, this.lifeMax - this.life - i, [3,3,0]);
       }
       buffer.lCircle(this.x - view.x, this.y - view.y, this.lifeMax - this.life, this.color, 0);
       buffer.pat = buffer.dither[0];
