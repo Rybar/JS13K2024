@@ -1,5 +1,6 @@
 import Torch from './torch.js';
-import { callOnce, inView, lightRadial } from '../core/utils.js';
+import Particle from './particle.js';   
+import { callOnce, inView, lightRadial, randFloat } from '../core/utils.js';
 export default class Altar {
     constructor(x, y, torchCount=3) {
         this.x = x*8;
@@ -9,13 +10,32 @@ export default class Altar {
         this.torches = [];
         this.lit = false;
         this.annointed = false;
-        this.fill = 12;
-        this.completeColor = 13;
+        this.fill = 13;
+        this.completeColor = 10;
         this.generateTorches();
         this.bloodRequired = 20;
         this.playerCompleted = callOnce(() => {
             player.completeAltarTorchCount += this.torchCount;
+            //emit particles
+            for(let i = 0; i < 300; i++) {
+                let angle = Math.random() * Math.PI * 2;
+                let x = this.x + Math.cos(angle) * 6;
+                let y = this.y + Math.sin(angle) * 6;
+                entitiesArray.push(new Particle(x, y, randFloat(-2, 2), randFloat(-2, 2),
+                {
+                    color: [22,9,10,11,12,13,14,15],
+                    life: 100,
+                    customUpdate: (particle) => {
+                        particle.yVelocity += randFloat(-0.5, 0.5);
+                        particle.xVelocity += randFloat(-0.5, 0.5);
+                    }
+                    }));
+                }
         })
+        this.annointedComplete = callOnce(() => {
+            
+            });
+            
     }
 
     update() {
@@ -24,9 +44,17 @@ export default class Altar {
         this.annointed = this.lit && this.bloodRequired === 0;
         if(this.annointed) {
             this.fill = this.completeColor;
+            this.annointedComplete();
+            //emit particles
+            for(let i = 0; i < 4; i++) {
+                let angle = Math.random() * Math.PI * 2;
+                let x = this.x + Math.cos(angle) * 6;
+                let y = this.y + Math.sin(angle) * 6;
+                entitiesArray.push(new Particle(x, y, randFloat(-.05, .05), randFloat(-.1, -.3), {color: [14,13,12,11,10], life: 30}));
+            }
             //can't be unlit
             this.lit = true;
-            this.torches.forEach(torch => torch.health = 25);
+            this.torches.forEach(torch => {torch.health = 25, torch.annointed = true});
             this.playerCompleted();
         }
         this.fill = this.annointed ? this.completeColor : 12;
@@ -36,7 +64,7 @@ export default class Altar {
             let dx = player.x - this.x;
             let dy = player.y - this.y;
             let dist = Math.sqrt(dx*dx + dy*dy);
-            if(dist < 20 && player.isFiring) {
+            if(dist < 20) {
                 if(player.gremlinBlood > 0) {
                     this.bloodRequired--;
                     player.gremlinBlood--;
@@ -58,7 +86,8 @@ export default class Altar {
         //draw lines connecting torches to altar
         for(let i = 0; i < this.torchCount; i++) {
             let torch = this.torches[i];
-            r.line(this.x - view.x, this.y - view.y, torch.x - view.x, torch.y - view.y, 2);
+            let lineColor = torch.lit ? 22 : 2;
+            r.line(this.x - view.x, this.y - view.y, torch.x - view.x, torch.y - view.y, lineColor);
         }
         //draw the altar
         r.fCircle(this.x - view.x, this.y - view.y, 8, this.fill);

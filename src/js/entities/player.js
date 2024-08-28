@@ -1,5 +1,5 @@
 import { tileCollisionCheck, Rectangle, lightRadial, playSound } from "../core/utils";
-import Arm from "./arm"; // Assuming you have the correct path to arm.js
+import Arm from "./arm";
 
 export default class Player {
 
@@ -22,9 +22,10 @@ export default class Player {
         this.health = 100;
         this.maxHealth = 100;
         this.completeAltarTorchCount = 0;
-        this.Rectangle = new Rectangle(this.x, this.y, this.width, this.height);
+        this.rectangle = new Rectangle(this.x, this.y, this.width, this.height);
         this.bodyColor = 22;
         this.attackBoxColor = 8;
+        this.attackDamage = 5;
         
         
 
@@ -67,11 +68,6 @@ export default class Player {
             this.y = this.oldY;
         }
 
-        // Update direction based on movement
-        // if (this.velocity.x < 0) this.direction = 'left';
-        // else if (this.velocity.x > 0) this.direction = 'right';
-        // if (this.velocity.y < 0) this.direction = 'up';
-        // else if (this.velocity.y > 0) this.direction = 'down';
         this.determineDirection();
 
         // Update leg positions
@@ -102,8 +98,8 @@ export default class Player {
         this.acceleration.y = 0;
 
         //update rectangle
-        this.Rectangle.x = this.x;
-        this.Rectangle.y = this.y;
+        this.rectangle.x = this.x;
+        this.rectangle.y = this.y;
     }
 
     draw(r, view) {
@@ -121,6 +117,15 @@ export default class Player {
         }
         
         lightRadial(this.x - view.x + 2, this.y - view.y + 2, 50, [0,1,2,3,4]);
+
+        // //debug corners
+        // r.fRect(this.x - view.x, this.y - view.y, 1, 1, 18);
+        // r.fRect(this.x - view.x + this.width, this.y - view.y, 1, 1, 18);
+        // r.fRect(this.x - view.x, this.y - view.y + this.height, 1, 1, 18);
+        // r.fRect(this.x - view.x + this.width, this.y - view.y + this.height, 1, 1, 18);
+
+        // //debug rectangle
+        // r.fRect(this.rectangle.x - view.x, this.rectangle.y - view.y, this.rectangle.width, this.rectangle.height, 10);
     }
 
     handleInput(Key) {
@@ -178,28 +183,28 @@ export default class Player {
         const attackSize = 8; // Adjust the size as needed
         switch (this.direction) {
             case 'up':
-                this.attackBox.x = this.x;
-                this.attackBox.y = this.y - attackSize;
-                this.attackBox.width = this.width;
-                this.attackBox.height = attackSize;
+                this.attackBox.x = this.x - 10;
+                this.attackBox.y = this.y - 16;
+                this.attackBox.width = 24;
+                this.attackBox.height = 8;
                 break;
             case 'down':
-                this.attackBox.x = this.x;
-                this.attackBox.y = this.y + this.height;
-                this.attackBox.width = this.width;
-                this.attackBox.height = attackSize;
+                this.attackBox.x = this.x - 10;
+                this.attackBox.y = this.y + this.height + 8;
+                this.attackBox.width = 24;
+                this.attackBox.height = 8;
                 break;
             case 'left':
-                this.attackBox.x = this.x - attackSize;
-                this.attackBox.y = this.y;
-                this.attackBox.width = attackSize;
-                this.attackBox.height = this.height;
+                this.attackBox.x = this.x - 14;
+                this.attackBox.y = this.y - 8;
+                this.attackBox.width = 8;
+                this.attackBox.height = 24;
                 break;
             case 'right':
-                this.attackBox.x = this.x + this.width;
-                this.attackBox.y = this.y;
-                this.attackBox.width = attackSize;
-                this.attackBox.height = this.height;
+                this.attackBox.x = this.x + 14;
+                this.attackBox.y = this.y - 8;
+                this.attackBox.width = 8;
+                this.attackBox.height = 24;
                 break;
         }
     }

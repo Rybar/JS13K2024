@@ -25,6 +25,17 @@ export default {
     strict: false,
     globals: {
       RetroBuffer: "r",
+      player: "player",
+      map: "map",
+      entitiesArray: "entitiesArray",
+      sounds: "sounds",
+      view: "view",
+      portalLocation: "portalLocation",
+      nextLevel: "nextLevel",
+      currentFloor: "currentFloor",
+      w: "w",
+      h: "h",
+
     }
   },
   plugins: [

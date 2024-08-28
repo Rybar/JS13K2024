@@ -5,9 +5,10 @@ export default class Torch {
         this.x = x;
         this.y = y;
         this.size = 3;
-        this.health = 25;
+        this.health = 0;
         this.lit = false;
         this.igniting = false;
+        this.annointed = false;
         this.fill=2;
     }
 
@@ -22,11 +23,13 @@ export default class Torch {
 
     update() {
         this.fill = this.lit ? 6 : 63;
+        this.fill = this.annointed ? 10 : this.fill;
+        let gradient = this.annointed ? [10,11,12,13,14,15] : [22,8,7,6,5,4,3,2,1];
         if(this.lit){
             entitiesArray.push(new Particle(
                 this.x + rand(-2,2), this.y,
                 randFloat(-0.05,0.05),
-                -0.25, {color: [22,8,7,6,5,4,3,2,1], life: 70}));
+                -0.25, {color: gradient, life: 70}));
         }
         //check for overlap with player. If so, light the torch.
         //will require action to light the torch in the future

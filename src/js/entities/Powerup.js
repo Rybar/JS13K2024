@@ -1,4 +1,4 @@
-import { playSound } from "../core/utils";
+import { playSound, randFloat, tileCollisionCheck } from "../core/utils";
 
 export default class Powerup {
 
@@ -8,14 +8,14 @@ export default class Powerup {
 
         this.types = {
             HEALTH: {
-                life: 5000,
+                life: 500,
                 color: 5,
                 effect : function (player) {
                     player.health = Math.min(player.health + 1, player.maxHealth);
                 }
             },
             GREMLIN_BLOOD: {
-                life: 5000,
+                life: 500,
                 color: 11,
                 effect : function (player) {
                     player.gremlinBlood += 1;
@@ -25,6 +25,8 @@ export default class Powerup {
 
         this.x = x;
         this.y = y;
+        this.oldX = x;
+        this.oldY = y;
         this.alive = true;
         
         this.type = this.types[type];
@@ -32,9 +34,22 @@ export default class Powerup {
         this.lifeMax = this.life;
         this.color = this.type.color;
         this.effect = this.type.effect;
+        this.velocity = {x: randFloat(-1,1), y: randFloat(-1,1)};
     }
 
     update(){
+        this.oldX = this.x;
+        this.oldY = this.y;
+        this.velocity.x *= 0.8;
+        this.velocity.y *= 0.8;
+        this.x += this.velocity.x;
+        if(tileCollisionCheck(map, this)){
+            this.velocity.x *= -1;
+        }
+        this.y += this.velocity.y;
+        if(tileCollisionCheck(map, this)){
+            this.velocity.y *= -1;
+        }
         if (!this.alive) return;
         this.life--;
         if(this.life <= 0){

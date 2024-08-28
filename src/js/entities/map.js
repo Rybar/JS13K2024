@@ -7,6 +7,8 @@ export default class map {
         this.bufferPage = bufferPage;
         this.tiles = new Uint8Array(width * height);
         this.drawTiles = new Uint8Array(width * height);
+        this.firstDrawColors = new Uint8Array(width * height);
+        this.secondDrawColors = new Uint8Array(width * height);
         this.rooms = [];
         this.torches = [];
         this.player = null;
@@ -38,12 +40,44 @@ export default class map {
         for(let y = 0; y < this.height; y++){
             for(let x = 0; x < this.width; x++){
                 let tile = r.ram[this.bufferPage + y * this.width + x];
-                let drawTile = tile === 0 ? r.LCG.choice([35,36,37,38]) : r.LCG.choice([34,35]);
+                let drawTileIndex = tile === 0 ? r.LCG.choice([1,2,3,4]) : r.LCG.choice([1,2]);
+                let drawTileColors = tile == 0 ? [50,51] : [34,35];
                 this.tiles[y * this.width + x] = tile;
-                this.drawTiles[y * this.width + x] = drawTile;
+                this.drawTiles[y * this.width + x] = drawTileIndex;
+                this.firstDrawColors[y * this.width + x] = drawTileColors[0];
+                this.secondDrawColors[y * this.width + x] = drawTileColors[1];
             }
         }
-
+        //0 is walkable. find border tiles outside walkables and set border tiles
+        let borderTile = 1, firstColor = 40, secondColor = 38;
+        for(let y = 0; y < this.height; y++){
+            for(let x = 0; x < this.width; x++){
+                let index = y * this.width + x;
+                let left = index - 1, right = index + 1, up = index - this.width, down = index + this.width;
+                if(this.tiles[index] === 0){
+                    if(this.tiles[left] !== 0){
+                        this.drawTiles[index] = borderTile;
+                        this.firstDrawColors[index] = firstColor;
+                        this.secondDrawColors[index] = secondColor;
+                    }
+                    if(this.tiles[right] !== 0){
+                        this.drawTiles[index] = borderTile;
+                        this.firstDrawColors[index] = firstColor;
+                        this.secondDrawColors[index] = secondColor;
+                    }
+                    if(this.tiles[up] !== 0){
+                        this.drawTiles[index] = borderTile;
+                        this.firstDrawColors[index] = firstColor;
+                        this.secondDrawColors[index] = secondColor;
+                    }
+                    if(this.tiles[down] !== 0){
+                        this.drawTiles[index] = borderTile;
+                        this.firstDrawColors[index] = firstColor;
+                        this.secondDrawColors[index] = secondColor;
+                    }
+                }
+            }
+        }
     }
 
     update(){
@@ -60,22 +94,15 @@ export default class map {
                      y: y * this.tileSize,
                     },8)){
                         r.renderTarget = r.SCREEN;
-                        let currentTile = this.tiles[y * this.width + x];
-                        if(currentTile === 0){
-                            r.drawTile(
-                                this.drawTiles[y * this.width + x],
-                                x * this.tileSize - view.x,
-                                y * this.tileSize - view.y,
-                                50, 51
-                            );
-                        }else {
-                            r.drawTile(
-                                this.drawTiles[y * this.width + x],
-                                x * this.tileSize - view.x,
-                                y * this.tileSize - view.y,
-                                34, 35
-                            );
-                        }
+                        let drawTile = this.drawTiles[y * this.width + x];
+                        let firstColor = this.firstDrawColors[y * this.width + x];
+                        let secondColor = this.secondDrawColors[y * this.width + x];
+                        r.drawTile(
+                            drawTile,
+                            x * this.tileSize - view.x,
+                            y * this.tileSize - view.y,
+                            firstColor, secondColor
+                        )
                 }
             }
         }

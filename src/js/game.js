@@ -1,6 +1,6 @@
 import RetroBuffer from './core/RetroBuffer.js';
 import MusicPlayer from './core/musicplayer.js';
-import { playSound, Key, inView, rand, resizeCanvas, loadAtlas, lerp } from './core/utils.js';
+import { playSound, Key, inView, rand, resizeCanvas, loadAtlas, lerp, callOnce } from './core/utils.js';
 
 //sound assets
 import potBreak from './sounds/potBreak.js';
@@ -11,13 +11,14 @@ import footstep from './sounds/footstep.js';
 import gremlinHurt from './sounds/gremlinHurt.js';
 import playerHurt from './sounds/playerHurt.js';
 import pickup from './sounds/pickup.js';
-// import demoSong from './sounds/demoSong.js';
+import gamemusic from './sounds/gamemusic.js';
 
 //gfx assets
-// import background1 from '../assets/background1.js';
+//import background1 from '../assets/background1.js';
 // import platformerTest from '../assets/platformerTest.js';
 // import tileAssetTest from '../assets/tileAssetTest.js';
 //entities
+
 import Player from './entities/player.js';
 import Floor from './entities/floor.js';
 import Map from './entities/map.js';
@@ -67,6 +68,9 @@ import Gremlin from './entities/gremlin.js';
     window.generatingNewFloor = false;
     window.currentFloor = 0;
     window.nextLevel = nextLevel;
+    startGameMusic = callOnce(() => {
+        playSound(sounds.gamemusic, 1, 0, 0.5, true);
+    });
     floors = [];
     rooms = [];
     map = null;
@@ -123,6 +127,7 @@ import Gremlin from './entities/gremlin.js';
             { name: 'gremlinHurt', data: gremlinHurt },
             { name: 'playerHurt', data: playerHurt },
             { name: 'pickup', data: pickup },
+            { name: 'gamemusic', data: gamemusic }
         ]
         totalSounds = sndData.length;
         soundsReady = 0;
@@ -292,6 +297,7 @@ import Gremlin from './entities/gremlin.js';
             audioTxt = "ALL ASSETS CREATED.\nPRESS UP/W/Z TO CONTINUE";
         }
         if (Key.justReleased(Key.UP) || Key.justReleased(Key.w) || Key.justReleased(Key.z)) {
+            startGameMusic();
             gamestate = GAMESCREEN;
         }
         r.render();
