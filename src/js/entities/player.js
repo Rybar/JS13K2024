@@ -1,5 +1,6 @@
-import { tileCollisionCheck, Rectangle, lightRadial, playSound } from "../core/utils";
+import { tileCollisionCheck, Rectangle, lightRadial, playSound, randFloat, rand } from "../core/utils";
 import Arm from "./arm";
+import Particle from "./particle";
 
 export default class Player {
 
@@ -26,10 +27,17 @@ export default class Player {
         this.bodyColor = 22;
         this.attackBoxColor = 8;
         this.attackDamage = 5;
+        this.attackCoolDown = 0;
         
         
 
         this.direction = 'down'; // Track the direction the player is facing
+        this.directionAngles = {
+            up: -Math.PI / 2,
+            down: Math.PI / 2,
+            left: Math.PI,
+            right: 0
+        }
         this.attackBox = new Rectangle(this.x, this.y, 0, 0);; // Placeholder for the attack box
 
         // Create legs as Arms with 2 Segments each
@@ -89,6 +97,26 @@ export default class Player {
         // Update attack box if firing
         if (this.isFiring) {
             this.updateAttackBox();
+            //emit particles along a circular 90 degree arc in the direction the player is facing
+            //direction is set at this.direction, left, right, up, down
+            for(let i = 0; i < 60; i++) {
+                let angle = this.directionAngles[this.direction] + Math.random() * Math.PI / 2 - Math.PI / 4;
+                let particle = new Particle(
+                    this.x + Math.cos(angle) * 20 + rand(-3, 3),
+                    this.y + Math.sin(angle) * 20 + rand(-3, 3),
+                    this.velocity.x + Math.cos(angle),
+                    this.velocity.y + Math.sin(angle), 
+                    {
+                        color: [22,21,20,19,18],
+                        life: 15,
+                        customUpdate: function(p) {
+                            p.xVelocity += randFloat(-0.3, 0.3);
+                            p.yVelocity += randFloat(-0.3, 0.3);
+                        }
+                    })
+                entitiesArray.push(particle);
+            }
+
         } else {
             this.attackBox.width = 0;
             this.attackBox.height = 0;
@@ -112,9 +140,9 @@ export default class Player {
         r.fRect(this.x - view.x, this.y - view.y-4, this.width, 8, this.bodyColor);
 
         // Draw attack box if firing
-        if (this.isFiring && this.attackBox) {
-            r.fRect(this.attackBox.x - view.x, this.attackBox.y - view.y, this.attackBox.width, this.attackBox.height, this.attackBoxColor);
-        }
+        // if (this.isFiring && this.attackBox) {
+        //     r.fRect(this.attackBox.x - view.x, this.attackBox.y - view.y, this.attackBox.width, this.attackBox.height, this.attackBoxColor);
+        // }
         
         lightRadial(this.x - view.x + 2, this.y - view.y + 2, 50, [0,1,2,3,4]);
 

@@ -1,4 +1,4 @@
-import { inView } from '../core/utils.js';
+import { inView, lightRadial } from '../core/utils.js';
 
 export default class Particle {
     constructor(x, y, xVelocity, yVelocity, options = {}) {
@@ -57,6 +57,8 @@ export default class Particle {
 
     draw(r, view) {
         r.line(this.x - view.x, this.y - view.y, this.prevX - view.x, this.prevY - view.y, this.color);
+        lightRadial(this.x - view.x, this.y - view.y, 10 * this.life/this.maxLife , [2,3, 4]);
+
     }
 
     die() {
