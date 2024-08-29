@@ -15,7 +15,7 @@ export default class Altar {
         this.generateTorches();
         this.bloodRequired = 20;
         this.playerCompleted = callOnce(() => {
-            player.completeAltarTorchCount += this.torchCount;
+            P.completeAltarTorchCount += this.torchCount;
             //emit particles
             for(let i = 0; i < 300; i++) {
                 let angle = Math.random() * Math.PI * 2;
@@ -60,14 +60,14 @@ export default class Altar {
         this.fill = this.annointed ? this.completeColor : 12;
         if(this.lit && this.bloodRequired > 0) {
 
-            //distance to player
-            let dx = player.x - this.x;
-            let dy = player.y - this.y;
+            //distance to P
+            let dx = P.x - this.x;
+            let dy = P.y - this.y;
             let dist = Math.sqrt(dx*dx + dy*dy);
             if(dist < 20) {
-                if(player.gremlinBlood > 0) {
+                if(P.gremlinBlood > 0) {
                     this.bloodRequired--;
-                    player.gremlinBlood--;
+                    P.gremlinBlood--;
                 }
 
             }

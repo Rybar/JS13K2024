@@ -1,5 +1,5 @@
     // This music has been exported by SoundBox. You can use it with
-    // http://sb.bitsnbites.eu/player-small.js in your own product.
+    // http://sb.bitsnbites.eu/P-small.js in your own product.
 
     // See http://sb.bitsnbites.eu/demo.html for an example of how to
     // use it in a demo.

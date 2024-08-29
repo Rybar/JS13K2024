@@ -11,7 +11,7 @@ export default class map {
         this.secondDrawColors = new Uint8Array(width * height);
         this.rooms = [];
         this.torches = [];
-        this.player = null;
+        this.P = null;
         this.preGenerate();
         this.generate();
         

@@ -34,13 +34,13 @@ export default class Gremlin {
         this.angleToPlayer = 0;
 
         this.targetTypes = {
-            PLAYER: 1,
+            P: 1,
             TORCH: 2
         };
         this.target = {
-            type: this.targetTypes.PLAYER,
-            x: player.x,
-            y: player.y
+            type: this.targetTypes.P,
+            x: P.x,
+            y: P.y
         };
 
          // Create legs as Arms with 2 Segments each
@@ -69,7 +69,7 @@ export default class Gremlin {
         if (!this.alive) return;
         //laser sight if about to attack
         if (this.isAttacking) {
-            r.line(this.x-view.x, this.y-view.y, player.x-view.x, player.y-view.y, choice([10,11,12,13]));
+            r.line(this.x-view.x, this.y-view.y, P.x-view.x, P.y-view.y, choice([10,11,12,13]));
         }
 
         //body
@@ -99,15 +99,15 @@ export default class Gremlin {
 
     update() {
         if (!this.alive) return;
-        this.angleToPlayer = Math.atan2(player.y - this.y, player.x - this.x);
-        if(this.currentRoom !== player.currentRoom) {
+        this.angleToPlayer = Math.atan2(P.y - this.y, P.x - this.x);
+        if(this.currentRoom !== P.currentRoom) {
             if(this.target.type === this.targetTypes.TORCH) {
-                this.target.type = this.targetTypes.PLAYER;
+                this.target.type = this.targetTypes.P;
             }
-            this.currentRoom = player.currentRoom;
+            this.currentRoom = P.currentRoom;
         }
 
-        // Check for collision with player's attack box and apply damage
+        // Check for collision with P's attack box and apply damage
         this.checkPlayerAttack();
 
         if (this.health <= 0) {
@@ -127,10 +127,10 @@ export default class Gremlin {
         this.oldX = this.x;
         this.oldY = this.y;
 
-        // Seek out the target (player or lit torch)
+        // Seek out the target (P or lit torch)
         this.seekTarget();
 
-        // Check for collision with player's attack box and apply damage
+        // Check for collision with P's attack box and apply damage
         this.checkPlayerAttack();
 
         this.seekWithObstacleAvoidance();
@@ -184,7 +184,7 @@ export default class Gremlin {
     }
 
     updateLegTargets() {
-        const offset = 12; // Distance ahead of the player for the leg targets
+        const offset = 12; // Distance ahead of the P for the leg targets
         const verticalOffset = 6; // Vertical offset for the leg targets
         let targetX, targetY;
         this.stepDistance = 30; // Minimum distance before a leg takes a step
@@ -209,7 +209,7 @@ export default class Gremlin {
                 break;
         }
 
-        // Update the targets for each leg only if the player has moved sufficiently
+        // Update the targets for each leg only if the P has moved sufficiently
         this.legs.forEach((leg, index) => {
             const legTarget = this.legTargets[index];
             const distance = Math.hypot(targetX - legTarget.x, targetY - legTarget.y);
@@ -222,17 +222,17 @@ export default class Gremlin {
 
 
     collideWithPlayer() {
-        if (this.rectangle.intersects(player.rectangle)) {
-            player.health -= 1;
+        if (this.rectangle.intersects(P.rectangle)) {
+            P.health -= 1;
             let knockbackForce = 4;
-            player.acceleration.x += Math.cos(this.angleToPlayer) * knockbackForce;
-            player.acceleration.y += Math.sin(this.angleToPlayer) * knockbackForce;
+            P.acceleration.x += Math.cos(this.angleToPlayer) * knockbackForce;
+            P.acceleration.y += Math.sin(this.angleToPlayer) * knockbackForce;
         }
     }
 
     checkPlayerAttack() {
-        if (player.isFiring && this.rectangle.intersects(player.attackBox)) {
-            this.health -= player.attackDamage; 
+        if (P.isFiring && this.rectangle.intersects(P.attackBox)) {
+            this.health -= P.attackDamage; 
             let knockbackForce = 12;
             this.acceleration.x -= Math.cos(this.angleToPlayer) * knockbackForce;
             this.acceleration.y -= Math.sin(this.angleToPlayer) * knockbackForce;
@@ -302,11 +302,11 @@ export default class Gremlin {
 
     seekTarget() {
         // If the current room has an altar and it's not anointed, target the nearest torch
-        if (player.currentRoom.altar && !player.currentRoom.altar.annointed) {
+        if (P.currentRoom.altar && !P.currentRoom.altar.annointed) {
             let nearestTorch = null;
             let minDistance = Infinity;
 
-            for (const torch of player.currentRoom.altar.torches) {
+            for (const torch of P.currentRoom.altar.torches) {
                 const distanceToTorch = Math.hypot(torch.x - this.x, torch.y - this.y);
                 if (distanceToTorch < minDistance && torch.health > 0) {
                     nearestTorch = torch;
@@ -332,10 +332,10 @@ export default class Gremlin {
             }
         }
 
-        // If no torch to target, seek the player
-        this.target.type = this.targetTypes.PLAYER;
-        this.target.x = player.x;
-        this.target.y = player.y;
+        // If no torch to target, seek the P
+        this.target.type = this.targetTypes.P;
+        this.target.x = P.x;
+        this.target.y = P.y;
 
         const dirX = this.target.x - this.x;
         const dirY = this.target.y - this.y;
@@ -365,20 +365,20 @@ export default class Gremlin {
         this.isAttacking = false;
         this.lastAttackTime = Date.now();
         // Perform attack logic based on target type
-        if (this.target.type === this.targetTypes.PLAYER && !player.isFiring) {
-            if (Math.hypot(player.x - this.x, player.y - this.y) <= this.attackRange) {
-                player.health -= this.damage; 
-               //find angle between player and gremlin
+        if (this.target.type === this.targetTypes.P && !P.isFiring) {
+            if (Math.hypot(P.x - this.x, P.y - this.y) <= this.attackRange) {
+                P.health -= this.damage; 
+               //find angle between P and gremlin
                 
                 let knockbackForce = 6;
-                player.acceleration.x += Math.cos(this.angleToPlayer) * knockbackForce;
-                player.acceleration.y += Math.sin(this.angleToPlayer) * knockbackForce;
+                P.acceleration.x += Math.cos(this.angleToPlayer) * knockbackForce;
+                P.acceleration.y += Math.sin(this.angleToPlayer) * knockbackForce;
                 playSound(sounds.playerHurt);
-                //spawn a bunch of particles along a line between the player and the gremlin
+                //spawn a bunch of particles along a line between the P and the gremlin
                 let i = 100;
                 while(i--){
                     entitiesArray.push(new Particle(
-                        player.x + randFloat(-2,2), player.y + randFloat(-2,2),
+                        P.x + randFloat(-2,2), P.y + randFloat(-2,2),
                         randFloat(-0.5,0.5),
                         randFloat(-0.5,0.5),
                         {color: [22,8,7,6,5,4,3,2,1], life: 100,
@@ -392,7 +392,7 @@ export default class Gremlin {
                 //playSound('hit'); // Assuming there's a sound effect for hitting
             }
         } else if (this.target.type === this.targetTypes.TORCH) {
-            for (const torch of player.currentRoom.altar.torches) {
+            for (const torch of P.currentRoom.altar.torches) {
                 if (torch.x === this.target.x && torch.y === this.target.y) {
                     torch.health -= this.damage; // Reduce torch health
                     if (torch.health <= 0) {
@@ -459,7 +459,7 @@ export default class Gremlin {
         this.acceleration.x += this.separateForce.x;
         this.acceleration.y += this.separateForce.y;
 
-         // Check for collision with player's attack box and apply damage
+         // Check for collision with P's attack box and apply damage
          this.checkPlayerAttack();
 
         this.velocity.x += this.acceleration.x;

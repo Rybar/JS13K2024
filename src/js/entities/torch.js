@@ -31,12 +31,12 @@ export default class Torch {
                 randFloat(-0.05,0.05),
                 -0.25, {color: gradient, life: 70}));
         }
-        //check for overlap with player. If so, light the torch.
+        //check for overlap with P. If so, light the torch.
         //will require action to light the torch in the future
-        let dx = player.x - this.x;
-        let dy = player.y - this.y;
+        let dx = P.x - this.x;
+        let dy = P.y - this.y;
         let dist = Math.sqrt(dx*dx + dy*dy);
-        if(dist < 20 && player.isFiring && !this.lit && !this.igniting) {
+        if(dist < 20 && P.isFiring && !this.lit && !this.igniting) {
             this.health = 25;
             this.lit = true;
             this.igniting = true;

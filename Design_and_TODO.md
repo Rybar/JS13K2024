@@ -9,7 +9,7 @@ Higher numbered rooms, while easier to activate, raise more alarm and difficulty
 
 
 ### TODO moved to kanban board
-### player
+### Player
 - [x] has an attack verb that damages enemies.
 - [x] action verb required to light torches
 - [x] collision reworked/debugged
@@ -24,19 +24,19 @@ Higher numbered rooms, while easier to activate, raise more alarm and difficulty
 
 ### Enemies
 - [x] move towards torches if lit, extinguish them on contact
-- [x] move towards player if close enough
-- [x] damage player if contact made with player
+- [x] move towards Player if close enough
+- [x] damage Player if contact made with Player
 - [ ] increased spawn rate - from corners of rooms
 - [ ] burst effect when spawning
 - [ ] stay seperate from each other / dont clump together
 - [x] drop gremlin blood when killed
-- [x] uses player collision
+- [x] uses Player collision
 - [ ] spider legs
 - [ ] make combat more interesting
 - [ ] telegraphs attack before attacking
-- [ ] successful attack does a lot of damage to player
+- [ ] successful attack does a lot of damage to Player
 - [ ] brute gremlin type
-- [ ] ignore torches once altar is annointed. get more aggressive towards player
+- [ ] ignore torches once altar is annointed. get more aggressive towards Player
 - [ ] larger beefier gremlins when altar count is greater than 13
 - [ ] bezerk / super aggressive gremlins if count is exactly 13
 
@@ -55,10 +55,10 @@ Higher numbered rooms, while easier to activate, raise more alarm and difficulty
 ### feedback things
 - [ ] burst at torch count when greater than 13
 - [ ] big burst and sound when torch count hits exactly 13
-- [ ] If perfect 13 is reached with just 2 altars, player firepower and speed is increased
+- [ ] If perfect 13 is reached with just 2 altars, Player firepower and speed is increased
 
 ### Map Generation
-- [x] no connections too small for player to get through
+- [x] no connections too small for Player to get through
 - [x] fewer noise/garbage rooms kept
 - [ ] border tiles
 - [ ] floor guaranteed has 1 Six and 1 Seven point altar
@@ -80,8 +80,8 @@ Higher numbered rooms, while easier to activate, raise more alarm and difficulty
 - [ ] game win state -something big for finishing floor 13
 
 ### sounds
-- [ ] player attack - flame sword swoosh
-- [ ] player hurt
+- [ ] Player attack - flame sword swoosh
+- [ ] Player hurt
 - [ ] gremlin spawn
 - [ ] gremlin hurt
 - [ ] gremlin attack

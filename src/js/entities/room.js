@@ -11,12 +11,12 @@ export default class Room {
         this.completeColor = 7;
     }
 
-    containsPlayer(player, tileSize) {
-        //check if player is in the room
-        if(player.x / tileSize > this.x
-            && player.x / tileSize < this.x + this.width
-            && player.y / tileSize > this.y
-            && player.y / tileSize < this.y + this.height) {
+    containsPlayer(P, tileSize) {
+        //check if P is in the room
+        if(P.x / tileSize > this.x
+            && P.x / tileSize < this.x + this.width
+            && P.y / tileSize > this.y
+            && P.y / tileSize < this.y + this.height) {
             return true;
         }
         return false;
@@ -38,17 +38,17 @@ export default class Room {
         
     }   
 
-    update(player) {
-        let playerInRoom = this.containsPlayer(player, 8);
-        player.currentRoom = playerInRoom ? this : player.currentRoom;
+    update(P) {
+        let playerInRoom = this.containsPlayer(P, 8);
+        P.currentRoom = playerInRoom ? this : P.currentRoom;
         
         if(this.altar) {
-            this.altar.update(player);
+            this.altar.update(P);
         }
         this.complete = this.altar && this.altar.annointed;
 
         if(this.portal) {
-            this.portal.update(player);
+            this.portal.update(P);
         }
         this.fill = playerInRoom ? 4 : 2;
         this.fill = this.complete ? 5 : this.fill;

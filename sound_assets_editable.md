@@ -28,7 +28,7 @@ https://sb.bitsnbites.eu/?data=U0JveA4C7caxCYBAEADBO_BCMTIwEyzCOuzDPkQwsxyb87EMm
 gremlin hurt
 https://sb.bitsnbites.eu/?data=U0JveA4C7cixEUAwAADAJE4GcKfPClrzUFkindNoLGEPla2whvsvf-vDq8Q01bW5a5hDm8evrhzTcHblyEuMewAAAAAAAID_eAA
 
-player hurt
+Player hurt
 https://sb.bitsnbites.eu/?data=U0JveA4C7ckxEYAwEAXRn2NyAphJDxLSogchaakRAGUcIIAKDZgBDEBLsa_cnZJuXbCxnM1RtCn68KTdZbm2afbeQtW75eNrFQAAAAAAAAAAAPAbFw
 
 pickup

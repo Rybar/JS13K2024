@@ -2,7 +2,7 @@ import { tileCollisionCheck, Rectangle, lightRadial, playSound, randFloat, rand 
 import Arm from "./arm";
 import Particle from "./particle";
 
-export default class Player {
+export default class P {
 
     constructor(x, y) {
         this.width = 4;
@@ -31,7 +31,7 @@ export default class Player {
         
         
 
-        this.direction = 'down'; // Track the direction the player is facing
+        this.direction = 'down'; // Track the direction the P is facing
         this.directionAngles = {
             up: -Math.PI / 2,
             down: Math.PI / 2,
@@ -84,8 +84,8 @@ export default class Player {
 
         // Update the legs
         this.legs.forEach((leg, index) => {
-            leg.x = this.x + (index === 0 ? 0 : 3); // Attach legs to the sides of the player
-            leg.y = this.y + this.height; // Attach legs to the bottom of the player
+            leg.x = this.x + (index === 0 ? 0 : 3); // Attach legs to the sides of the P
+            leg.y = this.y + this.height; // Attach legs to the bottom of the P
             leg.target = this.legTargets[index]; // Update target
 
             // Update leg if the step frame count is appropriate
@@ -97,7 +97,7 @@ export default class Player {
         // Update attack box if firing
         if (this.isFiring) {
             this.updateAttackBox();
-            //emit particles along a circular 90 degree arc in the direction the player is facing
+            //emit particles along a circular 90 degree arc in the direction the P is facing
             //direction is set at this.direction, left, right, up, down
             for(let i = 0; i < 60; i++) {
                 let angle = this.directionAngles[this.direction] + Math.random() * Math.PI / 2 - Math.PI / 4;
@@ -171,7 +171,7 @@ export default class Player {
     }
 
     updateLegTargets() {
-        const offset = 6; // Distance ahead of the player for the leg targets
+        const offset = 6; // Distance ahead of the P for the leg targets
         const verticalOffset = 6; // Vertical offset for the leg targets
         let targetX, targetY;
         this.stepDistance = 16; // Minimum distance before a leg takes a step
@@ -196,7 +196,7 @@ export default class Player {
                 break;
         }
 
-        // Update the targets for each leg only if the player has moved sufficiently
+        // Update the targets for each leg only if the P has moved sufficiently
         this.legs.forEach((leg, index) => {
             const legTarget = this.legTargets[index];
             const distance = Math.hypot(targetX - legTarget.x, targetY - legTarget.y);

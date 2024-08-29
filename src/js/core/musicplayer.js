@@ -30,7 +30,7 @@
 //    Math.pow(). You may have to modify the code to make it work on older
 //    browsers.
 //  * If you're not using all the functionality (e.g. not all oscillator types,
-//    or certain effects), you can reduce the size of the player routine even
+//    or certain effects), you can reduce the size of the P routine even
 //    further by deleting the code.
 
 

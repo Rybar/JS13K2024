@@ -17,11 +17,11 @@ export default class Portal {
         r.fCircle(this.x - view.x, this.y - view.y, this.size, this.fill);
     }
 
-    update(player) {
-        let dx = player.x - this.x;
-        let dy = player.y - this.y;
+    update(P) {
+        let dx = P.x - this.x;
+        let dy = P.y - this.y;
         let dist = Math.sqrt(dx * dx + dy * dy);
-        if (player.completeAltarTorchCount >= 13) { 
+        if (P.completeAltarTorchCount >= 13) { 
             this.active = true;   
         }
         if(dist < 10 && this.active) {

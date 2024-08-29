@@ -51,7 +51,7 @@ import Gremlin from './entities/gremlin.js';
 
     window.t = 0;
     text = "";
-    window.player = null;
+    window.P = null;
     sounds = {};
     soundsReady = 0;
     totalSounds = 4;
@@ -97,7 +97,7 @@ import Gremlin from './entities/gremlin.js';
         let room = rooms[Math.floor(Math.random() * rooms.length)];
         let startX = room.x + room.width / 2;
         let startY = room.y + room.height / 2;
-        player = new Player(startX * tileSize, startY * tileSize);
+        P = new Player(startX * tileSize, startY * tileSize);
         gremlin = new Gremlin((startX + 2) * tileSize, (startY + 2) * tileSize);
         gremlinsArray.push(gremlin);        
         window.map = new Map(480, 270, tileSize, r.PAGE_3);
@@ -155,12 +155,12 @@ import Gremlin from './entities/gremlin.js';
         handleInput();
         if(paused) { return; }
         t += deltaTime;
-        rooms.forEach(room => {room.update(player);});
+        rooms.forEach(room => {room.update(P);});
         entitiesArray.forEach(entity => entity.update());
         gremlinsArray.forEach(gremlin => gremlin.update());
-        player.update();
+        P.update();
 
-        //spawn another gremlin near player every 5 seconds
+        //spawn another gremlin near P every 5 seconds
         if(t % 5000 < deltaTime) {
             spawnGremlin();
         }
@@ -187,7 +187,7 @@ import Gremlin from './entities/gremlin.js';
 
         drawEntities(entitiesArray);
         drawEntities(gremlinsArray);
-        player.draw(r, view);
+        P.draw(r, view);
 
 
         if(generatingNewFloor) {
@@ -233,12 +233,12 @@ import Gremlin from './entities/gremlin.js';
         debugText= `FPS: ${fps.toFixed(2)}`;
         r.text(debugText, 10, 10, 1, 1, 'left', 'top', 1, 22);
 
-        debugText = `${player.health.toFixed(2)}\nGB: ${player.gremlinBlood}\nAP: ${player.completeAltarTorchCount}`
-        r.text(debugText, player.x - view.x, player.y - view.y - 28, 1, 1, 'center', 'top', 1, 22);
+        debugText = `${P.health.toFixed(2)}\nGB: ${P.gremlinBlood}\nAP: ${P.completeAltarTorchCount}`
+        r.text(debugText, P.x - view.x, P.y - view.y - 28, 1, 1, 'center', 'top', 1, 22);
     
         debugText = `FLOOR: ${currentFloor}`;
         r.text(debugText, w - 10, 10, 1, 1, 'right', 'top', 2, 22);
-        debugText = `TORCHES: ${player.completeAltarTorchCount}`;
+        debugText = `TORCHES: ${P.completeAltarTorchCount}`;
         r.text(debugText, w - 10, 30, 1, 1, 'right', 'top', 2, 22);
 
     }
@@ -275,8 +275,8 @@ import Gremlin from './entities/gremlin.js';
         let room = rooms[Math.floor(Math.random() * rooms.length)];
         let startX = room.x + room.width / 2;
         let startY = room.y + room.height / 2;
-        player.x = startX * tileSize;
-        player.y = startY * tileSize;
+        P.x = startX * tileSize;
+        P.y = startY * tileSize;
     }
 
     function preload() {
@@ -410,17 +410,17 @@ import Gremlin from './entities/gremlin.js';
     function cameraFollow() {
         //implement deadzone
         deadzone = { x: 200, y: 100 };
-        if(player.x - view.x > w - deadzone.x) {
-            view.target.x = player.x - w + deadzone.x;
+        if(P.x - view.x > w - deadzone.x) {
+            view.target.x = P.x - w + deadzone.x;
         }
-        if(player.x - view.x < deadzone.x) {
-            view.target.x = player.x - deadzone.x;
+        if(P.x - view.x < deadzone.x) {
+            view.target.x = P.x - deadzone.x;
         }
-        if(player.y - view.y > h - deadzone.y) {
-            view.target.y = player.y - h + deadzone.y;
+        if(P.y - view.y > h - deadzone.y) {
+            view.target.y = P.y - h + deadzone.y;
         }
-        if(player.y - view.y < deadzone.y) {
-            view.target.y = player.y - deadzone.y;
+        if(P.y - view.y < deadzone.y) {
+            view.target.y = P.y - deadzone.y;
         }
 
         //lerp camera to target
@@ -437,7 +437,7 @@ import Gremlin from './entities/gremlin.js';
         if (Key.justReleased(Key.r)) {
             nextLevel();
         }
-        player.handleInput(Key);    
+        P.handleInput(Key);    
     }
 
     function drawPaused() {
@@ -452,21 +452,21 @@ import Gremlin from './entities/gremlin.js';
         r.renderTarget = r.SCREEN;
         r.fRect(0, 0, 480,270,0);
         r.spr(0,0,480,270,0,0);
-        //draw player position
-        r.fRect(player.x/8-1, player.y/8-1, 2, 2, 22);
+        //draw P position
+        r.fRect(P.x/8-1, P.y/8-1, 2, 2, 22);
         //draw portal position
         r.fRect(portalLocation.x-1, portalLocation.y-1, 3, 3, 7);
         
     }
 
     function spawnGremlin() {
-        //find a walkable tile near player to spawn gremlin
-        let x = player.x + rand(-90, 90);
-        let y = player.y + rand(-90, 90);
+        //find a walkable tile near P to spawn gremlin
+        let x = P.x + rand(-90, 90);
+        let y = P.y + rand(-90, 90);
         let tries = 0;
         while(map.getTileAtPixel(x, y) == 0 && tries < 100) {
-            x = player.x + rand(-90, 90);
-            y = player.y + rand(-90, 90);
+            x = P.x + rand(-90, 90);
+            y = P.y + rand(-90, 90);
             tries++;
         }
         if(tries < 100) {
@@ -477,7 +477,7 @@ import Gremlin from './entities/gremlin.js';
     }
 
     function nextLevel() {
-        player.completeAltarTorchCount = 0;
+        P.completeAltarTorchCount = 0;
         generatingNewFloor = true;
             setTimeout(() => {
                 newFloor();

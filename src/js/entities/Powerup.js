@@ -10,15 +10,15 @@ export default class Powerup {
             HEALTH: {
                 life: 500,
                 color: 5,
-                effect : function (player) {
-                    player.health = Math.min(player.health + 1, player.maxHealth);
+                effect : function (P) {
+                    P.health = Math.min(P.health + 1, P.maxHealth);
                 }
             },
             GREMLIN_BLOOD: {
                 life: 500,
                 color: 11,
-                effect : function (player) {
-                    player.gremlinBlood += 1;
+                effect : function (P) {
+                    P.gremlinBlood += 1;
                 }   
             }
         }
@@ -55,10 +55,10 @@ export default class Powerup {
         if(this.life <= 0){
             this.alive = false;
         }        
-        //distance to player
-        const distanceToPlayer = Math.hypot(this.x - player.x, this.y - player.y);
+        //distance to P
+        const distanceToPlayer = Math.hypot(this.x - P.x, this.y - P.y);
         if(distanceToPlayer < 8){
-            this.effect(player);
+            this.effect(P);
             this.alive = false;
             playSound(sounds.pickup);
         }
