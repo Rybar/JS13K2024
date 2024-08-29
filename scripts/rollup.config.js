@@ -302,7 +302,7 @@ export default {
             keep_quoted: true,
       
             // Pass a RegExp literal or pattern string to only mangle property matching the regular expression.
-            regex: /^[$_]/,
+            regex: /^_[a-zA-Z0-9]+/,
           },
       
           // Pass true to mangle names declared in the top level scope.
