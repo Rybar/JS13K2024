@@ -1,5 +1,5 @@
 
-import { tileCollisionCheck, rand, randFloat, Rectangle, lightRadial, playSound, choice } from "../core/utils";
+import { tileCollisionCheck, rand, randFloat, _rectangle, lightRadial, playSound, choice } from "../core/utils";
 import Splode from "../gfx/Splode";
 import Powerup from "./Powerup";
 import Particle from './particle.js';
@@ -15,7 +15,7 @@ export default class Gremlin {
         this.oldY = y;
         this.alive = true;
         this.health = 30;
-        this.velocity = {x: 0, y: 0};
+        this._velocity = {x: 0, y: 0};
         this.acceleration = {x: 0, y: 0};
         this.drag = 0.8;
         this.speed = 0.25;
@@ -24,12 +24,12 @@ export default class Gremlin {
         this.attackCooldown = 1000;
         this.attackTelegraphTime = 500;
         this.isAttacking = false;
-        this.attackBox = new Rectangle(0, 0, 0, 0);
+        this.attackBox = new _rectangle(0, 0, 0, 0);
         this.lastAttackTime = 0;
         this.telegraphStartTime = 0;
         this.damage = 10;
         this.isFiring = false;
-        this.rectangle = new Rectangle(this.x, this.y, this.width, this.height);
+        this._rectangle = new _rectangle(this.x, this.y, this.width, this.height);
         this.currentRoom = null;
         this.angleToPlayer = 0;
 
@@ -88,7 +88,7 @@ export default class Gremlin {
 
         r.text(`${this.health}`, this.x - view.x, this.y - view.y - 16, 1, 1, 'center', 'top', 1, 22);
 
-        // //debug rectangle
+        // //debug _rectangle
         // r.fRect(this.x - view.x, this.y - view.y, this.width, this.height, 10);
         // //debug corners
         // r.fRect(this.x - view.x, this.y - view.y, 1, 1, 10);
@@ -170,10 +170,10 @@ export default class Gremlin {
     }
 
     determineDirection() {
-        if (this.velocity.x !== 0 || this.velocity.y !== 0) {
-            const magnitude = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
-            const normalizedX = this.velocity.x / magnitude;
-            const normalizedY = this.velocity.y / magnitude;
+        if (this._velocity.x !== 0 || this._velocity.y !== 0) {
+            const magnitude = Math.sqrt(this._velocity.x * this._velocity.x + this._velocity.y * this._velocity.y);
+            const normalizedX = this._velocity.x / magnitude;
+            const normalizedY = this._velocity.y / magnitude;
 
             if (Math.abs(normalizedX) > Math.abs(normalizedY)) {
                 this.direction = normalizedX > 0 ? 'right' : 'left';
@@ -222,7 +222,7 @@ export default class Gremlin {
 
 
     collideWithPlayer() {
-        if (this.rectangle.intersects(P.rectangle)) {
+        if (this._rectangle.intersects(P._rectangle)) {
             P.health -= 1;
             let knockbackForce = 4;
             P.acceleration.x += Math.cos(this.angleToPlayer) * knockbackForce;
@@ -231,7 +231,7 @@ export default class Gremlin {
     }
 
     checkPlayerAttack() {
-        if (P.isFiring && this.rectangle.intersects(P.attackBox)) {
+        if (P.isFiring && this._rectangle.intersects(P.attackBox)) {
             this.health -= P.attackDamage; 
             let knockbackForce = 12;
             this.acceleration.x -= Math.cos(this.angleToPlayer) * knockbackForce;
@@ -377,7 +377,7 @@ export default class Gremlin {
                 //spawn a bunch of particles along a line between the P and the gremlin
                 let i = 100;
                 while(i--){
-                    entitiesArray.push(new Particle(
+                    _entitiesArray.push(new Particle(
                         P.x + randFloat(-2,2), P.y + randFloat(-2,2),
                         randFloat(-0.5,0.5),
                         randFloat(-0.5,0.5),
@@ -445,8 +445,8 @@ export default class Gremlin {
                 steer.y *= enemy.maxSpeed;
             }
     
-            steer.x -= enemy.velocity.x;
-            steer.y -= enemy.velocity.y;
+            steer.x -= enemy._velocity.x;
+            steer.y -= enemy._velocity.y;
         }
     
         return steer;
@@ -462,37 +462,37 @@ export default class Gremlin {
          // Check for collision with P's attack box and apply damage
          this.checkPlayerAttack();
 
-        this.velocity.x += this.acceleration.x;
-        this.velocity.y += this.acceleration.y;
+        this._velocity.x += this.acceleration.x;
+        this._velocity.y += this.acceleration.y;
 
-        this.velocity.x *= this.drag;
-        this.velocity.y *= this.drag;
+        this._velocity.x *= this.drag;
+        this._velocity.y *= this.drag;
 
                
 
-        this.x += this.velocity.x;
+        this.x += this._velocity.x;
         if(tileCollisionCheck(map, this)) {
             this.x = this.oldX;
-            this.velocity.x = 0;
+            this._velocity.x = 0;
         }
 
-        this.y += this.velocity.y;
+        this.y += this._velocity.y;
         if(tileCollisionCheck(map, this)) {
             this.y = this.oldY;
-            this.velocity.y = 0;
+            this._velocity.y = 0;
         }
 
-        this.rectangle.x = this.x;
-        this.rectangle.y = this.y;
+        this._rectangle.x = this.x;
+        this._rectangle.y = this.y;
     }
 
     die() {
         this.alive = false;
-        entitiesArray.push(new Splode(this.x, this.y, 50, 5));
+        _entitiesArray.push(new Splode(this.x, this.y, 50, 5));
         let i = rand(2, 5);
         while(i--) {
-            entitiesArray.push(new Particle(this.x, this.y, randFloat(-0.1, 0.1), randFloat(-0.1, 0.1), {color: [16, 15, 14, 13, 12, 11], life: 50}));
-            entitiesArray.push(new Powerup('GREMLIN_BLOOD', this.x + randFloat(-10, 10), this.y+ randFloat(-10, 10)));
+            _entitiesArray.push(new Particle(this.x, this.y, randFloat(-0.1, 0.1), randFloat(-0.1, 0.1), {color: [16, 15, 14, 13, 12, 11], life: 50}));
+            _entitiesArray.push(new Powerup('GREMLIN_BLOOD', this.x + randFloat(-10, 10), this.y+ randFloat(-10, 10)));
         }
         }
 }

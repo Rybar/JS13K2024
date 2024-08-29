@@ -34,21 +34,21 @@ export default class Powerup {
         this.lifeMax = this.life;
         this.color = this.type.color;
         this.effect = this.type.effect;
-        this.velocity = {x: randFloat(-1,1), y: randFloat(-1,1)};
+        this._velocity = {x: randFloat(-1,1), y: randFloat(-1,1)};
     }
 
     update(){
         this.oldX = this.x;
         this.oldY = this.y;
-        this.velocity.x *= 0.8;
-        this.velocity.y *= 0.8;
-        this.x += this.velocity.x;
+        this._velocity.x *= 0.8;
+        this._velocity.y *= 0.8;
+        this.x += this._velocity.x;
         if(tileCollisionCheck(map, this)){
-            this.velocity.x *= -1;
+            this._velocity.x *= -1;
         }
-        this.y += this.velocity.y;
+        this.y += this._velocity.y;
         if(tileCollisionCheck(map, this)){
-            this.velocity.y *= -1;
+            this._velocity.y *= -1;
         }
         if (!this.alive) return;
         this.life--;

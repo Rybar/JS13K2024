@@ -281,14 +281,14 @@ createCorridor(roomA, roomB, connectedRooms) {
         return this.lineIntersectsRect(x1, y1, x2, y2, rectX1, rectY1, rectX2, rectY2);
     }
 
-    // Helper function to check line-rectangle intersection
+    // Helper function to check line-_rectangle intersection
     lineIntersectsRect(x1, y1, x2, y2, rectX1, rectY1, rectX2, rectY2) {
-        // Check if the line crosses any of the rectangle's sides
+        // Check if the line crosses any of the _rectangle's sides
         return this.lineIntersectsLine(x1, y1, x2, y2, rectX1, rectY1, rectX2, rectY1) ||
             this.lineIntersectsLine(x1, y1, x2, y2, rectX2, rectY1, rectX2, rectY2) ||
             this.lineIntersectsLine(x1, y1, x2, y2, rectX2, rectY2, rectX1, rectY2) ||
             this.lineIntersectsLine(x1, y1, x2, y2, rectX1, rectY2, rectX1, rectY1) ||
-            (x1 > rectX1 && x1 < rectX2 && y1 > rectY1 && y1 < rectY2); // Line starts inside the rectangle
+            (x1 > rectX1 && x1 < rectX2 && y1 > rectY1 && y1 < rectY2); // Line starts inside the _rectangle
     }
 
     // Helper function to check if two lines intersect

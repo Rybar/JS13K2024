@@ -21,7 +21,7 @@ export default class Altar {
                 let angle = Math.random() * Math.PI * 2;
                 let x = this.x + Math.cos(angle) * 6;
                 let y = this.y + Math.sin(angle) * 6;
-                entitiesArray.push(new Particle(x, y, randFloat(-2, 2), randFloat(-2, 2),
+                _entitiesArray.push(new Particle(x, y, randFloat(-2, 2), randFloat(-2, 2),
                 {
                     color: [22,9,10,11,12,13,14,15],
                     life: 100,
@@ -50,7 +50,7 @@ export default class Altar {
                 let angle = Math.random() * Math.PI * 2;
                 let x = this.x + Math.cos(angle) * 6;
                 let y = this.y + Math.sin(angle) * 6;
-                entitiesArray.push(new Particle(x, y, randFloat(-.05, .05), randFloat(-.1, -.3), {color: [14,13,12,11,10], life: 30}));
+                _entitiesArray.push(new Particle(x, y, randFloat(-.05, .05), randFloat(-.1, -.3), {color: [14,13,12,11,10], life: 30}));
             }
             //can't be unlit
             this.lit = true;

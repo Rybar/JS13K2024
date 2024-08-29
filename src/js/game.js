@@ -61,7 +61,7 @@ import Gremlin from './entities/gremlin.js';
     GAMESCREEN = 1;
     gamestate = 0;
     started = false;
-    window.entitiesArray = [];
+    window._entitiesArray = [];
     window.gremlinsArray = [];
     window.portalLocation = { x: 0, y: 0 };
     window.gameInitialized = false;
@@ -88,7 +88,7 @@ import Gremlin from './entities/gremlin.js';
 
     function initGameData() {
         //initialize game data
-        entitiesArray = [];
+        _entitiesArray = [];
         gremlinsArray = [];
         floors.push(new Floor(480, 270, 40,25));
         rooms = floors[0].rooms;
@@ -156,7 +156,7 @@ import Gremlin from './entities/gremlin.js';
         if(paused) { return; }
         t += deltaTime;
         rooms.forEach(room => {room.update(P);});
-        entitiesArray.forEach(entity => entity.update());
+        _entitiesArray.forEach(entity => entity.update());
         gremlinsArray.forEach(gremlin => gremlin.update());
         P.update();
 
@@ -185,7 +185,7 @@ import Gremlin from './entities/gremlin.js';
             room.drawAltar(r, view);
         });
 
-        drawEntities(entitiesArray);
+        drawEntities(_entitiesArray);
         drawEntities(gremlinsArray);
         P.draw(r, view);
 
@@ -248,7 +248,7 @@ import Gremlin from './entities/gremlin.js';
         r.drawTileAsset(0, 0, background1);
         r.drawTileAsset(0, 0, platformerTest);
         r.drawTileAsset(0, 0, tileAssetTest);
-        drawEntities(entitiesArray);
+        drawEntities(_entitiesArray);
         text = "SIX AND SEVEN";
         r.text(text, w / 2, 100, 4, 1, 'center', 'top', 4, 22);
         text = "CLICK TO START";
@@ -268,7 +268,7 @@ import Gremlin from './entities/gremlin.js';
         //I don't think we will need to store floors, so just overwrite the first one
         currentFloor++;
         floors = [];
-        entitiesArray = [];
+        _entitiesArray = [];
         floors.push(new Floor(480, 270, 40, 25));
         rooms = floors[floors.length - 1].rooms;
         //pick random room
@@ -351,27 +351,27 @@ import Gremlin from './entities/gremlin.js';
     }
     
 
-    function pruneDead(entitiesArray) {
-        for (let i = 0; i < entitiesArray.length; i++) {
-            let e = entitiesArray[i];
+    function pruneDead(_entitiesArray) {
+        for (let i = 0; i < _entitiesArray.length; i++) {
+            let e = _entitiesArray[i];
             if (!e.alive) {
-                entitiesArray.splice(i, 1);
+                _entitiesArray.splice(i, 1);
             }
         }
     }
 
-    function pruneScreen(entitiesArray) {
-        for (let i = 0; i < entitiesArray.length; i++) {
-            let e = entitiesArray[i];
+    function pruneScreen(_entitiesArray) {
+        for (let i = 0; i < _entitiesArray.length; i++) {
+            let e = _entitiesArray[i];
             if (!inView(e)) {
-                entitiesArray.splice(i, 1);
+                _entitiesArray.splice(i, 1);
             }
         }
     }
 
-    function drawEntities(entitiesArray) {
-        for (let i = 0; i < entitiesArray.length; i++) {
-            let e = entitiesArray[i];
+    function drawEntities(_entitiesArray) {
+        for (let i = 0; i < _entitiesArray.length; i++) {
+            let e = _entitiesArray[i];
             if(inView(e, 8)){e.draw(r, view);}
         }
     }
@@ -402,7 +402,7 @@ import Gremlin from './entities/gremlin.js';
                     break;
             }
             Key.update();
-            pruneDead(entitiesArray);
+            pruneDead(_entitiesArray);
             requestAnimationFrame(gameloop);
         }
     }

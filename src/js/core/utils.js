@@ -209,7 +209,7 @@ export class PerlinNoise {
     return v;
   }
 }
-export class Rectangle {
+export class _rectangle {
   constructor(x, y, width, height) {
       this.x = x;
       this.y = y;

@@ -1,4 +1,4 @@
-import { tileCollisionCheck, Rectangle, lightRadial, playSound, randFloat, rand } from "../core/utils";
+import { tileCollisionCheck, _rectangle, lightRadial, playSound, randFloat, rand } from "../core/utils";
 import Arm from "./arm";
 import Particle from "./particle";
 
@@ -12,7 +12,7 @@ export default class P {
         this.x = x;
         this.y = y;
         this.alive = true;
-        this.velocity = { x: 0, y: 0 };
+        this._velocity = { x: 0, y: 0 };
         this.acceleration = { x: 0, y: 0 };
         this.drag = 0.8;
         this.speed = 0.35;
@@ -23,7 +23,7 @@ export default class P {
         this.health = 100;
         this.maxHealth = 100;
         this.completeAltarTorchCount = 0;
-        this.rectangle = new Rectangle(this.x, this.y, this.width, this.height);
+        this._rectangle = new _rectangle(this.x, this.y, this.width, this.height);
         this.bodyColor = 22;
         this.attackBoxColor = 8;
         this.attackDamage = 5;
@@ -38,7 +38,7 @@ export default class P {
             left: Math.PI,
             right: 0
         }
-        this.attackBox = new Rectangle(this.x, this.y, 0, 0);; // Placeholder for the attack box
+        this.attackBox = new _rectangle(this.x, this.y, 0, 0);; // Placeholder for the attack box
 
         // Create legs as Arms with 2 Segments each
         this.legs = [
@@ -62,16 +62,16 @@ export default class P {
         this.oldX = this.x;
         this.oldY = this.y;
 
-        this.velocity.x += this.acceleration.x;
-        this.velocity.x *= this.drag;
-        this.x += this.velocity.x;
+        this._velocity.x += this.acceleration.x;
+        this._velocity.x *= this.drag;
+        this.x += this._velocity.x;
         if (tileCollisionCheck(map, this)) {
             this.x = this.oldX;
         }
 
-        this.velocity.y += this.acceleration.y;
-        this.velocity.y *= this.drag;
-        this.y += this.velocity.y;
+        this._velocity.y += this.acceleration.y;
+        this._velocity.y *= this.drag;
+        this.y += this._velocity.y;
         if (tileCollisionCheck(map, this)) {
             this.y = this.oldY;
         }
@@ -104,8 +104,8 @@ export default class P {
                 let particle = new Particle(
                     this.x + Math.cos(angle) * 20 + rand(-3, 3),
                     this.y + Math.sin(angle) * 20 + rand(-3, 3),
-                    this.velocity.x + Math.cos(angle),
-                    this.velocity.y + Math.sin(angle), 
+                    this._velocity.x + Math.cos(angle),
+                    this._velocity.y + Math.sin(angle), 
                     {
                         color: [22,21,20,19,18],
                         life: 15,
@@ -114,7 +114,7 @@ export default class P {
                             p.yVelocity += randFloat(-0.3, 0.3);
                         }
                     })
-                entitiesArray.push(particle);
+                _entitiesArray.push(particle);
             }
 
         } else {
@@ -125,9 +125,9 @@ export default class P {
         this.acceleration.x = 0;
         this.acceleration.y = 0;
 
-        //update rectangle
-        this.rectangle.x = this.x;
-        this.rectangle.y = this.y;
+        //update _rectangle
+        this._rectangle.x = this.x;
+        this._rectangle.y = this.y;
     }
 
     draw(r, view) {
@@ -152,8 +152,8 @@ export default class P {
         // r.fRect(this.x - view.x, this.y - view.y + this.height, 1, 1, 18);
         // r.fRect(this.x - view.x + this.width, this.y - view.y + this.height, 1, 1, 18);
 
-        // //debug rectangle
-        // r.fRect(this.rectangle.x - view.x, this.rectangle.y - view.y, this.rectangle.width, this.rectangle.height, 10);
+        // //debug _rectangle
+        // r.fRect(this._rectangle.x - view.x, this._rectangle.y - view.y, this._rectangle.width, this._rectangle.height, 10);
     }
 
     handleInput(Key) {
@@ -239,10 +239,10 @@ export default class P {
     
 
     determineDirection() {
-        if (this.velocity.x !== 0 || this.velocity.y !== 0) {
-            const magnitude = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
-            const normalizedX = this.velocity.x / magnitude;
-            const normalizedY = this.velocity.y / magnitude;
+        if (this._velocity.x !== 0 || this._velocity.y !== 0) {
+            const magnitude = Math.sqrt(this._velocity.x * this._velocity.x + this._velocity.y * this._velocity.y);
+            const normalizedX = this._velocity.x / magnitude;
+            const normalizedY = this._velocity.y / magnitude;
 
             if (Math.abs(normalizedX) > Math.abs(normalizedY)) {
                 this.direction = normalizedX > 0 ? 'right' : 'left';

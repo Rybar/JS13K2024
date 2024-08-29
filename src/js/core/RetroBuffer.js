@@ -498,12 +498,12 @@ span(x1, x2, y, color, color2 = 64) {
 }
 
   /**
-   * Draws a rectangle.
-   * @param {number} x - The x-coordinate of the top-left corner of the rectangle.
-   * @param {number} y - The y-coordinate of the top-left corner of the rectangle.
-   * @param {number} w - The width of the rectangle.
-   * @param {number} h - The height of the rectangle.
-   * @param {number} color - The primary color of the rectangle.
+   * Draws a _rectangle.
+   * @param {number} x - The x-coordinate of the top-left corner of the _rectangle.
+   * @param {number} y - The y-coordinate of the top-left corner of the _rectangle.
+   * @param {number} w - The width of the _rectangle.
+   * @param {number} h - The height of the _rectangle.
+   * @param {number} color - The primary color of the _rectangle.
    * @param {number} [color2=64] - The secondary color used for dithering.
    */
   lRect(x, y, w, h, color, color2 = 64) {
@@ -520,12 +520,12 @@ span(x1, x2, y, color, color2 = 64) {
   }
 
   /**
-   * Fills a rectangle.
-   * @param {number} x - The x-coordinate of the top-left corner of the rectangle.
-   * @param {number} y - The y-coordinate of the top-left corner of the rectangle.
-   * @param {number} w - The width of the rectangle.
-   * @param {number} h - The height of the rectangle.
-   * @param {number} color - The primary color of the rectangle.
+   * Fills a _rectangle.
+   * @param {number} x - The x-coordinate of the top-left corner of the _rectangle.
+   * @param {number} y - The y-coordinate of the top-left corner of the _rectangle.
+   * @param {number} w - The width of the _rectangle.
+   * @param {number} h - The height of the _rectangle.
+   * @param {number} color - The primary color of the _rectangle.
    * @param {number} [color2=64] - The secondary color used for dithering.
    */
   fRect(x, y, w, h, color, color2 = 64, ditherPattern=0) {

@@ -3,14 +3,14 @@ export default class AnimRect {
      * Creates an instance of AnimRect.
      * @constructor
      * @param {RetroBuffer} buffer - The RetroBuffer instance to draw on.
-     * @param {number} x - The x-coordinate of the rectangle.
-     * @param {number} y - The y-coordinate of the rectangle.
-     * @param {number} width - The width of the rectangle.
-     * @param {number} height - The height of the rectangle.
+     * @param {number} x - The x-coordinate of the _rectangle.
+     * @param {number} y - The y-coordinate of the _rectangle.
+     * @param {number} width - The width of the _rectangle.
+     * @param {number} height - The height of the _rectangle.
      * @param {number} startCorner - The starting corner (0: top-left, 1: top-right, 2: bottom-right, 3: bottom-left).
      * @param {number} direction - The direction of animation (-1 or 1).
      * @param {number} speed - The speed of the animation.
-     * @param {number} color - The color of the rectangle.
+     * @param {number} color - The color of the _rectangle.
      */
     constructor(buffer, x, y, width, height, startCorner, direction, speed, color) {
         this.buffer = buffer;
@@ -42,7 +42,7 @@ export default class AnimRect {
     }
 
     /**
-     * Draws the animated rectangle on the buffer.
+     * Draws the animated _rectangle on the buffer.
      */
     draw() {
         let remainingProgress = this.progress;

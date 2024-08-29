@@ -26,7 +26,7 @@ export default class Torch {
         this.fill = this.annointed ? 10 : this.fill;
         let gradient = this.annointed ? [10,11,12,13,14,15] : [22,8,7,6,5,4,3,2,1];
         if(this.lit){
-            entitiesArray.push(new Particle(
+            _entitiesArray.push(new Particle(
                 this.x + rand(-2,2), this.y,
                 randFloat(-0.05,0.05),
                 -0.25, {color: gradient, life: 70}));
