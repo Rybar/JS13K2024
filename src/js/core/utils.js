@@ -65,7 +65,7 @@ export function playSound(buffer, playbackRate = 1, pan = 0, volume = .5, loop =
   source.playbackRate.value = playbackRate;
   source.loop = loop;
   gainNode.gain.value = volume;
-  panNode.pan.value = pan;
+  panNode["pan"].value = pan;
   source.start();
   return {volume: gainNode, sound: source};
 

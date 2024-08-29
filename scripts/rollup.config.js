@@ -42,7 +42,7 @@ export default {
         toplevel: true,
       
         // Sourcemap support
-        sourceMap: false,
+        //
       
         // nameCache: null,
       
@@ -164,7 +164,7 @@ export default {
       
           // negate "Immediately-Called Function Expressions" where the return value is discarded,
           // to avoid the parens that the code generator would insert.
-          negate_iife: true,
+          negate_iife: false,
       
           // The maximum number of times to run compress.
           // In some cases more than one pass leads to further compressed code.
@@ -284,7 +284,9 @@ export default {
           module: true,
       
           // Pass an array of identifiers that should be excluded from mangling. Example: ["foo", "bar"].
-          // reserved: [...mangleConfig.reserved],
+          reserved: [
+            
+          ],
       
           // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
           properties: {
@@ -300,7 +302,7 @@ export default {
             keep_quoted: true,
       
             // Pass a RegExp literal or pattern string to only mangle property matching the regular expression.
-            // regex: /^[$_]/,
+            regex: /^[$_]/,
           },
       
           // Pass true to mangle names declared in the top level scope.
@@ -309,80 +311,7 @@ export default {
         },
       
         // Output options
-        format: {
-          ie8: false,
-      
-          // set desired EcmaScript standard version for output.
-          ecma: 2022,
-      
-          /** Emit shorthand properties {a} instead of {a: a} */
-          shorthand: true,
-      
-          // escape Unicode characters in strings and regexps
-          // (affects directives with non-ascii characters becoming invalid)
-          ascii_only: false,
-      
-          // whether to actually beautify the output
-          // beautify: !settings.final,
-          beautify: false,
-      
-          // always insert braces in if, for, do, while or with statements, even if their body is a single statement.
-          braces: false,
-      
-          // false to omit comments in the output
-          // comments: settings.final ? false : 'all',
-          comments: false,
-      
-          // escape HTML comments and the slash in occurrences of </script> in strings
-          inline_script: true,
-      
-          // when turned on, prevents stripping quotes from property names in object literals.
-          // keep_quoted_props: !settings.computed_props,
-          keep_quoted_props: false,
-      
-          // maximum line length (for minified code)
-          max_line_len: false,
-      
-          // when passed it must be a string and it will be prepended to the output literally.
-          // The source map will adjust for this text.
-          // Can be used to insert a comment containing licensing information, for example.
-          preamble: undefined,
-      
-          // pass true to quote all keys in literal objects
-          quote_keys: false,
-      
-          // preferred quote style for strings (affects quoted property names and directives as well):
-          //  0 -- prefers double quotes, switches to single quotes when there are more double quotes in the string itself. 0 is best for gzip size.
-          //  1 -- always use single quotes
-          //  2 -- always use double quotes
-          //  3 -- always use the original quotes
-          quote_style: 0,
-      
-          // Preserve Terser annotations in the output.
-          // preserve_annotations: !settings.final,
-          preserve_annotations: false,
-      
-          // set this option to true to work around the Safari 10/11 await bug.
-          safari10: false,
-      
-          // separate statements with semicolons.
-          // If you pass false then whenever possible we will use a newline instead of a semicolon.
-          semicolons: true,
-      
-          // preserve shebang #! in preamble (bash scripts)
-          shebang: false,
-      
-          // enable workarounds for WebKit bugs. PhantomJS users should set this option to true.
-          webkit: false,
-      
-          // pass true to wrap immediately invoked function expressions.
-          wrap_iife: false,
-      
-          // pass false if you do not want to wrap function expressions that are passed as arguments, in parenthesis.
-          // Passing to true, optimize for faster initial execution and parsing,
-          // by wrapping all immediately-invoked functions or likely-to-be-invoked functions in parentheses.
-          wrap_func_args: false,
-        },
+
       }),
   ],
 }
