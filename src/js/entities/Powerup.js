@@ -7,17 +7,17 @@ export default class Powerup {
     constructor(type, x, y){
 
         this.types = {
-            HEALTH: {
-                life: 500,
-                color: 5,
-                effect : function (P) {
+            "HEALTH": {
+                "life": 500,
+                "_color": 5,
+                "effect" : function (P) {
                     P.health = Math.min(P.health + 1, P.maxHealth);
                 }
             },
-            GREMLIN_BLOOD: {
-                life: 500,
-                color: 11,
-                effect : function (P) {
+            "GREMLIN_BLOOD": {
+                "life": 500,
+                "_color": 11,
+                "effect" : function (P) {
                     P.gremlinBlood += 1;
                 }   
             }
@@ -30,9 +30,9 @@ export default class Powerup {
         this.alive = true;
         
         this.type = this.types[type];
-        this.life = type.life
-        this.lifeMax = this.life;
-        this.color = this.type.color;
+        this.life = this.type.life
+        this.lifeMax = this.type.life;
+        this._color = this.type._color;
         this.effect = this.type.effect;
         this._velocity = {x: randFloat(-1,1), y: randFloat(-1,1)};
     }
@@ -65,8 +65,8 @@ export default class Powerup {
     }
 
     draw(r, view){
-        r.renderTarget = r.SCREEN;
-        r.fRect(this.x - view.x, this.y - view.y, 4, 4, this.color);
+        r._renderTarget = r["SCREEN"];
+        r._fRect(this.x - view.x, this.y - view.y, 4, 4, this._color);
     }
 
 

@@ -10,9 +10,9 @@ export default class AnimRect {
      * @param {number} startCorner - The starting corner (0: top-left, 1: top-right, 2: bottom-right, 3: bottom-left).
      * @param {number} direction - The direction of animation (-1 or 1).
      * @param {number} speed - The speed of the animation.
-     * @param {number} color - The color of the _rectangle.
+     * @param {number} _color - The _color of the _rectangle.
      */
-    constructor(buffer, x, y, width, height, startCorner, direction, speed, color) {
+    constructor(buffer, x, y, width, height, startCorner, direction, speed, _color) {
         this.buffer = buffer;
         this.x = x;
         this.y = y;
@@ -21,7 +21,7 @@ export default class AnimRect {
         this.startCorner = startCorner;
         this.direction = direction;
         this.speed = speed;
-        this.color = color;
+        this._color = _color;
         this.alive = true;
         this.progress = 0;
 
@@ -50,7 +50,7 @@ export default class AnimRect {
         const drawSegment = (x1, y1, x2, y2) => {
             const segmentLength = Math.abs(x2 - x1) + Math.abs(y2 - y1);
             if (remainingProgress > segmentLength) {
-                this.buffer.line(x1, y1, x2, y2, this.color);
+                this.buffer.line(x1, y1, x2, y2, this._color);
                 remainingProgress -= segmentLength;
             } else {
                 const dx = x2 - x1 !== 0 ? (x2 - x1) / Math.abs(x2 - x1) : 0;
@@ -58,7 +58,7 @@ export default class AnimRect {
                 let xp = x1 + dx * remainingProgress;
                 let yp = y1 + dy * remainingProgress;
                 if (Math.abs(xp - x1) > 0 || Math.abs(yp - y1) > 0) {
-                    this.buffer.line(x1, y1, xp, yp, this.color);
+                    this.buffer.line(x1, y1, xp, yp, this._color);
                 }
                 remainingProgress = 0;
             }

@@ -13,7 +13,7 @@ export default class P {
         this.y = y;
         this.alive = true;
         this._velocity = { x: 0, y: 0 };
-        this.acceleration = { x: 0, y: 0 };
+        this._acceleration = { x: 0, y: 0 };
         this.drag = 0.8;
         this.speed = 0.35;
         this.maxSpeed = 0.6;
@@ -27,7 +27,16 @@ export default class P {
         this.bodyColor = 22;
         this.attackBoxColor = 8;
         this.attackDamage = 5;
-        this.attackCoolDown = 0;
+        this.attackDuration = 2; // Number of frames the attack lasts
+        this.attackCoolDown = 40; // Number of frames before the player can attack again
+        this.attackDurationCounter = 0; // Counter for the attack duration
+        this.attackCoolDownCounter = 0; // Counter for the cooldown
+        this.dashSpeed = 5.0; // Speed during the dash
+        this.dashDuration = 10; // Duration of the dash in frames
+        this.dashCoolDown = 30; // Cooldown period after a dash
+        this.isDashing = false; // Is the player currently dashing?
+        this.dashCounter = 0; // Counter for dash duration
+        this.dashCoolDownCounter = 0; // Counter for dash cooldown
         
         
 
@@ -62,14 +71,42 @@ export default class P {
         this.oldX = this.x;
         this.oldY = this.y;
 
-        this._velocity.x += this.acceleration.x;
+        if (this.isDashing) {
+            this.dashCounter--;
+
+            // Move player in the direction of dash
+            switch (this.direction) {
+                case 'up':
+                    this.y -= this.dashSpeed;
+                    break;
+                case 'down':
+                    this.y += this.dashSpeed;
+                    break;
+                case 'left':
+                    this.x -= this.dashSpeed;
+                    break;
+                case 'right':
+                    this.x += this.dashSpeed;
+                    break;
+            }
+
+            if (this.dashCounter <= 0) {
+                this.isDashing = false;
+                this.dashCoolDownCounter = this.dashCoolDown; // Start cooldown counter
+            }
+        } else {
+            if (this.dashCoolDownCounter > 0) {
+                this.dashCoolDownCounter--;
+            }
+
+        this._velocity.x += this._acceleration.x;
         this._velocity.x *= this.drag;
         this.x += this._velocity.x;
         if (tileCollisionCheck(map, this)) {
             this.x = this.oldX;
         }
 
-        this._velocity.y += this.acceleration.y;
+        this._velocity.y += this._acceleration.y;
         this._velocity.y *= this.drag;
         this.y += this._velocity.y;
         if (tileCollisionCheck(map, this)) {
@@ -77,6 +114,7 @@ export default class P {
         }
 
         this.determineDirection();
+    }
 
         // Update leg positions
         this.updateLegTargets();
@@ -101,20 +139,20 @@ export default class P {
             //direction is set at this.direction, left, right, up, down
             for(let i = 0; i < 60; i++) {
                 let angle = this.directionAngles[this.direction] + Math.random() * Math.PI / 2 - Math.PI / 4;
-                let particle = new Particle(
+                let _particle = new Particle(
                     this.x + Math.cos(angle) * 20 + rand(-3, 3),
                     this.y + Math.sin(angle) * 20 + rand(-3, 3),
                     this._velocity.x + Math.cos(angle),
                     this._velocity.y + Math.sin(angle), 
                     {
-                        color: [22,21,20,19,18],
+                        _color: [22,21,20,19,18],
                         life: 15,
                         customUpdate: function(p) {
                             p.xVelocity += randFloat(-0.3, 0.3);
                             p.yVelocity += randFloat(-0.3, 0.3);
                         }
                     })
-                _entitiesArray.push(particle);
+                _entitiesArray.push(_particle);
             }
 
         } else {
@@ -122,12 +160,30 @@ export default class P {
             this.attackBox.height = 0;
         }
 
-        this.acceleration.x = 0;
-        this.acceleration.y = 0;
+        // Handle attack cooldown and duration
+        if (this.attackCoolDownCounter > 0) {
+            this.attackCoolDownCounter--;
+        }
 
-        //update _rectangle
-        this._rectangle.x = this.x;
-        this._rectangle.y = this.y;
+        if (this.attackDurationCounter > 0) {
+            this.attackDurationCounter--;
+            this.isFiring = true;
+            this.updateAttackBox();
+            // Add particle effects here if desired
+        } else {
+            this.isFiring = false;
+            this.attackBox.width = 0;
+            this.attackBox.height = 0;
+        }
+
+        this._acceleration.x = 0;
+        this._acceleration.y = 0;
+
+        // Only update the player's rectangle if not dashing
+        if (!this.isDashing) {
+            this._rectangle.x = this.x;
+            this._rectangle.y = this.y;
+        }
     }
 
     draw(r, view) {
@@ -137,37 +193,59 @@ export default class P {
         }));
 
         // Draw body (with head and attack box)
-        r.fRect(this.x - view.x, this.y - view.y-4, this.width, 8, this.bodyColor);
+        r._fRect(this.x - view.x, this.y - view.y-4, this.width, 8, this.bodyColor);
 
-        // Draw attack box if firing
-        // if (this.isFiring && this.attackBox) {
-        //     r.fRect(this.attackBox.x - view.x, this.attackBox.y - view.y, this.attackBox.width, this.attackBox.height, this.attackBoxColor);
-        // }
+        //Draw attack box if firing
+        if (this.isFiring && this.attackBox) {
+            r._fRect(this.attackBox.x - view.x, this.attackBox.y - view.y, this.attackBox.width, this.attackBox.height, this.attackBoxColor);
+        }
         
         lightRadial(this.x - view.x + 2, this.y - view.y + 2, 50, [0,1,2,3,4]);
 
         // //debug corners
-        // r.fRect(this.x - view.x, this.y - view.y, 1, 1, 18);
-        // r.fRect(this.x - view.x + this.width, this.y - view.y, 1, 1, 18);
-        // r.fRect(this.x - view.x, this.y - view.y + this.height, 1, 1, 18);
-        // r.fRect(this.x - view.x + this.width, this.y - view.y + this.height, 1, 1, 18);
+        // r._fRect(this.x - view.x, this.y - view.y, 1, 1, 18);
+        // r._fRect(this.x - view.x + this.width, this.y - view.y, 1, 1, 18);
+        // r._fRect(this.x - view.x, this.y - view.y + this.height, 1, 1, 18);
+        // r._fRect(this.x - view.x + this.width, this.y - view.y + this.height, 1, 1, 18);
 
         // //debug _rectangle
-        // r.fRect(this._rectangle.x - view.x, this._rectangle.y - view.y, this._rectangle.width, this._rectangle.height, 10);
+        // r._fRect(this._rectangle.x - view.x, this._rectangle.y - view.y, this._rectangle.width, this._rectangle.height, 10);
     }
 
     handleInput(Key) {
         if (Key.isDown(Key.LEFT) || Key.isDown(Key.a) || Key.isDown(Key.q)) {
-            this.acceleration.x = -this.speed;
+            this._acceleration.x = -this.speed;
         } else if (Key.isDown(Key.RIGHT) || Key.isDown(Key.d)) {
-            this.acceleration.x = this.speed;
+            this._acceleration.x = this.speed;
         }
         if (Key.isDown(Key.UP) || Key.isDown(Key.w) || Key.isDown(Key.z)) {
-            this.acceleration.y = -this.speed;
+            this._acceleration.y = -this.speed;
         } else if (Key.isDown(Key.DOWN) || Key.isDown(Key.s)) {
-            this.acceleration.y = this.speed;
+            this._acceleration.y = this.speed;
         }
-        this.isFiring = Key.isDown(Key.SPACE);
+
+        //dash input
+        if (Key.isDown(Key.v) && !this.isDashing && this.dashCoolDownCounter === 0) {
+            this.isDashing = true;
+            this.dashCounter = this.dashDuration;
+        }
+
+        // Check if the attack button is pressed and if not on cooldown
+        if (Key.isDown(Key.SPACE) && this.attackCoolDownCounter === 0) {
+            this.attackDurationCounter = this.attackDuration; // Reset attack duration counter
+            this.attackCoolDownCounter = this.attackCoolDown; // Start cooldown counter
+        }
+
+        if(Key.justReleased(Key.SPACE)){
+            this.attackCoolDownCounter = 0;
+        }
+
+
+        //debug keys
+        if(Key.justReleased(Key.ONE)){
+            this.health += 100;
+            this.completeAltarTorchCount = 13;
+        }
     }
 
     updateLegTargets() {
@@ -211,28 +289,28 @@ export default class P {
         const attackSize = 8; // Adjust the size as needed
         switch (this.direction) {
             case 'up':
-                this.attackBox.x = this.x - 10;
+                this.attackBox.x = this.x - 16;
                 this.attackBox.y = this.y - 16;
-                this.attackBox.width = 24;
+                this.attackBox.width = 32;
                 this.attackBox.height = 8;
                 break;
             case 'down':
-                this.attackBox.x = this.x - 10;
-                this.attackBox.y = this.y + this.height + 8;
-                this.attackBox.width = 24;
+                this.attackBox.x = this.x - 16;
+                this.attackBox.y = this.y + this.height + 12;
+                this.attackBox.width = 32;
                 this.attackBox.height = 8;
                 break;
             case 'left':
-                this.attackBox.x = this.x - 14;
-                this.attackBox.y = this.y - 8;
+                this.attackBox.x = this.x - 22;
+                this.attackBox.y = this.y - 12;
                 this.attackBox.width = 8;
-                this.attackBox.height = 24;
+                this.attackBox.height = 32;
                 break;
             case 'right':
-                this.attackBox.x = this.x + 14;
-                this.attackBox.y = this.y - 8;
+                this.attackBox.x = this.x + 22;
+                this.attackBox.y = this.y - 12;
                 this.attackBox.width = 8;
-                this.attackBox.height = 24;
+                this.attackBox.height = 32;
                 break;
         }
     }

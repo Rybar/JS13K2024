@@ -17,8 +17,8 @@ export function lerp(a, b, x){
 export function inView(o, padding=0){
   return o.x - view.x + padding > 0 &&
          o.y - view.y + padding > 0 &&
-         o.x - view.x - padding < w &&
-         o.y - view.y - padding < h
+         o.x - view.x - padding < screenWidth &&
+         o.y - view.y - padding < screenHeight
 }
 
 export function callOnce(fn){
@@ -32,11 +32,11 @@ export function callOnce(fn){
 
 export function lightRadial(cx, cy, radius, colors) {
   //draw halo on lights layer
-  r.renderTarget = LIGHTS;
+  r._renderTarget = r["PAGE_7"];
   r.paintTransparent = true;
   r.lightMode = true;
   r.radialCircle(cx, cy, radius, colors);
-  r.renderTarget = r.SCREEN;
+  r._renderTarget = r["SCREEN"];
   r.paintTransparent = false;
   r.lightMode = false;
   }
@@ -98,6 +98,7 @@ export const Key = {
   r: 82,
   m: 77,
   h: 72,
+  v: 86,
 
   isDown(keyCode) {
       return this._pressed[keyCode];

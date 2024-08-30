@@ -23,7 +23,7 @@ export default class Room {
     }
 
     draw(r, view) {
-        r.fRect(this.x - view.x, this.y - view.y, this.width, this.height, this.fill);
+        r._fRect(this.x - view.x, this.y - view.y, this.width, this.height, this.fill);
         //r.lRect(this.x - view.x, this.y - view.y, this.width, this.height, this.completeColor)
         
     }
@@ -39,7 +39,7 @@ export default class Room {
     }   
 
     update(P) {
-        let playerInRoom = this.containsPlayer(P, 8);
+        let playerInRoom = this.containsPlayer(P, tileSize);
         P.currentRoom = playerInRoom ? this : P.currentRoom;
         
         if(this.altar) {

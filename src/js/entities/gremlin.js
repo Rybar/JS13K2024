@@ -16,7 +16,7 @@ export default class Gremlin {
         this.alive = true;
         this.health = 30;
         this._velocity = {x: 0, y: 0};
-        this.acceleration = {x: 0, y: 0};
+        this._acceleration = {x: 0, y: 0};
         this.drag = 0.8;
         this.speed = 0.25;
         this.maxSpeed = 0.3;
@@ -73,27 +73,27 @@ export default class Gremlin {
         }
 
         //body
-        r.fRect(this.x - view.x, this.y - view.y, 8, 10, 16, 16);
+        r._fRect(this.x - view.x, this.y - view.y, 8, 10, 16, 16);
 
         lightRadial(this.x - view.x, this.y - view.y, 30, [2, 4]);
 
         const hornColor = this.isAttacking ? choice([10,11,12,13]) : 16;
-        r.fRect(this.x - view.x - 2, this.y - view.y - 2, 2, 4, hornColor);
-        r.fRect(this.x - view.x + 6, this.y - view.y - 2, 2, 4, hornColor);
+        r._fRect(this.x - view.x - 2, this.y - view.y - 2, 2, 4, hornColor);
+        r._fRect(this.x - view.x + 6, this.y - view.y - 2, 2, 4, hornColor);
 
         // Draw the legs
         this.legs.forEach(leg => leg.segments.forEach(segment => {
             r.line(segment.x - view.x, segment.y - view.y, segment.getEndX() - view.x, segment.getEndY() - view.y, 16);
         }));
 
-        r.text(`${this.health}`, this.x - view.x, this.y - view.y - 16, 1, 1, 'center', 'top', 1, 22);
+        r._text(`${this.health}`, this.x - view.x, this.y - view.y - 16, 1, 1, 'center', 'top', 1, 22);
 
-        // //debug _rectangle
-        // r.fRect(this.x - view.x, this.y - view.y, this.width, this.height, 10);
-        // //debug corners
-        // r.fRect(this.x - view.x, this.y - view.y, 1, 1, 10);
-        // r.fRect(this.x - view.x + this.width, this.y - view.y, 1, 1, 11);
-        // r.fRect(this.x - view.x, this.y - view.y + this.height, 1, 1, 12);
+        //debug _rectangle
+        r._fRect(this.x - view.x, this.y - view.y, this.width, this.height, 10);
+        //debug corners
+        r._fRect(this.x - view.x, this.y - view.y, 1, 1, 10);
+        r._fRect(this.x - view.x + this.width, this.y - view.y, 1, 1, 11);
+        r._fRect(this.x - view.x, this.y - view.y + this.height, 1, 1, 12);
 
     }
 
@@ -225,8 +225,8 @@ export default class Gremlin {
         if (this._rectangle.intersects(P._rectangle)) {
             P.health -= 1;
             let knockbackForce = 4;
-            P.acceleration.x += Math.cos(this.angleToPlayer) * knockbackForce;
-            P.acceleration.y += Math.sin(this.angleToPlayer) * knockbackForce;
+            P._acceleration.x += Math.cos(this.angleToPlayer) * knockbackForce;
+            P._acceleration.y += Math.sin(this.angleToPlayer) * knockbackForce;
         }
     }
 
@@ -234,8 +234,8 @@ export default class Gremlin {
         if (P.isFiring && this._rectangle.intersects(P.attackBox)) {
             this.health -= P.attackDamage; 
             let knockbackForce = 12;
-            this.acceleration.x -= Math.cos(this.angleToPlayer) * knockbackForce;
-            this.acceleration.y -= Math.sin(this.angleToPlayer) * knockbackForce;
+            this._acceleration.x -= Math.cos(this.angleToPlayer) * knockbackForce;
+            this._acceleration.y -= Math.sin(this.angleToPlayer) * knockbackForce;
            playSound(sounds.gremlinHurt); // Assuming there's a sound effect for hitting
         }
     }
@@ -267,8 +267,8 @@ export default class Gremlin {
         const distance = Math.hypot(dirX, dirY);
     
         if (distance > 0) {
-            this.acceleration.x = (dirX / distance) * this.speed;
-            this.acceleration.y = (dirY / distance) * this.speed;
+            this._acceleration.x = (dirX / distance) * this.speed;
+            this._acceleration.y = (dirY / distance) * this.speed;
         }
     
         // Check if there's a wall in the way
@@ -282,8 +282,8 @@ export default class Gremlin {
             let leftY = this.y + Math.sin(leftAngle) * this.speed;
     
             if (!this.raycast(this.x, this.y, leftX, leftY, map)) {
-                this.acceleration.x = Math.cos(leftAngle) * this.speed;
-                this.acceleration.y = Math.sin(leftAngle) * this.speed;
+                this._acceleration.x = Math.cos(leftAngle) * this.speed;
+                this._acceleration.y = Math.sin(leftAngle) * this.speed;
             } else {
                 // If turning left didn't work, try turning right
                 let rightAngle = Math.atan2(dirY, dirX) + angleOffset;
@@ -291,8 +291,8 @@ export default class Gremlin {
                 let rightY = this.y + Math.sin(rightAngle) * this.speed;
     
                 if (!this.raycast(this.x, this.y, rightX, rightY, map)) {
-                    this.acceleration.x = Math.cos(rightAngle) * this.speed;
-                    this.acceleration.y = Math.sin(rightAngle) * this.speed;
+                    this._acceleration.x = Math.cos(rightAngle) * this.speed;
+                    this._acceleration.y = Math.sin(rightAngle) * this.speed;
                 }
             }
         }
@@ -324,8 +324,8 @@ export default class Gremlin {
                 const distance = Math.hypot(dirX, dirY);
         
                 if (distance > 0) {
-                    this.acceleration.x = (dirX / distance) * this.speed;
-                    this.acceleration.y = (dirY / distance) * this.speed;
+                    this._acceleration.x = (dirX / distance) * this.speed;
+                    this._acceleration.y = (dirY / distance) * this.speed;
                 }
 
                 return;
@@ -342,23 +342,23 @@ export default class Gremlin {
         const distance = Math.hypot(dirX, dirY);
 
         if (distance > 0) {
-            this.acceleration.x = (dirX / distance) * this.speed;
-            this.acceleration.y = (dirY / distance) * this.speed;
+            this._acceleration.x = (dirX / distance) * this.speed;
+            this._acceleration.y = (dirY / distance) * this.speed;
         }
     }
 
     randomWander() {
         if (Math.random() < 0.1) {
-            this.acceleration.x = (Math.random() - 0.5) * this.speed;
-            this.acceleration.y = (Math.random() - 0.5) * this.speed;
+            this._acceleration.x = (Math.random() - 0.5) * this.speed;
+            this._acceleration.y = (Math.random() - 0.5) * this.speed;
         }
     }
 
     startAttackTelegraph() {
         this.isAttacking = true;
         this.telegraphStartTime = Date.now();
-        this.acceleration.x = 0;
-        this.acceleration.y = 0;
+        this._acceleration.x = 0;
+        this._acceleration.y = 0;
     }
 
     performAttack() {
@@ -371,8 +371,8 @@ export default class Gremlin {
                //find angle between P and gremlin
                 
                 let knockbackForce = 6;
-                P.acceleration.x += Math.cos(this.angleToPlayer) * knockbackForce;
-                P.acceleration.y += Math.sin(this.angleToPlayer) * knockbackForce;
+                P._acceleration.x += Math.cos(this.angleToPlayer) * knockbackForce;
+                P._acceleration.y += Math.sin(this.angleToPlayer) * knockbackForce;
                 playSound(sounds.playerHurt);
                 //spawn a bunch of particles along a line between the P and the gremlin
                 let i = 100;
@@ -381,7 +381,7 @@ export default class Gremlin {
                         P.x + randFloat(-2,2), P.y + randFloat(-2,2),
                         randFloat(-0.5,0.5),
                         randFloat(-0.5,0.5),
-                        {color: [22,8,7,6,5,4,3,2,1], life: 100,
+                        {_color: [22,8,7,6,5,4,3,2,1], life: 100,
                         customUpdate: (p) => {
                             p.xVelocity += (Math.random() - 0.5) * 0.3; 
                             p.yVelocity += (Math.random() - 0.5) * 0.3; 
@@ -456,14 +456,14 @@ export default class Gremlin {
     applyMovement() {
         this.separateForce = this.separate(this, gremlinsArray, 20);
 
-        this.acceleration.x += this.separateForce.x;
-        this.acceleration.y += this.separateForce.y;
+        this._acceleration.x += this.separateForce.x;
+        this._acceleration.y += this.separateForce.y;
 
          // Check for collision with P's attack box and apply damage
          this.checkPlayerAttack();
 
-        this._velocity.x += this.acceleration.x;
-        this._velocity.y += this.acceleration.y;
+        this._velocity.x += this._acceleration.x;
+        this._velocity.y += this._acceleration.y;
 
         this._velocity.x *= this.drag;
         this._velocity.y *= this.drag;
@@ -491,7 +491,7 @@ export default class Gremlin {
         _entitiesArray.push(new Splode(this.x, this.y, 50, 5));
         let i = rand(2, 5);
         while(i--) {
-            _entitiesArray.push(new Particle(this.x, this.y, randFloat(-0.1, 0.1), randFloat(-0.1, 0.1), {color: [16, 15, 14, 13, 12, 11], life: 50}));
+            _entitiesArray.push(new Particle(this.x, this.y, randFloat(-0.1, 0.1), randFloat(-0.1, 0.1), {_color: [16, 15, 14, 13, 12, 11], life: 50}));
             _entitiesArray.push(new Powerup('GREMLIN_BLOOD', this.x + randFloat(-10, 10), this.y+ randFloat(-10, 10)));
         }
         }

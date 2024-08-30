@@ -281,11 +281,10 @@ export default {
           keep_fnames: false,
       
           // Pass true an ES6 modules, where the toplevel scope is not the global scope. Implies toplevel.
-          module: true,
+          module: false,
       
           // Pass an array of identifiers that should be excluded from mangling. Example: ["foo", "bar"].
           reserved: [
-            
           ],
       
           // Mangle properties - optimizes a lot but is very dangerous. Enables only with properties starting with $
@@ -302,7 +301,7 @@ export default {
             keep_quoted: true,
       
             // Pass a RegExp literal or pattern string to only mangle property matching the regular expression.
-            regex: /^_[a-zA-Z0-9]+/,
+            //regex: /^_[a-zA-Z0-9]+/,
           },
       
           // Pass true to mangle names declared in the top level scope.

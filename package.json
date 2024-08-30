@@ -13,7 +13,7 @@
     "build:zipSize": "node scripts/zipSize.js",
     "build:postprocess": "cp dist/game-rollup.js dist/game.js",
     "start": "npm-run-all -s clean -p dev:*",
-    "dev:js": "rollup -c scripts/rollup.config.js -w --environment MINIFY --output.file dist/game.js",
+    "dev:js": "rollup -c scripts/rollup.config.js -w --environment DEBUG --output.file dist/game.js",
     "dev:serve_watch_html_js": "browser-sync 'dist' 'src' --watch --host 0.0.0.0 --https --no-open",
     "dev:watch_img": "chokidar src/img -d 0 -c 'npm run dev:js'",
     "tinify-pngs": "node scripts/tinify-pngs.js"

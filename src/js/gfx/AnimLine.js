@@ -7,16 +7,16 @@ export default class AnimLine {
      * @param {number} y1 - The starting y-coordinate of the line.
      * @param {number} x2 - The ending x-coordinate of the line.
      * @param {number} y2 - The ending y-coordinate of the line.
-     * @param {number} color - The color of the line.
+     * @param {number} _color - The _color of the line.
      * @param {number} speed - The speed of the animation.
      */
-    constructor(buffer, x1, y1, x2, y2, color, speed) {
+    constructor(buffer, x1, y1, x2, y2, _color, speed) {
       this.buffer = buffer;
       this.x1 = x1;
       this.y1 = y1;
       this.x2 = x2;
       this.y2 = y2;
-      this.color = color;
+      this._color = _color;
       this.speed = speed;
       this.alive = true;
       this.progress = 0;
@@ -43,7 +43,7 @@ export default class AnimLine {
      */
     draw() {
       if (!this.alive && this.progress >= this.totalLength) {
-        this.buffer.line(this.x1, this.y1, this.x2, this.y2, this.color);
+        this.buffer.line(this.x1, this.y1, this.x2, this.y2, this._color);
         return;
       }
   
@@ -51,7 +51,7 @@ export default class AnimLine {
       const currentX = this.x1 + (this.x2 - this.x1) * progressRatio;
       const currentY = this.y1 + (this.y2 - this.y1) * progressRatio;
   
-      this.buffer.line(this.x1, this.y1, currentX, currentY, this.color);
+      this.buffer.line(this.x1, this.y1, currentX, currentY, this._color);
     }
   }
   

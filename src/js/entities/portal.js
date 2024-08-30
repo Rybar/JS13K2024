@@ -2,18 +2,18 @@ import { callOnce } from "../core/utils";
 
 export default class Portal {
     constructor(x, y) {
-        this.x = x*8;
-        this.y = y*8;
+        this.x = x*tileSize;
+        this.y = y*tileSize;
         this.size = 20;
         this.fill = 39;
         this.active = false;
         this.nextLevel = callOnce(() => {
-            nextLevel();
+            window.nextLevel();
         })
     }
 
     draw(r, view) {
-        r.renderTarget = r.SCREEN;
+        r._renderTarget = r["SCREEN"];
         r.fCircle(this.x - view.x, this.y - view.y, this.size, this.fill);
     }
 

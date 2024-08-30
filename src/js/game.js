@@ -26,20 +26,20 @@ import Gremlin from './entities/gremlin.js';
 
 (function () {
     document.body.style = "margin:0; background-color:black; overflow:hidden";
-    const w = 480, h = 270;
-    window.w = w; window.h = h;
+    const screenWidth = 480, screenHeight = 270;
+    window.screenWidth = screenWidth; window.screenHeight = screenHeight;
     const atlasURL = 'DATAURL:src/img/palette.webp';
     const atlasImage = new Image();
     atlasImage.src = atlasURL;
 
     loadAtlas(atlasURL, (atlas) => {
-        const r = new RetroBuffer(w, h, atlas, 10);
+        const r = new RetroBuffer(screenWidth, screenHeight, atlas, 10);
         window.r = r;
-        window.LIGHTS = r.PAGE_7;
+        window.LIGHTS = r["PAGE_7"];
         document.getElementById('game').appendChild(r.c);
         document.getElementById('game').style.background = "none";
         gameInit();
-        resizeCanvas(r.c, w, h);
+        resizeCanvas(r.c, screenWidth, screenHeight);
     });
 
     function gameInit() {
@@ -50,7 +50,7 @@ import Gremlin from './entities/gremlin.js';
     }
 
     window.t = 0;
-    text = "";
+    _text = "";
     window.P = null;
     sounds = {};
     soundsReady = 0;
@@ -78,11 +78,11 @@ import Gremlin from './entities/gremlin.js';
     lastFrameTime = 0;
     frameCount = 0;
     paused = false;
-    tileSize = 8;
+    tileSize = 16;
     view = {
         x: 0, y: 0,
         target: {x: 0, y: 0},
-         w: w, h: h
+         w: screenWidth, h: screenHeight
         };
 
 
@@ -191,9 +191,9 @@ import Gremlin from './entities/gremlin.js';
 
 
         if(generatingNewFloor) {
-            r.fRect(0, 0, w, h, 3);
-            text = "LOADING THE NEXT FLOOR";
-            r.text(text, w / 2, h / 2, 1, 1, 'center', 'middle', 1, 22);
+            r._fRect(0, 0, screenWidth, screenHeight, 3);
+            _text = "LOADING THE NEXT FLOOR";
+            r._text(_text, screenWidth / 2, screenHeight / 2, 1, 1, 'center', 'middle', 1, 22);
         }
 ;
         drawLightsOverlay();
@@ -202,15 +202,23 @@ import Gremlin from './entities/gremlin.js';
 
         drawUI();
 
-
         r.render();
     }
 
     function drawLightLayerBase() {
-        r.renderTarget = LIGHTS;
-        r.clear(0, LIGHTS);
-        r.fRect(0, 0, 480, 270, 4, 5, 8);
-        r.renderTarget = r.SCREEN;
+        r._renderTarget = r["PAGE_7"];
+        r.clear(0, r["PAGE_7"]);
+        r._fRect(0, 0, 480, 270, 4, 5, 8);
+        r._renderTarget = r["SCREEN"];
+    }
+
+    function drawColorBarAndAtlas() {
+        for(let i = 0; i < 64; i++) {
+            r._fRect(i * 8, 0, 8, 8, i);
+        }
+        r.renderSource = r["PAGE_1"]
+        r.sspr(0, 0, 480, 270, 60, 60, 480, 270);
+
     }
 
     function drawLightsOverlay() {
@@ -219,27 +227,27 @@ import Gremlin from './entities/gremlin.js';
         r.pal=[65,66,67,68,69,70];
 
         //render lights layer over screen layer
-        r.renderSource = LIGHTS;
-        r.renderTarget = r.SCREEN;
+        r.renderSource = r["PAGE_7"];
+        r._renderTarget = r["SCREEN"];
         r.spr(0, 0, 480, 270, 0, 0);
 
         //reset palette
         r.pal = r.palDefault.slice();
-        r.renderSource = r.PAGE_1;
+        r.renderSource = r["PAGE_1"];
     }
 
     function drawUI() {
-        // Draw debug text
+        // Draw debug _text
         debugText= `FPS: ${fps.toFixed(2)}`;
-        r.text(debugText, 10, 10, 1, 1, 'left', 'top', 1, 22);
+        r._text(debugText, 10, 10, 1, 1, 'left', 'top', 1, 22);
 
         debugText = `${P.health.toFixed(2)}\nGB: ${P.gremlinBlood}\nAP: ${P.completeAltarTorchCount}`
-        r.text(debugText, P.x - view.x, P.y - view.y - 28, 1, 1, 'center', 'top', 1, 22);
+        r._text(debugText, P.x - view.x, P.y - view.y - 28, 1, 1, 'center', 'top', 1, 22);
     
         debugText = `FLOOR: ${currentFloor}`;
-        r.text(debugText, w - 10, 10, 1, 1, 'right', 'top', 2, 22);
+        r._text(debugText, screenWidth - 10, 10, 1, 1, 'right', 'top', 2, 22);
         debugText = `TORCHES: ${P.completeAltarTorchCount}`;
-        r.text(debugText, w - 10, 30, 1, 1, 'right', 'top', 2, 22);
+        r._text(debugText, screenWidth - 10, 30, 1, 1, 'right', 'top', 2, 22);
 
     }
 
@@ -249,10 +257,10 @@ import Gremlin from './entities/gremlin.js';
         r.drawTileAsset(0, 0, platformerTest);
         r.drawTileAsset(0, 0, tileAssetTest);
         drawEntities(_entitiesArray);
-        text = "SIX AND SEVEN";
-        r.text(text, w / 2, 100, 4, 1, 'center', 'top', 4, 22);
-        text = "CLICK TO START";
-        r.text(text, w / 2, 125, 1, 1, 'center', 'top', 1, 22);
+        _text = "SIX AND SEVEN";
+        r._text(_text, screenWidth / 2, 100, 4, 1, 'center', 'top', 4, 22);
+        _text = "CLICK TO START";
+        r._text(_text, screenWidth / 2, 125, 1, 1, 'center', 'top', 1, 22);
         r.render();
         playSound(sounds.spawn);
     }
@@ -281,12 +289,12 @@ import Gremlin from './entities/gremlin.js';
 
     function preload() {
 
-        r.clear(64, r.SCREEN);
-        r.renderTarget = r.SCREEN;
+        r.clear(64, r["SCREEN"]);
+        r._renderTarget = r["SCREEN"];
         
-        text = "SIX AND SEVEN";
-        r.text(text, w / 2, 100, 4, 1, 'center', 'top', 4, 2);
-        r.text(audioTxt, w / 2 - 2, 130, 1, 1, 'center', 'top', 1, 22);
+        _text = "SIX AND SEVEN";
+        r._text(_text, screenWidth / 2, 100, 4, 1, 'center', 'top', 4, 2);
+        r._text(audioTxt, screenWidth / 2 - 2, 130, 1, 1, 'center', 'top', 1, 22);
         if(started){
             audioTxt = "RETICULATING SPLINES";
         } else {
@@ -300,6 +308,8 @@ import Gremlin from './entities/gremlin.js';
             startGameMusic();
             gamestate = GAMESCREEN;
         }
+
+        //drawColorBarAndAtlas();
         r.render();
     }
 
@@ -317,7 +327,7 @@ import Gremlin from './entities/gremlin.js';
             paused = false;
         }, false);
         window.addEventListener('resize', function (event) {
-            resizeCanvas(r.c, w, h);
+            resizeCanvas(r.c, screenWidth, screenHeight);
         }, false);
     }
 
@@ -338,7 +348,7 @@ import Gremlin from './entities/gremlin.js';
                     setTimeout(() => {
                         initAudio();
                         initGameData();
-                    }, 100); //wait a bit to give preload text a chance to render
+                    }, 100); //wait a bit to give preload _text a chance to render
                 }
                 break;
             case 1: // react to clicks on screen 1
@@ -410,14 +420,14 @@ import Gremlin from './entities/gremlin.js';
     function cameraFollow() {
         //implement deadzone
         deadzone = { x: 200, y: 100 };
-        if(P.x - view.x > w - deadzone.x) {
-            view.target.x = P.x - w + deadzone.x;
+        if(P.x - view.x > screenWidth - deadzone.x) {
+            view.target.x = P.x - screenWidth + deadzone.x;
         }
         if(P.x - view.x < deadzone.x) {
             view.target.x = P.x - deadzone.x;
         }
-        if(P.y - view.y > h - deadzone.y) {
-            view.target.y = P.y - h + deadzone.y;
+        if(P.y - view.y > screenHeight - deadzone.y) {
+            view.target.y = P.y - screenHeight + deadzone.y;
         }
         if(P.y - view.y < deadzone.y) {
             view.target.y = P.y - deadzone.y;
@@ -441,21 +451,21 @@ import Gremlin from './entities/gremlin.js';
     }
 
     function drawPaused() {
-        r.fRect(0, 0, w, h, 66, 67, 8);
-        text = "PAUSED";
-        r.text(text, w / 2, h / 2, 1, 1, 'center', 'middle', 1, 22);
+        r._fRect(0, 0, screenWidth, screenHeight, 66, 67, 8);
+        _text = "PAUSED";
+        r._text(_text, screenWidth / 2, screenHeight / 2, 1, 1, 'center', 'middle', 1, 22);
         drawMiniMap();
     }
 
     function drawMiniMap() {
-        r.renderSource = r.PAGE_3;
-        r.renderTarget = r.SCREEN;
-        r.fRect(0, 0, 480,270,0);
+        r.renderSource = r["PAGE_3"];
+        r._renderTarget = r["SCREEN"];
+        r._fRect(0, 0, 480,270,0);
         r.spr(0,0,480,270,0,0);
         //draw P position
-        r.fRect(P.x/8-1, P.y/8-1, 2, 2, 22);
+        r._fRect(P.x/8-1, P.y/8-1, 2, 2, 22);
         //draw portal position
-        r.fRect(portalLocation.x-1, portalLocation.y-1, 3, 3, 7);
+        r._fRect(portalLocation.x-1, portalLocation.y-1, 3, 3, 7);
         
     }
 

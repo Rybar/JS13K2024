@@ -14,7 +14,7 @@ export default class Torch {
 
     draw(r, view) {
         //console.log('Torch draw');
-        r.renderTarget = r.SCREEN;
+        r._renderTarget = r["SCREEN"];
         r.fCircle(this.x - view.x, this.y - view.y, this.size, this.fill);
         if(this.lit) {
             lightRadial(this.x - view.x, this.y - view.y, 25, [0,1,2,3, 4]);
@@ -29,7 +29,7 @@ export default class Torch {
             _entitiesArray.push(new Particle(
                 this.x + rand(-2,2), this.y,
                 randFloat(-0.05,0.05),
-                -0.25, {color: gradient, life: 70}));
+                -0.25, {_color: gradient, life: 70}));
         }
         //check for overlap with P. If so, light the torch.
         //will require action to light the torch in the future
