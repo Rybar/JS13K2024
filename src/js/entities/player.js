@@ -197,9 +197,9 @@ export default class P {
         r._fRect(this.x - view.x, this.y - view.y-4, this.width, 8, this.bodyColor);
 
         //Draw attack box if firing
-        if (this.isFiring && this.attackBox) {
-            r._fRect(this.attackBox.x - view.x, this.attackBox.y - view.y, this.attackBox.width, this.attackBox.height, this.attackBoxColor);
-        }
+        // if (this.isFiring && this.attackBox) {
+        //     r._fRect(this.attackBox.x - view.x, this.attackBox.y - view.y, this.attackBox.width, this.attackBox.height, this.attackBoxColor);
+        // }
         
         lightRadial(this.x - view.x + 2, this.y - view.y + 2, 50, [0,1,2,3,4]);
 
@@ -226,18 +226,18 @@ export default class P {
         }
 
         //dash input
-        if (Key.isDown(Key.v) && !this.isDashing && this.dashCoolDownCounter === 0) {
+        if (Key.isDown(Key.n) && !this.isDashing && this.dashCoolDownCounter === 0) {
             this.isDashing = true;
             this.dashCounter = this.dashDuration;
         }
 
         // Check if the attack button is pressed and if not on cooldown
-        if (Key.isDown(Key.SPACE) && this.attackCoolDownCounter === 0) {
+        if (Key.isDown(Key.SPACE) || Key.isDown(Key.b) && this.attackCoolDownCounter === 0) {
             this.attackDurationCounter = this.attackDuration; // Reset attack duration counter
             this.attackCoolDownCounter = this.attackCoolDown; // Start cooldown counter
         }
 
-        if(Key.justReleased(Key.SPACE)){
+        if(Key.justReleased(Key.SPACE) || Key.justReleased(Key.b)){
             this.attackCoolDownCounter = 0;
         }
 

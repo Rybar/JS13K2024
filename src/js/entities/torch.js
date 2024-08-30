@@ -36,7 +36,7 @@ export default class Torch {
         let dx = P.x - this.x;
         let dy = P.y - this.y;
         let dist = Math.sqrt(dx*dx + dy*dy);
-        if(dist < 20 && P.isFiring && !this.lit && !this.igniting) {
+        if(dist < 10 && !this.lit && !this.igniting) {
             this.health = 25;
             this.lit = true;
             this.igniting = true;

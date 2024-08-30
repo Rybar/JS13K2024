@@ -12,6 +12,7 @@ export default class Floor {
         this.roomCount = 200;
         this.maxSeparationTries = 20000;
         this.rooms = [];
+        this.featureRooms = [];
         this.sizeBias = 5;
         this.biasInfluence = 0.6;
         this.featureRoomSize = { width: 20, height: 15 };
@@ -25,9 +26,9 @@ export default class Floor {
         this.generateRooms();
         this.separateRooms();
 
-        const featureRooms = this.identifyFeatureRooms(this.featureRoomSize);
-        this.placeAltars(featureRooms);
-        const edges = this.createGraph(featureRooms);
+        this.featureRooms = this.identifyFeatureRooms(this.featureRoomSize);
+        this.placeAltars(this.featureRooms);
+        const edges = this.createGraph(this.featureRooms);
         this.mst = this.createMSTWithExtraEdges(edges);
         const connected = this.connectRooms(this.mst);
         this.rooms = this.rooms.filter(room => connected.has(room));
@@ -111,17 +112,24 @@ export default class Floor {
 
     placeAltars(featureRooms) {
         let portalPlaced = false;
+        let sixPlaced = false;
+        let sevenPlaced = false;
         featureRooms.forEach(room => {
             const x = room.x + Math.floor(room.width / 2);
             const y = room.y + Math.floor(room.height / 2);
-            //push a random number of torches into the room, arranged in a circle
-            const numTorches = Math.floor(Math.random() * 5) + 3;
+            const numTorches = Math.round(Math.random() * 2) + 3;
             if (!portalPlaced) {
                 console.log('portal placed');
                 room.portal = new Portal(x, y);
                 portalLocation = {x, y};
                 console.log(portalLocation);
                 portalPlaced = true;
+            } else if (!sixPlaced) {
+                room.altar = new Altar(x, y, 6);
+                sixPlaced = true;
+            } else if (!sevenPlaced) {
+                room.altar = new Altar(x, y, 7);
+                sevenPlaced = true;
             } else {
                 room.altar = new Altar(x, y, numTorches)
             };

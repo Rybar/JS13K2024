@@ -32,7 +32,7 @@ export default class Gremlin {
         this._rectangle = new _rectangle(this.x, this.y, this.width, this.height);
         this.currentRoom = null;
         this.angleToPlayer = 0;
-
+        this.stepFrameCount = 0; // Counter for alternating legs
         this.targetTypes = {
             P: 1,
             TORCH: 2
@@ -42,7 +42,6 @@ export default class Gremlin {
             x: P.x,
             y: P.y
         };
-
          // Create legs as Arms with 2 Segments each
         this.legs = [
             new Arm(this.x, this.y + this.height), // Left leg
@@ -50,31 +49,30 @@ export default class Gremlin {
             new Arm(this.x, this.y + this.height), // Left leg
             new Arm(this.x, this.y + this.height)  // Right leg
         ];
-
         // Add segments to each leg
         this.legs.forEach(leg => {
-            leg.addSegment(6); // Upper segment
-            leg.addSegment(6); // Lower segment
-            leg.addSegment(6); // Lower segment
+            leg.addSegment(4); // Upper segment
+            leg.addSegment(4); // Lower segment
+            leg.addSegment(4); // Lower segment
         });
-
-        this.legTargets = [{ x: this.x, y: this.y }, { x: this.x, y: this.y },
-            {x: this.x, y: this.y }, { x: this.x, y: this.y }];
-        //this.stepDistance = 10; // Minimum distance before a leg takes a step
-        //this.legStepOffset = 120; // Offset in frames for alternating leg movement
-        this.stepFrameCount = 0; // Counter for alternating legs
+        this.legTargets = [
+            { x: this.x, y: this.y },
+            { x: this.x, y: this.y },
+            { x: this.x, y: this.y },
+            { x: this.x, y: this.y }
+        ];
     }
 
     draw(r, view) {
         if (!this.alive) return;
         //laser sight if about to attack
         if (this.isAttacking) {
-            r.line(this.x-view.x, this.y-view.y, P.x-view.x, P.y-view.y, choice([10,11,12,13]));
+            r.line(this.x-view.x, this.y-view.y, this.target.x-view.x, this.target.y-view.y, choice([10,11,12,13]));
         }
 
         //body
         r._fRect(this.x - view.x, this.y - view.y, 8, 10, 16, 16);
-
+        r.fCircle(this.x - view.x + 4, this.y - view.y, 4, 16);
         lightRadial(this.x - view.x, this.y - view.y, 30, [2, 4]);
 
         const hornColor = this.isAttacking ? choice([10,11,12,13]) : 16;
@@ -88,12 +86,12 @@ export default class Gremlin {
 
         r._text(`${this.health}`, this.x - view.x, this.y - view.y - 16, 1, 1, 'center', 'top', 1, 22);
 
-        //debug _rectangle
-        r._fRect(this.x - view.x, this.y - view.y, this.width, this.height, 10);
-        //debug corners
-        r._fRect(this.x - view.x, this.y - view.y, 1, 1, 10);
-        r._fRect(this.x - view.x + this.width, this.y - view.y, 1, 1, 11);
-        r._fRect(this.x - view.x, this.y - view.y + this.height, 1, 1, 12);
+        // //debug _rectangle
+        // r._fRect(this.x - view.x, this.y - view.y, this.width, this.height, 10);
+        // //debug corners
+        // r._fRect(this.x - view.x, this.y - view.y, 1, 1, 10);
+        // r._fRect(this.x - view.x + this.width, this.y - view.y, 1, 1, 11);
+        // r._fRect(this.x - view.x, this.y - view.y + this.height, 1, 1, 12);
 
     }
 
@@ -150,7 +148,7 @@ export default class Gremlin {
 
         // Initiate attack telegraph if within range and cooldown passed
         const distanceToTarget = Math.hypot(this.target.x - this.x, this.target.y - this.y);
-        if (distanceToTarget <= this.attackRange && now - this.lastAttackTime >= this.attackCooldown) {
+        if (distanceToTarget <= this.attackRange && now - this.lastAttackTime >= this.attackCooldown && !this.isAttacking) {
             this.startAttackTelegraph();
         } else {
             this.randomWander();
@@ -304,11 +302,13 @@ export default class Gremlin {
             let minDistance = Infinity;
 
             for (const torch of P.currentRoom.altar.torches) {
-                const distanceToTorch = Math.hypot(torch.x - this.x, torch.y - this.y);
-                if (distanceToTorch < minDistance && torch.health > 0) {
-                    nearestTorch = torch;
-                    minDistance = distanceToTorch;
-                }
+                if(torch.lit) {
+                    const distanceToTorch = Math.hypot(torch.x - this.x, torch.y - this.y);
+                    if (distanceToTorch < minDistance && torch.health > 0) {
+                        nearestTorch = torch;
+                        minDistance = distanceToTorch;
+                    }
+                } 
             }
 
             if (nearestTorch) {
@@ -329,7 +329,7 @@ export default class Gremlin {
             }
         }
 
-        // If no torch to target, seek the P
+        // If no torch to target, seek the Player
         this.target.type = this.targetTypes.P;
         this.target.x = P.x;
         this.target.y = P.y;
@@ -354,19 +354,20 @@ export default class Gremlin {
     startAttackTelegraph() {
         this.isAttacking = true;
         this.telegraphStartTime = Date.now();
-        //this._acceleration.x = 0;
-        //this._acceleration.y = 0;
+        this._acceleration.x = 0;
+        this._acceleration.y = 0;
     }
 
     performAttack() {
+        console.log('performing attack');
         this.isAttacking = false;
         this.lastAttackTime = Date.now();
         // Perform attack logic based on target type
         if (this.target.type === this.targetTypes.P && !P.isFiring) {
+            console.log('attack target is player...');
             if (Math.hypot(P.x - this.x, P.y - this.y) <= this.attackRange) {
+                console.log('player in range...');
                 P.health -= this.damage; 
-               //find angle between P and gremlin
-                
                 let knockbackForce = 6;
                 P._acceleration.x += Math.cos(this.angleToPlayer) * knockbackForce;
                 P._acceleration.y += Math.sin(this.angleToPlayer) * knockbackForce;
@@ -394,12 +395,13 @@ export default class Gremlin {
             }
         } else if (this.target.type === this.targetTypes.TORCH) {
             for (const torch of P.currentRoom.altar.torches) {
+                console.log('checking torch');
                 if (torch.x === this.target.x && torch.y === this.target.y) {
-                    torch.health -= this.damage; // Reduce torch health
+                    console.log('extinguishing torch');
+                    torch.health -= 20; // Reduce torch health
                     if (torch.health <= 0) {
                        playSound(sounds.footstep, 0.5, 0, 0.8); // Assuming there's a sound effect for extinguishing torches
                     }
-                    break;
                 }
             }
         }

@@ -382,7 +382,7 @@ import Gremlin from './entities/gremlin.js';
     function drawEntities(_entitiesArray) {
         for (let i = 0; i < _entitiesArray.length; i++) {
             let e = _entitiesArray[i];
-            if(inView(e, 8)){e.draw(r, view);}
+            if(inView(e, tileSize)){e.draw(r, view);}
         }
     }
 
@@ -463,27 +463,21 @@ import Gremlin from './entities/gremlin.js';
         r._fRect(0, 0, 480,270,0);
         r.spr(0,0,480,270,0,0);
         //draw P position
-        r._fRect(P.x/8-1, P.y/8-1, 2, 2, 22);
+        r._fRect(P.x/tileSize-1, P.y/tileSize-1, 2, 2, 22);
         //draw portal position
         r._fRect(portalLocation.x-1, portalLocation.y-1, 3, 3, 7);
         
     }
 
     function spawnGremlin() {
-        //find a walkable tile near P to spawn gremlin
-        let x = P.x + rand(-90, 90);
-        let y = P.y + rand(-90, 90);
-        let tries = 0;
-        while(map.getTileAtPixel(x, y) == 0 && tries < 100) {
-            x = P.x + rand(-90, 90);
-            y = P.y + rand(-90, 90);
-            tries++;
-        }
-        if(tries < 100) {
+        //if player current room is a feature room, spawn a gremlin
+        let currentRoom = P.currentRoom;
+        if(currentRoom.altar) {
+            let x = P.x + rand(-90, 90);
+            let y = P.y + rand(-90, 90);
             gremlinsArray.push(new Gremlin(x, y));
             playSound(sounds.spawn);
         }
-        
     }
 
     function nextLevel() {

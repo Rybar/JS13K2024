@@ -87,6 +87,8 @@ export const Key = {
   FOUR: 52,
   ESC: 27,
   a: 65,
+  b: 66,
+  n: 78,
   c: 67,
   w: 87,
   s: 83,
