@@ -27,12 +27,13 @@ export default class P {
         this.bodyColor = 22;
         this.attackBoxColor = 8;
         this.attackDamage = 5;
-        this.attackDuration = 2; // Number of frames the attack lasts
+        this.attackDuration = 4; // Number of frames the attack lasts
         this.attackCoolDown = 40; // Number of frames before the player can attack again
         this.attackDurationCounter = 0; // Counter for the attack duration
         this.attackCoolDownCounter = 0; // Counter for the cooldown
-        this.dashSpeed = 5.0; // Speed during the dash
-        this.dashDuration = 10; // Duration of the dash in frames
+
+        this.dashSpeed = 12.0; // Speed during the dash
+        this.dashDuration = 8; // Duration of the dash in frames
         this.dashCoolDown = 30; // Cooldown period after a dash
         this.isDashing = false; // Is the player currently dashing?
         this.dashCounter = 0; // Counter for dash duration
@@ -290,26 +291,26 @@ export default class P {
         switch (this.direction) {
             case 'up':
                 this.attackBox.x = this.x - 16;
-                this.attackBox.y = this.y - 16;
+                this.attackBox.y = this.y - 8;
                 this.attackBox.width = 32;
-                this.attackBox.height = 8;
+                this.attackBox.height = 32;
                 break;
             case 'down':
                 this.attackBox.x = this.x - 16;
-                this.attackBox.y = this.y + this.height + 12;
+                this.attackBox.y = this.y + this.height + 4;
                 this.attackBox.width = 32;
-                this.attackBox.height = 8;
+                this.attackBox.height = 32;
                 break;
             case 'left':
-                this.attackBox.x = this.x - 22;
-                this.attackBox.y = this.y - 12;
-                this.attackBox.width = 8;
+                this.attackBox.x = this.x - 32;
+                this.attackBox.y = this.y - 18;
+                this.attackBox.width = 32;
                 this.attackBox.height = 32;
                 break;
             case 'right':
-                this.attackBox.x = this.x + 22;
-                this.attackBox.y = this.y - 12;
-                this.attackBox.width = 8;
+                this.attackBox.x = this.x + 8;
+                this.attackBox.y = this.y - 18;
+                this.attackBox.width = 32;
                 this.attackBox.height = 32;
                 break;
         }

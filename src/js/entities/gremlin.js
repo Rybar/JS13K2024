@@ -20,7 +20,7 @@ export default class Gremlin {
         this.drag = 0.8;
         this.speed = 0.25;
         this.maxSpeed = 0.3;
-        this.attackRange = 30;
+        this.attackRange = 50;
         this.attackCooldown = 1000;
         this.attackTelegraphTime = 500;
         this.isAttacking = false;
@@ -107,9 +107,6 @@ export default class Gremlin {
             this.currentRoom = P.currentRoom;
         }
 
-        // Check for collision with P's attack box and apply damage
-        this.checkPlayerAttack();
-
         if (this.health <= 0) {
             this.die();
         }
@@ -119,9 +116,9 @@ export default class Gremlin {
         if (this.isAttacking) {
             let timeRemaining = this.attackTelegraphTime - (now - this.telegraphStartTime);
             if (timeRemaining <= 0) {
+                
                 this.performAttack();
             }
-            return;
         }
 
         this.oldX = this.x;
@@ -129,9 +126,6 @@ export default class Gremlin {
 
         // Seek out the target (P or lit torch)
         this.seekTarget();
-
-        // Check for collision with P's attack box and apply damage
-        this.checkPlayerAttack();
 
         this.seekWithObstacleAvoidance();
 
@@ -164,7 +158,8 @@ export default class Gremlin {
 
         this.collideWithPlayer();
 
-
+        // Check for collision with P's attack box and apply damage
+        this.checkPlayerAttack();
 
         this.applyMovement();
     }
@@ -233,10 +228,12 @@ export default class Gremlin {
     checkPlayerAttack() {
         if (P.isFiring && this._rectangle.intersects(P.attackBox)) {
             this.health -= P.attackDamage; 
-            let knockbackForce = 12;
-            this._acceleration.x -= Math.cos(this.angleToPlayer) * knockbackForce;
-            this._acceleration.y -= Math.sin(this.angleToPlayer) * knockbackForce;
-           playSound(sounds.gremlinHurt); // Assuming there's a sound effect for hitting
+            let knockbackForce = 24;
+            //this._acceleration.x = -Math.cos(this.angleToPlayer) * knockbackForce;
+            //this._acceleration.y = -Math.sin(this.angleToPlayer) * knockbackForce;
+            this._velocity.x =  - Math.cos(this.angleToPlayer) * knockbackForce;
+            this._velocity.y = - Math.sin(this.angleToPlayer) * knockbackForce;
+           playSound(sounds.gremlinHurt); 
         }
     }
 
@@ -357,8 +354,8 @@ export default class Gremlin {
     startAttackTelegraph() {
         this.isAttacking = true;
         this.telegraphStartTime = Date.now();
-        this._acceleration.x = 0;
-        this._acceleration.y = 0;
+        //this._acceleration.x = 0;
+        //this._acceleration.y = 0;
     }
 
     performAttack() {
@@ -377,11 +374,15 @@ export default class Gremlin {
                 //spawn a bunch of particles along a line between the P and the gremlin
                 let i = 100;
                 while(i--){
+                    let dx = P.x - this.x;
+                    let dy = P.y - this.y;
+                    let x = this.x + dx * i / 100;
+                    let y = this.y + dy * i / 100;
                     _entitiesArray.push(new Particle(
-                        P.x + randFloat(-2,2), P.y + randFloat(-2,2),
+                        x + randFloat(-2,2), y + randFloat(-2,2),
                         randFloat(-0.5,0.5),
                         randFloat(-0.5,0.5),
-                        {_color: [22,8,7,6,5,4,3,2,1], life: 100,
+                        {_color: [22,8,7,6,5,4,3,2,1], life: 40,
                         customUpdate: (p) => {
                             p.xVelocity += (Math.random() - 0.5) * 0.3; 
                             p.yVelocity += (Math.random() - 0.5) * 0.3; 
@@ -459,11 +460,10 @@ export default class Gremlin {
         this._acceleration.x += this.separateForce.x;
         this._acceleration.y += this.separateForce.y;
 
-         // Check for collision with P's attack box and apply damage
-         this.checkPlayerAttack();
-
         this._velocity.x += this._acceleration.x;
         this._velocity.y += this._acceleration.y;
+
+
 
         this._velocity.x *= this.drag;
         this._velocity.y *= this.drag;
@@ -484,6 +484,8 @@ export default class Gremlin {
 
         this._rectangle.x = this.x;
         this._rectangle.y = this.y;
+
+
     }
 
     die() {
