@@ -241,13 +241,18 @@ import Gremlin from './entities/gremlin.js';
         debugText= `FPS: ${fps.toFixed(2)}`;
         r._text(debugText, 10, 10, 1, 1, 'left', 'top', 1, 22);
 
-        debugText = `${P.health.toFixed(2)}\nGB: ${P.gremlinBlood}\nAP: ${P.completeAltarTorchCount}`
+        debugText = `${P.health.toFixed(2)}\nGB: ${P.gremlinBlood}\nAP: ${P.sumCompleted}`
         r._text(debugText, P.x - view.x, P.y - view.y - 28, 1, 1, 'center', 'top', 1, 22);
     
         debugText = `FLOOR: ${currentFloor}`;
         r._text(debugText, screenWidth - 10, 10, 1, 1, 'right', 'top', 2, 22);
-        debugText = `TORCHES: ${P.completeAltarTorchCount}`;
+        debugText = `TORCHES: ${P.sumCompletedTorches()}`;
         r._text(debugText, screenWidth - 10, 30, 1, 1, 'right', 'top', 2, 22);
+
+        P.completeAltars.forEach((altar, i) => {
+            r.polygon(300, 50, altar*3, altar, altar, 22, 22);
+        });
+        
 
     }
 
@@ -481,7 +486,7 @@ import Gremlin from './entities/gremlin.js';
     }
 
     function nextLevel() {
-        P.completeAltarTorchCount = 0;
+        P.completeAltars = [];
         generatingNewFloor = true;
             setTimeout(() => {
                 newFloor();

@@ -21,7 +21,7 @@ export default class Portal {
         let dx = P.x - this.x;
         let dy = P.y - this.y;
         let dist = Math.sqrt(dx * dx + dy * dy);
-        if (P.completeAltarTorchCount >= 13) { 
+        if (P.sumCompletedTorches() >= 13) { 
             this.active = true;   
         }
         if(dist < 10 && this.active) {

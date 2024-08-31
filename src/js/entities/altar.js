@@ -15,7 +15,7 @@ export default class Altar {
         this.generateTorches();
         this.bloodRequired = 20;
         this.playerCompleted = callOnce(() => {
-            P.completeAltarTorchCount += this.torchCount;
+            P.completeAltars.push( this.torchCount );
             //emit particles
             for(let i = 0; i < 300; i++) {
                 let angle = Math.random() * Math.PI * 2;

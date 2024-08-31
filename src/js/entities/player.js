@@ -22,7 +22,7 @@ export default class P {
         this.currentRoom = null;
         this.health = 100;
         this.maxHealth = 100;
-        this.completeAltarTorchCount = 0;
+        this.completeAltars = [];
         this._rectangle = new _rectangle(this.x, this.y, this.width, this.height);
         this.bodyColor = 22;
         this.attackBoxColor = 8;
@@ -41,7 +41,7 @@ export default class P {
         
         
 
-        this.direction = 'down'; // Track the direction the P is facing
+        this.direction = 'down'; // Track the direction the player is facing
         this.directionAngles = {
             up: -Math.PI / 2,
             down: Math.PI / 2,
@@ -245,7 +245,7 @@ export default class P {
         //debug keys
         if(Key.justReleased(Key.ONE)){
             this.health += 100;
-            this.completeAltarTorchCount = 13;
+            this.completeAltars = [6,7];
         }
     }
 
@@ -275,6 +275,7 @@ export default class P {
                 break;
         }
 
+
         // Update the targets for each leg only if the P has moved sufficiently
         this.legs.forEach((leg, index) => {
             const legTarget = this.legTargets[index];
@@ -285,6 +286,9 @@ export default class P {
             }
         });
     }
+
+    sumCompletedTorches() { return this.completeAltars.reduce((a, b) => a + b, 0); }
+
 
     updateAttackBox() {
         const attackSize = 8; // Adjust the size as needed
