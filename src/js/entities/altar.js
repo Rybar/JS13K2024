@@ -21,13 +21,13 @@ export default class Altar {
                 let angle = Math.random() * Math.PI * 2;
                 let x = this.x + Math.cos(angle) * 6;
                 let y = this.y + Math.sin(angle) * 6;
-                _entitiesArray.push(new Particle(x, y, randFloat(-2, 2), randFloat(-2, 2),
+                entitiesArray.push(new Particle(x, y, randFloat(-2, 2), randFloat(-2, 2),
                 {
-                    _color: [22,9,10,11,12,13,14,15],
+                    color: [22,9,10,11,12,13,14,15],
                     life: 100,
-                    customUpdate: (_particle) => {
-                        _particle.yVelocity += randFloat(-0.5, 0.5);
-                        _particle.xVelocity += randFloat(-0.5, 0.5);
+                    customUpdate: (particle) => {
+                        particle.yVelocity += randFloat(-0.5, 0.5);
+                        particle.xVelocity += randFloat(-0.5, 0.5);
                     }
                     }));
                 }
@@ -50,7 +50,7 @@ export default class Altar {
                 let angle = Math.random() * Math.PI * 2;
                 let x = this.x + Math.cos(angle) * 6;
                 let y = this.y + Math.sin(angle) * 6;
-                _entitiesArray.push(new Particle(x, y, randFloat(-.05, .05), randFloat(-.1, -.3), {_color: [14,13,12,11,10], life: 30}));
+                entitiesArray.push(new Particle(x, y, randFloat(-.05, .05), randFloat(-.1, -.3), {color: [14,13,12,11,10], life: 30}));
             }
             //can't be unlit
             this.lit = true;
@@ -103,8 +103,8 @@ export default class Altar {
              100, 
              [2, 3, 4]);
 
-        //bloodRequired _text
-        r._text(this.bloodRequired.toString(), this.x - view.x, this.y - view.y + 8, 1, 1, 'center', 'top', 1, 22);
+        //bloodRequired text
+        r.text(this.bloodRequired.toString(), this.x - view.x, this.y - view.y + 8, 1, 1, 'center', 'top', 1, 22);
         
     }
 

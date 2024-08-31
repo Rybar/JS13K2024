@@ -9,35 +9,35 @@ export default tada = {
       songData: [
         { // Instrument 0
           i: [
-          2, // OSC1_WAVEFORM
-          100, // OSC1_VOL
-          128, // OSC1_SEMI
-          0, // OSC1_XENV
-          3, // OSC2_WAVEFORM
-          201, // OSC2_VOL
-          128, // OSC2_SEMI
-          0, // OSC2_DETUNE
-          0, // OSC2_XENV
-          0, // NOISE_VOL
-          5, // ENV_ATTACK
-          6, // ENV_SUSTAIN
-          58, // ENV_RELEASE
-          0, // ENV_EXP_DECAY
-          0, // ARP_CHORD
-          0, // ARP_SPEED
-          0, // LFO_WAVEFORM
-          195, // LFO_AMT
-          6, // LFO_FREQ
-          1, // LFO_FX_FREQ
-          2, // FX_FILTER
-          135, // FX_FREQ
-          0, // FX_RESONANCE
-          0, // FX_DIST
-          32, // FX_DRIVE
-          147, // FX_PAN_AMT
-          6, // FX_PAN_FREQ
-          55, // FX_DELAY_AMT
-          6 // FX_DELAY_TIME
+          2, // OSC1WAVEFORM
+          100, // OSC1VOL
+          128, // OSC1SEMI
+          0, // OSC1XENV
+          3, // OSC2WAVEFORM
+          201, // OSC2VOL
+          128, // OSC2SEMI
+          0, // OSC2DETUNE
+          0, // OSC2XENV
+          0, // NOISEVOL
+          5, // ENVATTACK
+          6, // ENVSUSTAIN
+          58, // ENVRELEASE
+          0, // ENVEXPDECAY
+          0, // ARPCHORD
+          0, // ARPSPEED
+          0, // LFOWAVEFORM
+          195, // LFOAMT
+          6, // LFOFREQ
+          1, // LFOFXFREQ
+          2, // FXFILTER
+          135, // FXFREQ
+          0, // FXRESONANCE
+          0, // FXDIST
+          32, // FXDRIVE
+          147, // FXPANAMT
+          6, // FXPANFREQ
+          55, // FXDELAYAMT
+          6 // FXDELAYTIME
           ],
           // Patterns
           p: [1],

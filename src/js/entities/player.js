@@ -1,4 +1,4 @@
-import { tileCollisionCheck, _rectangle, lightRadial, playSound, randFloat, rand } from "../core/utils";
+import { tileCollisionCheck, rectangle, lightRadial, playSound, randFloat, rand } from "../core/utils";
 import Arm from "./arm";
 import Particle from "./particle";
 
@@ -12,8 +12,8 @@ export default class P {
         this.x = x;
         this.y = y;
         this.alive = true;
-        this._velocity = { x: 0, y: 0 };
-        this._acceleration = { x: 0, y: 0 };
+        this.velocity = { x: 0, y: 0 };
+        this.acceleration = { x: 0, y: 0 };
         this.drag = 0.8;
         this.speed = 0.35;
         this.maxSpeed = 0.6;
@@ -23,7 +23,7 @@ export default class P {
         this.health = 100;
         this.maxHealth = 100;
         this.completeAltars = [];
-        this._rectangle = new _rectangle(this.x, this.y, this.width, this.height);
+        this.rectangle = new rectangle(this.x, this.y, this.width, this.height);
         this.bodyColor = 22;
         this.attackBoxColor = 8;
         this.attackDamage = 5;
@@ -48,7 +48,7 @@ export default class P {
             left: Math.PI,
             right: 0
         }
-        this.attackBox = new _rectangle(this.x, this.y, 0, 0);; // Placeholder for the attack box
+        this.attackBox = new rectangle(this.x, this.y, 0, 0);; // Placeholder for the attack box
 
         // Create legs as Arms with 2 Segments each
         this.legs = [
@@ -100,16 +100,16 @@ export default class P {
                 this.dashCoolDownCounter--;
             }
 
-        this._velocity.x += this._acceleration.x;
-        this._velocity.x *= this.drag;
-        this.x += this._velocity.x;
+        this.velocity.x += this.acceleration.x;
+        this.velocity.x *= this.drag;
+        this.x += this.velocity.x;
         if (tileCollisionCheck(map, this)) {
             this.x = this.oldX;
         }
 
-        this._velocity.y += this._acceleration.y;
-        this._velocity.y *= this.drag;
-        this.y += this._velocity.y;
+        this.velocity.y += this.acceleration.y;
+        this.velocity.y *= this.drag;
+        this.y += this.velocity.y;
         if (tileCollisionCheck(map, this)) {
             this.y = this.oldY;
         }
@@ -140,20 +140,20 @@ export default class P {
             //direction is set at this.direction, left, right, up, down
             for(let i = 0; i < 60; i++) {
                 let angle = this.directionAngles[this.direction] + Math.random() * Math.PI / 2 - Math.PI / 4;
-                let _particle = new Particle(
+                let particle = new Particle(
                     this.x + Math.cos(angle) * 20 + rand(-3, 3),
                     this.y + Math.sin(angle) * 20 + rand(-3, 3),
-                    this._velocity.x + Math.cos(angle),
-                    this._velocity.y + Math.sin(angle), 
+                    this.velocity.x + Math.cos(angle),
+                    this.velocity.y + Math.sin(angle), 
                     {
-                        _color: [22,21,20,19,18],
+                        color: [22,21,20,19,18],
                         life: 15,
                         customUpdate: function(p) {
                             p.xVelocity += randFloat(-0.3, 0.3);
                             p.yVelocity += randFloat(-0.3, 0.3);
                         }
                     })
-                _entitiesArray.push(_particle);
+                entitiesArray.push(particle);
             }
 
         } else {
@@ -177,13 +177,13 @@ export default class P {
             this.attackBox.height = 0;
         }
 
-        this._acceleration.x = 0;
-        this._acceleration.y = 0;
+        this.acceleration.x = 0;
+        this.acceleration.y = 0;
 
         // Only update the player's rectangle if not dashing
         if (!this.isDashing) {
-            this._rectangle.x = this.x;
-            this._rectangle.y = this.y;
+            this.rectangle.x = this.x;
+            this.rectangle.y = this.y;
         }
     }
 
@@ -194,35 +194,35 @@ export default class P {
         }));
 
         // Draw body (with head and attack box)
-        r._fRect(this.x - view.x, this.y - view.y-4, this.width, 8, this.bodyColor);
+        r.fRect(this.x - view.x, this.y - view.y-4, this.width, 8, this.bodyColor);
 
         //Draw attack box if firing
         // if (this.isFiring && this.attackBox) {
-        //     r._fRect(this.attackBox.x - view.x, this.attackBox.y - view.y, this.attackBox.width, this.attackBox.height, this.attackBoxColor);
+        //     r.fRect(this.attackBox.x - view.x, this.attackBox.y - view.y, this.attackBox.width, this.attackBox.height, this.attackBoxColor);
         // }
         
         lightRadial(this.x - view.x + 2, this.y - view.y + 2, 50, [0,1,2,3,4]);
 
         // //debug corners
-        // r._fRect(this.x - view.x, this.y - view.y, 1, 1, 18);
-        // r._fRect(this.x - view.x + this.width, this.y - view.y, 1, 1, 18);
-        // r._fRect(this.x - view.x, this.y - view.y + this.height, 1, 1, 18);
-        // r._fRect(this.x - view.x + this.width, this.y - view.y + this.height, 1, 1, 18);
+        // r.fRect(this.x - view.x, this.y - view.y, 1, 1, 18);
+        // r.fRect(this.x - view.x + this.width, this.y - view.y, 1, 1, 18);
+        // r.fRect(this.x - view.x, this.y - view.y + this.height, 1, 1, 18);
+        // r.fRect(this.x - view.x + this.width, this.y - view.y + this.height, 1, 1, 18);
 
-        // //debug _rectangle
-        // r._fRect(this._rectangle.x - view.x, this._rectangle.y - view.y, this._rectangle.width, this._rectangle.height, 10);
+        // //debug rectangle
+        // r.fRect(this.rectangle.x - view.x, this.rectangle.y - view.y, this.rectangle.width, this.rectangle.height, 10);
     }
 
     handleInput(Key) {
         if (Key.isDown(Key.LEFT) || Key.isDown(Key.a) || Key.isDown(Key.q)) {
-            this._acceleration.x = -this.speed;
+            this.acceleration.x = -this.speed;
         } else if (Key.isDown(Key.RIGHT) || Key.isDown(Key.d)) {
-            this._acceleration.x = this.speed;
+            this.acceleration.x = this.speed;
         }
         if (Key.isDown(Key.UP) || Key.isDown(Key.w) || Key.isDown(Key.z)) {
-            this._acceleration.y = -this.speed;
+            this.acceleration.y = -this.speed;
         } else if (Key.isDown(Key.DOWN) || Key.isDown(Key.s)) {
-            this._acceleration.y = this.speed;
+            this.acceleration.y = this.speed;
         }
 
         //dash input
@@ -322,10 +322,10 @@ export default class P {
     
 
     determineDirection() {
-        if (this._velocity.x !== 0 || this._velocity.y !== 0) {
-            const magnitude = Math.sqrt(this._velocity.x * this._velocity.x + this._velocity.y * this._velocity.y);
-            const normalizedX = this._velocity.x / magnitude;
-            const normalizedY = this._velocity.y / magnitude;
+        if (this.velocity.x !== 0 || this.velocity.y !== 0) {
+            const magnitude = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
+            const normalizedX = this.velocity.x / magnitude;
+            const normalizedY = this.velocity.y / magnitude;
 
             if (Math.abs(normalizedX) > Math.abs(normalizedY)) {
                 this.direction = normalizedX > 0 ? 'right' : 'left';

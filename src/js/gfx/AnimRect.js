@@ -3,16 +3,16 @@ export default class AnimRect {
      * Creates an instance of AnimRect.
      * @constructor
      * @param {RetroBuffer} buffer - The RetroBuffer instance to draw on.
-     * @param {number} x - The x-coordinate of the _rectangle.
-     * @param {number} y - The y-coordinate of the _rectangle.
-     * @param {number} width - The width of the _rectangle.
-     * @param {number} height - The height of the _rectangle.
+     * @param {number} x - The x-coordinate of the rectangle.
+     * @param {number} y - The y-coordinate of the rectangle.
+     * @param {number} width - The width of the rectangle.
+     * @param {number} height - The height of the rectangle.
      * @param {number} startCorner - The starting corner (0: top-left, 1: top-right, 2: bottom-right, 3: bottom-left).
      * @param {number} direction - The direction of animation (-1 or 1).
      * @param {number} speed - The speed of the animation.
-     * @param {number} _color - The _color of the _rectangle.
+     * @param {number} color - The color of the rectangle.
      */
-    constructor(buffer, x, y, width, height, startCorner, direction, speed, _color) {
+    constructor(buffer, x, y, width, height, startCorner, direction, speed, color) {
         this.buffer = buffer;
         this.x = x;
         this.y = y;
@@ -21,7 +21,7 @@ export default class AnimRect {
         this.startCorner = startCorner;
         this.direction = direction;
         this.speed = speed;
-        this._color = _color;
+        this.color = color;
         this.alive = true;
         this.progress = 0;
 
@@ -42,7 +42,7 @@ export default class AnimRect {
     }
 
     /**
-     * Draws the animated _rectangle on the buffer.
+     * Draws the animated rectangle on the buffer.
      */
     draw() {
         let remainingProgress = this.progress;
@@ -50,7 +50,7 @@ export default class AnimRect {
         const drawSegment = (x1, y1, x2, y2) => {
             const segmentLength = Math.abs(x2 - x1) + Math.abs(y2 - y1);
             if (remainingProgress > segmentLength) {
-                this.buffer.line(x1, y1, x2, y2, this._color);
+                this.buffer.line(x1, y1, x2, y2, this.color);
                 remainingProgress -= segmentLength;
             } else {
                 const dx = x2 - x1 !== 0 ? (x2 - x1) / Math.abs(x2 - x1) : 0;
@@ -58,7 +58,7 @@ export default class AnimRect {
                 let xp = x1 + dx * remainingProgress;
                 let yp = y1 + dy * remainingProgress;
                 if (Math.abs(xp - x1) > 0 || Math.abs(yp - y1) > 0) {
-                    this.buffer.line(x1, y1, xp, yp, this._color);
+                    this.buffer.line(x1, y1, xp, yp, this.color);
                 }
                 remainingProgress = 0;
             }

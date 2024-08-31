@@ -35,7 +35,7 @@ import Gremlin from './entities/gremlin.js';
     loadAtlas(atlasURL, (atlas) => {
         const r = new RetroBuffer(screenWidth, screenHeight, atlas, 10);
         window.r = r;
-        window.LIGHTS = r["PAGE_7"];
+        window.LIGHTS = r["PAGE7"];
         document.getElementById('game').appendChild(r.c);
         document.getElementById('game').style.background = "none";
         gameInit();
@@ -50,7 +50,7 @@ import Gremlin from './entities/gremlin.js';
     }
 
     window.t = 0;
-    _text = "";
+    text = "";
     window.P = null;
     sounds = {};
     soundsReady = 0;
@@ -61,7 +61,7 @@ import Gremlin from './entities/gremlin.js';
     GAMESCREEN = 1;
     gamestate = 0;
     started = false;
-    window._entitiesArray = [];
+    window.entitiesArray = [];
     window.gremlinsArray = [];
     window.portalLocation = { x: 0, y: 0 };
     window.gameInitialized = false;
@@ -88,7 +88,7 @@ import Gremlin from './entities/gremlin.js';
 
     function initGameData() {
         //initialize game data
-        _entitiesArray = [];
+        entitiesArray = [];
         gremlinsArray = [];
         floors.push(new Floor(480, 270, 40,25));
         rooms = floors[0].rooms;
@@ -100,7 +100,7 @@ import Gremlin from './entities/gremlin.js';
         P = new Player(startX * tileSize, startY * tileSize);
         gremlin = new Gremlin((startX + 2) * tileSize, (startY + 2) * tileSize);
         gremlinsArray.push(gremlin);        
-        window.map = new Map(480, 270, tileSize, r.PAGE_3);
+        window.map = new Map(480, 270, tileSize, r.PAGE3);
         gameInitialized = true;
 
     }
@@ -156,7 +156,7 @@ import Gremlin from './entities/gremlin.js';
         if(paused) { return; }
         t += deltaTime;
         rooms.forEach(room => {room.update(P);});
-        _entitiesArray.forEach(entity => entity.update());
+        entitiesArray.forEach(entity => entity.update());
         gremlinsArray.forEach(gremlin => gremlin.update());
         P.update();
 
@@ -185,15 +185,15 @@ import Gremlin from './entities/gremlin.js';
             room.drawAltar(r, view);
         });
 
-        drawEntities(_entitiesArray);
+        drawEntities(entitiesArray);
         drawEntities(gremlinsArray);
         P.draw(r, view);
 
 
         if(generatingNewFloor) {
-            r._fRect(0, 0, screenWidth, screenHeight, 3);
-            _text = "LOADING THE NEXT FLOOR";
-            r._text(_text, screenWidth / 2, screenHeight / 2, 1, 1, 'center', 'middle', 1, 22);
+            r.fRect(0, 0, screenWidth, screenHeight, 3);
+            text = "LOADING THE NEXT FLOOR";
+            r.text(text, screenWidth / 2, screenHeight / 2, 1, 1, 'center', 'middle', 1, 22);
         }
 ;
         drawLightsOverlay();
@@ -206,17 +206,17 @@ import Gremlin from './entities/gremlin.js';
     }
 
     function drawLightLayerBase() {
-        r._renderTarget = r["PAGE_7"];
-        r.clear(0, r["PAGE_7"]);
-        r._fRect(0, 0, 480, 270, 4, 5, 8);
-        r._renderTarget = r["SCREEN"];
+        r.renderTarget = r["PAGE7"];
+        r.clear(0, r["PAGE7"]);
+        r.fRect(0, 0, 480, 270, 4, 5, 8);
+        r.renderTarget = r["SCREEN"];
     }
 
     function drawColorBarAndAtlas() {
         for(let i = 0; i < 64; i++) {
-            r._fRect(i * 8, 0, 8, 8, i);
+            r.fRect(i * 8, 0, 8, 8, i);
         }
-        r.renderSource = r["PAGE_1"]
+        r.renderSource = r["PAGE1"]
         r.sspr(0, 0, 480, 270, 60, 60, 480, 270);
 
     }
@@ -227,27 +227,27 @@ import Gremlin from './entities/gremlin.js';
         r.pal=[65,66,67,68,69,70];
 
         //render lights layer over screen layer
-        r.renderSource = r["PAGE_7"];
-        r._renderTarget = r["SCREEN"];
+        r.renderSource = r["PAGE7"];
+        r.renderTarget = r["SCREEN"];
         r.spr(0, 0, 480, 270, 0, 0);
 
         //reset palette
         r.pal = r.palDefault.slice();
-        r.renderSource = r["PAGE_1"];
+        r.renderSource = r["PAGE1"];
     }
 
     function drawUI() {
-        // Draw debug _text
+        // Draw debug text
         debugText= `FPS: ${fps.toFixed(2)}`;
-        r._text(debugText, 10, 10, 1, 1, 'left', 'top', 1, 22);
+        r.text(debugText, 10, 10, 1, 1, 'left', 'top', 1, 22);
 
         debugText = `${P.health.toFixed(2)}\nGB: ${P.gremlinBlood}\nAP: ${P.sumCompleted}`
-        r._text(debugText, P.x - view.x, P.y - view.y - 28, 1, 1, 'center', 'top', 1, 22);
+        r.text(debugText, P.x - view.x, P.y - view.y - 28, 1, 1, 'center', 'top', 1, 22);
     
         debugText = `FLOOR: ${currentFloor}`;
-        r._text(debugText, screenWidth - 10, 10, 1, 1, 'right', 'top', 2, 22);
+        r.text(debugText, screenWidth - 10, 10, 1, 1, 'right', 'top', 2, 22);
         debugText = `TORCHES: ${P.sumCompletedTorches()}`;
-        r._text(debugText, screenWidth - 10, 30, 1, 1, 'right', 'top', 2, 22);
+        r.text(debugText, screenWidth - 10, 30, 1, 1, 'right', 'top', 2, 22);
 
         P.completeAltars.forEach((altar, i) => {
             r.polygon(300, 50, altar*3, altar, altar, 22, 22);
@@ -261,11 +261,11 @@ import Gremlin from './entities/gremlin.js';
         r.drawTileAsset(0, 0, background1);
         r.drawTileAsset(0, 0, platformerTest);
         r.drawTileAsset(0, 0, tileAssetTest);
-        drawEntities(_entitiesArray);
-        _text = "SIX AND SEVEN";
-        r._text(_text, screenWidth / 2, 100, 4, 1, 'center', 'top', 4, 22);
-        _text = "CLICK TO START";
-        r._text(_text, screenWidth / 2, 125, 1, 1, 'center', 'top', 1, 22);
+        drawEntities(entitiesArray);
+        text = "SIX AND SEVEN";
+        r.text(text, screenWidth / 2, 100, 4, 1, 'center', 'top', 4, 22);
+        text = "CLICK TO START";
+        r.text(text, screenWidth / 2, 125, 1, 1, 'center', 'top', 1, 22);
         r.render();
         playSound(sounds.spawn);
     }
@@ -281,7 +281,7 @@ import Gremlin from './entities/gremlin.js';
         //I don't think we will need to store floors, so just overwrite the first one
         currentFloor++;
         floors = [];
-        _entitiesArray = [];
+        entitiesArray = [];
         floors.push(new Floor(480, 270, 40, 25));
         rooms = floors[floors.length - 1].rooms;
         //pick random room
@@ -295,11 +295,11 @@ import Gremlin from './entities/gremlin.js';
     function preload() {
 
         r.clear(64, r["SCREEN"]);
-        r._renderTarget = r["SCREEN"];
+        r.renderTarget = r["SCREEN"];
         
-        _text = "SIX AND SEVEN";
-        r._text(_text, screenWidth / 2, 100, 4, 1, 'center', 'top', 4, 2);
-        r._text(audioTxt, screenWidth / 2 - 2, 130, 1, 1, 'center', 'top', 1, 22);
+        text = "SIX AND SEVEN";
+        r.text(text, screenWidth / 2, 100, 4, 1, 'center', 'top', 4, 2);
+        r.text(audioTxt, screenWidth / 2 - 2, 130, 1, 1, 'center', 'top', 1, 22);
         if(started){
             audioTxt = "RETICULATING SPLINES";
         } else {
@@ -353,7 +353,7 @@ import Gremlin from './entities/gremlin.js';
                     setTimeout(() => {
                         initAudio();
                         initGameData();
-                    }, 100); //wait a bit to give preload _text a chance to render
+                    }, 100); //wait a bit to give preload text a chance to render
                 }
                 break;
             case 1: // react to clicks on screen 1
@@ -366,27 +366,27 @@ import Gremlin from './entities/gremlin.js';
     }
     
 
-    function pruneDead(_entitiesArray) {
-        for (let i = 0; i < _entitiesArray.length; i++) {
-            let e = _entitiesArray[i];
+    function pruneDead(entitiesArray) {
+        for (let i = 0; i < entitiesArray.length; i++) {
+            let e = entitiesArray[i];
             if (!e.alive) {
-                _entitiesArray.splice(i, 1);
+                entitiesArray.splice(i, 1);
             }
         }
     }
 
-    function pruneScreen(_entitiesArray) {
-        for (let i = 0; i < _entitiesArray.length; i++) {
-            let e = _entitiesArray[i];
+    function pruneScreen(entitiesArray) {
+        for (let i = 0; i < entitiesArray.length; i++) {
+            let e = entitiesArray[i];
             if (!inView(e)) {
-                _entitiesArray.splice(i, 1);
+                entitiesArray.splice(i, 1);
             }
         }
     }
 
-    function drawEntities(_entitiesArray) {
-        for (let i = 0; i < _entitiesArray.length; i++) {
-            let e = _entitiesArray[i];
+    function drawEntities(entitiesArray) {
+        for (let i = 0; i < entitiesArray.length; i++) {
+            let e = entitiesArray[i];
             if(inView(e, tileSize)){e.draw(r, view);}
         }
     }
@@ -417,7 +417,7 @@ import Gremlin from './entities/gremlin.js';
                     break;
             }
             Key.update();
-            pruneDead(_entitiesArray);
+            pruneDead(entitiesArray);
             requestAnimationFrame(gameloop);
         }
     }
@@ -456,21 +456,21 @@ import Gremlin from './entities/gremlin.js';
     }
 
     function drawPaused() {
-        r._fRect(0, 0, screenWidth, screenHeight, 66, 67, 8);
-        _text = "PAUSED";
-        r._text(_text, screenWidth / 2, screenHeight / 2, 1, 1, 'center', 'middle', 1, 22);
+        r.fRect(0, 0, screenWidth, screenHeight, 66, 67, 8);
+        text = "PAUSED";
+        r.text(text, screenWidth / 2, screenHeight / 2, 1, 1, 'center', 'middle', 1, 22);
         drawMiniMap();
     }
 
     function drawMiniMap() {
-        r.renderSource = r["PAGE_3"];
-        r._renderTarget = r["SCREEN"];
-        r._fRect(0, 0, 480,270,0);
+        r.renderSource = r["PAGE3"];
+        r.renderTarget = r["SCREEN"];
+        r.fRect(0, 0, 480,270,0);
         r.spr(0,0,480,270,0,0);
         //draw P position
-        r._fRect(P.x/tileSize-1, P.y/tileSize-1, 2, 2, 22);
+        r.fRect(P.x/tileSize-1, P.y/tileSize-1, 2, 2, 22);
         //draw portal position
-        r._fRect(portalLocation.x-1, portalLocation.y-1, 3, 3, 7);
+        r.fRect(portalLocation.x-1, portalLocation.y-1, 3, 3, 7);
         
     }
 

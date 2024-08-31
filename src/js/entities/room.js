@@ -23,7 +23,7 @@ export default class Room {
     }
 
     draw(r, view) {
-        r._fRect(this.x - view.x, this.y - view.y, this.width, this.height, this.fill);
+        r.fRect(this.x - view.x, this.y - view.y, this.width, this.height, this.fill);
         //r.lRect(this.x - view.x, this.y - view.y, this.width, this.height, this.completeColor)
         
     }

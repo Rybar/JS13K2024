@@ -14,7 +14,7 @@ export default class Torch {
 
     draw(r, view) {
         //console.log('Torch draw');
-        r._renderTarget = r["SCREEN"];
+        r.renderTarget = r["SCREEN"];
         r.fCircle(this.x - view.x, this.y - view.y, this.size, this.fill);
         if(this.lit) {
             lightRadial(this.x - view.x, this.y - view.y, 25, [0,1,2,3, 4]);
@@ -26,10 +26,10 @@ export default class Torch {
         this.fill = this.annointed ? 10 : this.fill;
         let gradient = this.annointed ? [10,11,12,13,14,15] : [22,8,7,6,5,4,3,2,1];
         if(this.lit){
-            _entitiesArray.push(new Particle(
+            entitiesArray.push(new Particle(
                 this.x + rand(-2,2), this.y,
                 randFloat(-0.05,0.05),
-                -0.25, {_color: gradient, life: 70}));
+                -0.25, {color: gradient, life: 70}));
         }
         //check for overlap with P. If so, light the torch.
         //will require action to light the torch in the future

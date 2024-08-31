@@ -32,11 +32,11 @@ export function callOnce(fn){
 
 export function lightRadial(cx, cy, radius, colors) {
   //draw halo on lights layer
-  r._renderTarget = r["PAGE_7"];
+  r.renderTarget = r["PAGE7"];
   r.paintTransparent = true;
   r.lightMode = true;
   r.radialCircle(cx, cy, radius, colors);
-  r._renderTarget = r["SCREEN"];
+  r.renderTarget = r["SCREEN"];
   r.paintTransparent = false;
   r.lightMode = false;
   }
@@ -73,8 +73,8 @@ export function playSound(buffer, playbackRate = 1, pan = 0, volume = .5, loop =
 
 export const Key = {
 
-  _pressed: {},
-  _released: {},
+  pressed: {},
+  released: {},
 
   LEFT: 37,
   UP: 38,
@@ -103,27 +103,27 @@ export const Key = {
   v: 86,
 
   isDown(keyCode) {
-      return this._pressed[keyCode];
+      return this.pressed[keyCode];
   },
 
   justReleased(keyCode) {
-      return this._released[keyCode];
+      return this.released[keyCode];
   },
 
   onKeydown(event) {
-      this._pressed[event.keyCode] = true;
+      this.pressed[event.keyCode] = true;
   },
 
   onKeyup(event) {
-      this._released[event.keyCode] = true;
-      delete this._pressed[event.keyCode];
+      this.released[event.keyCode] = true;
+      delete this.pressed[event.keyCode];
 
   },
 
   update() {
     // reset the released keys without creating new objects
-    for (let key in this._released) {
-      delete this._released[key];
+    for (let key in this.released) {
+      delete this.released[key];
     
     }
   }
@@ -212,7 +212,7 @@ export class PerlinNoise {
     return v;
   }
 }
-export class _rectangle {
+export class rectangle {
   constructor(x, y, width, height) {
       this.x = x;
       this.y = y;

@@ -13,7 +13,7 @@ export default class Portal {
     }
 
     draw(r, view) {
-        r._renderTarget = r["SCREEN"];
+        r.renderTarget = r["SCREEN"];
         r.fCircle(this.x - view.x, this.y - view.y, this.size, this.fill);
     }
 

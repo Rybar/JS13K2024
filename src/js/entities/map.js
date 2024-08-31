@@ -31,12 +31,12 @@ export default class map {
         r.LCG.state = 0xdeadbeef;
         //draw room current states to bufferPage
         //draw to buffer for tilemap
-        r._renderTarget = r["PAGE_3"];
-        r.clear(0, r.PAGE_3);
+        r.renderTarget = r["PAGE3"];
+        r.clear(0, r.PAGE3);
         rooms.forEach(room => {
             room.draw(r, {x: 0, y: 0});
         })
-        r._renderTarget = r["SCREEN"];
+        r.renderTarget = r["SCREEN"];
         //load walkable tiles from bufferPage into tiles array
         for(let y = 0; y < this.height; y++){
             for(let x = 0; x < this.width; x++){
@@ -93,7 +93,7 @@ export default class map {
                     {x: x * this.tileSize,
                      y: y * this.tileSize,
                     },this.tileSize)){
-                        r._renderTarget = r["SCREEN"]
+                        r.renderTarget = r["SCREEN"]
                         let drawTile = this.drawTiles[y * this.width + x];
                         let firstColor = this.firstDrawColors[y * this.width + x];
                         let secondColor = this.secondDrawColors[y * this.width + x];

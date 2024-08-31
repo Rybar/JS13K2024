@@ -6,15 +6,15 @@ export default class Splode {
      * @param {number} x - The x-coordinate of the explosion center.
      * @param {number} y - The y-coordinate of the explosion center.
      * @param {number} life - The lifespan of the explosion.
-     * @param {number} _color - The _color of the explosion.
+     * @param {number} color - The color of the explosion.
      */
-    constructor(x, y, life, _color) {
+    constructor(x, y, life, color) {
       this.x = x;
       this.y = y;
       this.lifeMax = life;
       this.life = life;
       this.alive = true;
-      this._color = _color;
+      this.color = color;
     }
   
     /**
@@ -37,10 +37,10 @@ export default class Splode {
     draw(buffer, view) {
       buffer.pat = buffer.dither[15 - Math.floor((this.life / this.lifeMax) * 15)];
       for (let i = Math.floor(this.life / 10); i > 0; i--) {
-        buffer.lCircle(this.x - view.x, this.y - view.y, this.lifeMax - this.life - i, this._color, 0);
+        buffer.lCircle(this.x - view.x, this.y - view.y, this.lifeMax - this.life - i, this.color, 0);
         lightRadial(this.x - view.x, this.y - view.y, this.lifeMax - this.life - i, [3,3,0]);
       }
-      buffer.lCircle(this.x - view.x, this.y - view.y, this.lifeMax - this.life, this._color, 0);
+      buffer.lCircle(this.x - view.x, this.y - view.y, this.lifeMax - this.life, this.color, 0);
       buffer.pat = buffer.dither[0];
     }
   }

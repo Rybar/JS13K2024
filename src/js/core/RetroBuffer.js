@@ -1,5 +1,5 @@
 /**
- * RetroBuffer class for creating an indexed-_color drawing API for pixel-art games.
+ * RetroBuffer class for creating an indexed-color drawing API for pixel-art games.
  */
 import LCG from './LCG';
 class RetroBuffer {
@@ -8,7 +8,7 @@ class RetroBuffer {
    * @constructor
    * @param {number} width - The width of the buffer.
    * @param {number} height - The height of the buffer.
-   * @param {Uint32Array} atlas - The _color atlas.
+   * @param {Uint32Array} atlas - The color atlas.
    * @param {number} pages - The number of pages in the buffer.
    */
   constructor(width, height, atlas, pages) {
@@ -24,20 +24,20 @@ class RetroBuffer {
     this.SCREEN = 0;
 
     /**
-     * The pages in the buffer can be referenced by their index, i.e., PAGE_1, PAGE_2, etc.
+     * The pages in the buffer can be referenced by their index, i.e., PAGE1, PAGE2, etc.
      */
     for (let i = 1; i <= this.PAGES; i++) {
-      this[`PAGE_${i}`] = this.PAGESIZE * i;
+      this[`PAGE${i}`] = this.PAGESIZE * i;
     }
 
     this.stencil = false;
-    this.stencilSource = this.PAGE_2;
+    this.stencilSource = this.PAGE2;
     this.stencilOffset = 0;
 
-    // The _color table is the top row of img/palette.webp
+    // The color table is the top row of img/palette.webp
     this.colors = this.atlas.slice(0, 64);
 
-    // palette.webp is 64x73 pixels. 1st row is the _color palette, the remainder is the tileset
+    // palette.webp is 64x73 pixels. 1st row is the color palette, the remainder is the tileset
     // The tileset starts at 0,8 through the end of the image
     this.tileGraphics = this.atlas.slice(64 * 8, 64 * 72);
 
@@ -48,7 +48,7 @@ class RetroBuffer {
     this.c.width = this.WIDTH;
     this.c.height = this.HEIGHT;
     this.ctx = this.c.getContext('2d');
-    this._renderTarget = 0x00000;
+    this.renderTarget = 0x00000;
     this.renderSource = this.PAGESIZE; // default renderSource in buffer is ahead one screen's worth of pixels
 
     // The characters available in the built-in pixel font, in order
@@ -71,7 +71,7 @@ class RetroBuffer {
     this.pal = Array.from({ length: 64 }, (_, i) => i);
 
     /**
-     * The dither pattern table used for gradients and 2-_color pattern fills.
+     * The dither pattern table used for gradients and 2-color pattern fills.
      * Default is set to 4x4 Bayer dither, array length 16.
      */
     this.dither = [
@@ -109,13 +109,13 @@ class RetroBuffer {
     this.buf8 = new Uint8Array(this.buf);
     this.data = new Uint32Array(this.buf);
     this.ram = new Uint8Array(this.WIDTH * this.HEIGHT * this.PAGES);
-    this._charBuffer = new Uint8Array(25);
+    this.charBuffer = new Uint8Array(25);
 
-    // _brightness LUT, top 64 colors are 100% _brightness, gradually decreasing to 0% _brightness at row 6. 
-    this._brightness = [];
+    // brightness LUT, top 64 colors are 100% brightness, gradually decreasing to 0% brightness at row 6. 
+    this.brightness = [];
     for (let i = 0; i < 6; i++) {
       for (let j = 0; j < 64; j++) {
-        this._brightness[i * 64 + j] = this.colors.indexOf(
+        this.brightness[i * 64 + j] = this.colors.indexOf(
           this.atlas[i * 64 + j]
         );
       }
@@ -127,7 +127,7 @@ class RetroBuffer {
         // Ram pages are 480x270 pixels
         let x = i >> 1;
         let y = j >> 1;
-        this.ram[this.PAGE_1 + i + j * 480] = this.colors.indexOf(this.tileGraphics[x + y * 64]);
+        this.ram[this.PAGE1 + i + j * 480] = this.colors.indexOf(this.tileGraphics[x + y * 64]);
       }
     }
   
@@ -135,52 +135,52 @@ class RetroBuffer {
   }
 
   /**
-   * Clears the buffer with the specified _color.
-   * @param {number} _color - The _color to clear the buffer with.
+   * Clears the buffer with the specified color.
+   * @param {number} color - The color to clear the buffer with.
    * @param {number} page - The page to clear.
    */
-  clear(_color, page) {
-    this.ram.fill(_color, page, page + this.PAGESIZE);
+  clear(color, page) {
+    this.ram.fill(color, page, page + this.PAGESIZE);
   }
 
 /**
  * Sets a pixel at the specified coordinates.
  * @param {number} x - The x-coordinate.
  * @param {number} y - The y-coordinate.
- * @param {number} _color - The primary _color of the pixel.
- * @param {number} [_color2=64] - The secondary _color used for dithering.
+ * @param {number} color - The primary color of the pixel.
+ * @param {number} [color2=64] - The secondary color used for dithering.
  */
-pset(x, y, _color, _color2 = 64) {
+pset(x, y, color, color2 = 64) {
   x = x | 0;
   y = y | 0;
   if (x < 0 || x > this.WIDTH - 1) return;
   if (y < 0 || y > this.HEIGHT - 1) return;
 
-  const ramIndex = this._renderTarget + y * this.WIDTH + x;
+  const ramIndex = this.renderTarget + y * this.WIDTH + x;
   const currentColor = this.ram[ramIndex];
 
-  // Adjust _color based on _brightness table if within the shade range
-  if (_color >= 65 && _color <= 70) {
-    _color = this._brightness[(_color - 65) * 64 + currentColor];
+  // Adjust color based on brightness table if within the shade range
+  if (color >= 65 && color <= 70) {
+    color = this.brightness[(color - 65) * 64 + currentColor];
   } else {
-    _color = _color % 64;
+    color = color % 64;
   }
 
-  // Adjust _color2 based on _brightness table if within the shade range
-  if (_color2 >= 65 && _color2 <= 70) {
-    _color2 = this._brightness[(_color2 - 65) * 64 + currentColor];
+  // Adjust color2 based on brightness table if within the shade range
+  if (color2 >= 65 && color2 <= 70) {
+    color2 = this.brightness[(color2 - 65) * 64 + currentColor];
   } else {
-    _color2 = _color2 % 64;
+    color2 = color2 % 64;
   }
 
   if(this.lightMode){
-    _color = _color < currentColor ? _color : currentColor;
-    _color2 = _color2 < currentColor ? _color2 : currentColor;
+    color = color < currentColor ? color : currentColor;
+    color2 = color2 < currentColor ? color2 : currentColor;
   }
 
-  // Determine the dithered _color
+  // Determine the dithered color
   let px = (y % 4) * 4 + (x % 4);
-  let pcolor = (this.pat & (1 << px)) ? _color : _color2;
+  let pcolor = (this.pat & (1 << px)) ? color : color2;
 
   if (pcolor != 0) {
     this.ram[ramIndex] = pcolor;
@@ -193,11 +193,11 @@ pset(x, y, _color, _color2 = 64) {
 
 
   /**
-   * Gets the _color of the pixel at the specified coordinates.
+   * Gets the color of the pixel at the specified coordinates.
    * @param {number} x - The x-coordinate.
    * @param {number} y - The y-coordinate.
    * @param {number} [page=0] - The page to read from.
-   * @returns {number} - The _color of the pixel.
+   * @returns {number} - The color of the pixel.
    */
   pget(x, y, page = 0) {
     x = x | 0;
@@ -211,10 +211,10 @@ pset(x, y, _color, _color2 = 64) {
    * @param {number} y1 - The y-coordinate of the first point.
    * @param {number} x2 - The x-coordinate of the second point.
    * @param {number} y2 - The y-coordinate of the second point.
-   * @param {number} _color - The primary _color of the line.
-   * @param {number} [_color2=64] - The secondary _color used for dithering.
+   * @param {number} color - The primary color of the line.
+   * @param {number} [color2=64] - The secondary color used for dithering.
    */
-  line(x1, y1, x2, y2, _color, _color2 = 64) {
+  line(x1, y1, x2, y2, color, color2 = 64) {
     x1 = x1 | 0;
     x2 = x2 | 0;
     y1 = y1 | 0;
@@ -239,7 +239,7 @@ pset(x, y, _color, _color2 = 64) {
     dy <<= 1;
     dx <<= 1;
 
-    this.pset(x1, y1, _color, _color2);
+    this.pset(x1, y1, color, color2);
     if (dx > dy) {
       var fraction = dy - (dx >> 1);
       while (x1 != x2) {
@@ -249,7 +249,7 @@ pset(x, y, _color, _color2 = 64) {
         }
         x1 += stepx;
         fraction += dy;
-        this.pset(x1, y1, _color, _color2);
+        this.pset(x1, y1, color, color2);
       }
     } else {
       fraction = dx - (dy >> 1);
@@ -260,7 +260,7 @@ pset(x, y, _color, _color2 = 64) {
         }
         y1 += stepy;
         fraction += dx;
-        this.pset(x1, y1, _color, _color2);
+        this.pset(x1, y1, color, color2);
       }
     }
   }
@@ -271,10 +271,10 @@ pset(x, y, _color, _color2 = 64) {
    * @param {number} radius 
    * @param {number} sides 
    * @param {number} color1 
-   * @param {number} _color2 
+   * @param {number} color2 
    * @returns 
    */
-  polygon(cx, cy, radius, sides, rotation, color1, _color2=64) {
+  polygon(cx, cy, radius, sides, rotation, color1, color2=64) {
     if (sides < 3) return; // Polygons must have at least 3 sides
 
     const angleStep = (Math.PI * 2) / sides;
@@ -286,7 +286,7 @@ pset(x, y, _color, _color2 = 64) {
       const x2 = cx + radius * Math.cos(angle + rotation);
       const y2 = cy + radius * Math.sin(angle + rotation);
 
-      this.line(x1, y1, x2, y2, color1, _color2);
+      this.line(x1, y1, x2, y2, color1, color2);
 
       x1 = x2;
       y1 = y2;
@@ -365,14 +365,14 @@ pset(x, y, _color, _color2 = 64) {
   // }
 
   /**
-   * Fills a polygon with a solid _color.
+   * Fills a polygon with a solid color.
    * @param {number} x - The x-coordinate of the polygon.
    * @param {number} y - The y-coordinate of the polygon.
    * @param {Array} points - The array of points representing the polygon.
-   * @param {number} color1 - The primary _color of the polygon.
-   * @param {number} _color2 - The secondary _color used for dithering.
+   * @param {number} color1 - The primary color of the polygon.
+   * @param {number} color2 - The secondary color used for dithering.
    */
-  // polyfill(x, y, points, color1, _color2) {
+  // polyfill(x, y, points, color1, color2) {
   //   const triangles = this.triangulate(points);
 
   //   for (const triangle of triangles) {
@@ -382,7 +382,7 @@ pset(x, y, _color, _color2 = 64) {
   //       { x: p2.x + x, y: p2.y + y },
   //       { x: p3.x + x, y: p3.y + y },
   //       color1,
-  //       _color2
+  //       color2
   //     );
   //   }
   // }
@@ -393,20 +393,20 @@ pset(x, y, _color, _color2 = 64) {
    * @param {number} xm - The x-coordinate of the center of the circle.
    * @param {number} ym - The y-coordinate of the center of the circle.
    * @param {number} r - The radius of the circle.
-   * @param {number} _color - The primary _color of the circle.
-   * @param {number} [_color2=64] - The secondary _color used for dithering.
+   * @param {number} color - The primary color of the circle.
+   * @param {number} [color2=64] - The secondary color used for dithering.
    */
-  lCircle(xm, ym, r, _color, _color2 = 64) {
+  lCircle(xm, ym, r, color, color2 = 64) {
     xm = xm | 0;
     ym = ym | 0;
     r = r | 0;
-    _color = _color | 0;
+    color = color | 0;
     var x = -r, y = 0, err = 2 - 2 * r;
     do {
-      this.pset(xm - x, ym + y, _color, _color2);
-      this.pset(xm - y, ym - x, _color, _color2);
-      this.pset(xm + x, ym - y, _color, _color2);
-      this.pset(xm + y, ym + x, _color, _color2);
+      this.pset(xm - x, ym + y, color, color2);
+      this.pset(xm - y, ym - x, color, color2);
+      this.pset(xm + x, ym - y, color, color2);
+      this.pset(xm + y, ym + x, color, color2);
       r = err;
       if (r <= y) err += ++y * 2 + 1;
       if (r > x || err > y) err += ++x * 2 + 1;
@@ -418,24 +418,24 @@ pset(x, y, _color, _color2 = 64) {
  * @param {number} xm - The x-coordinate of the center of the circle.
  * @param {number} ym - The y-coordinate of the center of the circle.
  * @param {number} r - The radius of the circle.
- * @param {number} _color - The primary _color of the circle.
- * @param {number} [_color2=64] - The secondary _color used for dithering.
+ * @param {number} color - The primary color of the circle.
+ * @param {number} [color2=64] - The secondary color used for dithering.
  */
-fCircle(xm, ym, r, _color, _color2 = 64) {
+fCircle(xm, ym, r, color, color2 = 64) {
   if (r < 0) return;
   for(let x = -r; x < r; x++){
     let height = (Math.sqrt(r*r - x*x));
     for(let y = -height; y < height; y++){
-      this.pset(xm + x, ym + y, _color, _color2);
+      this.pset(xm + x, ym + y, color, color2);
     }
   }
 }
 
 /**
  * Lerps between multiple colors and returns the two colors and a dither step.
- * @param {Array<number>} colors - An array of _color indices.
+ * @param {Array<number>} colors - An array of color indices.
  * @param {number} t - A normalized percentage (0 to 1) representing position along the gradient.
- * @returns {Object} - An object with color1, _color2, and ditherStep.
+ * @returns {Object} - An object with color1, color2, and ditherStep.
  */
 colorLerp(colors, t) {
   // Ensure t is between 0 and 1
@@ -455,11 +455,11 @@ colorLerp(colors, t) {
   
   // Assign the two colors
   const color1 = colors[segment];
-  const _color2 = colors[segment + 1] || colors[segment]; // Fallback to the last _color if needed
+  const color2 = colors[segment + 1] || colors[segment]; // Fallback to the last color if needed
   
   return {
       color1,
-      _color2,
+      color2,
       ditherStep: stepWithinSegment
   };
 }
@@ -469,7 +469,7 @@ colorLerp(colors, t) {
  * @param {number} cx - The x-coordinate of the center of the circle.
  * @param {number} cy - The y-coordinate of the center of the circle.
  * @param {number} radius - The radius of the circle.
- * @param {Array<number>} colors - An array of _color indices for the gradient.
+ * @param {Array<number>} colors - An array of color indices for the gradient.
  */
 radialCircle(cx, cy, radius, colors) {
   for (let y = -radius; y <= radius; y++) {
@@ -477,9 +477,9 @@ radialCircle(cx, cy, radius, colors) {
           const distance = Math.sqrt(x * x + y * y);
           if (distance <= radius) {
               const t = distance / radius;
-              const { color1, _color2, ditherStep } = this.colorLerp(colors, t);
+              const { color1, color2, ditherStep } = this.colorLerp(colors, t);
               this.pat = this.dither[ditherStep];
-              this.pset(cx + x, cy + y, color1, _color2);
+              this.pset(cx + x, cy + y, color1, color2);
           }
       }
   }
@@ -492,68 +492,68 @@ radialCircle(cx, cy, radius, colors) {
  * @param {number} x1 - The starting x-coordinate.
  * @param {number} x2 - The ending x-coordinate.
  * @param {number} y - The y-coordinate.
- * @param {number} _color - The primary _color.
- * @param {number} [_color2=64] - The secondary _color used for dithering.
+ * @param {number} color - The primary color.
+ * @param {number} [color2=64] - The secondary color used for dithering.
  */
-span(x1, x2, y, _color, _color2 = 64) {
+span(x1, x2, y, color, color2 = 64) {
   for (let x = x1; x <= x2; x++) {
-    this.pset(x, y, _color, _color2);
+    this.pset(x, y, color, color2);
   }
 }
 
   /**
-   * Draws a _rectangle.
-   * @param {number} x - The x-coordinate of the top-left corner of the _rectangle.
-   * @param {number} y - The y-coordinate of the top-left corner of the _rectangle.
-   * @param {number} w - The width of the _rectangle.
-   * @param {number} h - The height of the _rectangle.
-   * @param {number} _color - The primary _color of the _rectangle.
-   * @param {number} [_color2=64] - The secondary _color used for dithering.
+   * Draws a rectangle.
+   * @param {number} x - The x-coordinate of the top-left corner of the rectangle.
+   * @param {number} y - The y-coordinate of the top-left corner of the rectangle.
+   * @param {number} w - The width of the rectangle.
+   * @param {number} h - The height of the rectangle.
+   * @param {number} color - The primary color of the rectangle.
+   * @param {number} [color2=64] - The secondary color used for dithering.
    */
-  lRect(x, y, w, h, _color, _color2 = 64) {
-    _color = _color;
+  lRect(x, y, w, h, color, color2 = 64) {
+    color = color;
     let x1 = x | 0;
     let y1 = y | 0;
     let x2 = (x + w) | 0;
     let y2 = (y + h) | 0;
 
-    this.line(x1, y1, x2, y1, _color, _color2);
-    this.line(x2, y1, x2, y2, _color, _color2);
-    this.line(x1, y2, x2, y2, _color, _color2);
-    this.line(x1, y1, x1, y2, _color, _color2);
+    this.line(x1, y1, x2, y1, color, color2);
+    this.line(x2, y1, x2, y2, color, color2);
+    this.line(x1, y2, x2, y2, color, color2);
+    this.line(x1, y1, x1, y2, color, color2);
   }
 
   /**
-   * Fills a _rectangle.
-   * @param {number} x - The x-coordinate of the top-left corner of the _rectangle.
-   * @param {number} y - The y-coordinate of the top-left corner of the _rectangle.
-   * @param {number} w - The width of the _rectangle.
-   * @param {number} h - The height of the _rectangle.
-   * @param {number} _color - The primary _color of the _rectangle.
-   * @param {number} [_color2=64] - The secondary _color used for dithering.
+   * Fills a rectangle.
+   * @param {number} x - The x-coordinate of the top-left corner of the rectangle.
+   * @param {number} y - The y-coordinate of the top-left corner of the rectangle.
+   * @param {number} w - The width of the rectangle.
+   * @param {number} h - The height of the rectangle.
+   * @param {number} color - The primary color of the rectangle.
+   * @param {number} [color2=64] - The secondary color used for dithering.
    */
-  _fRect(x, y, w, h, _color, _color2 = 64, ditherPattern=0) {
+  fRect(x, y, w, h, color, color2 = 64, ditherPattern=0) {
     let x1 = x | 0;
     let y1 = y | 0;
     let x2 = ((x + w) | 0) - 1;
     let y2 = ((y + h) | 0) - 1;
-    _color = _color;
+    color = color;
     this.pat = this.dither[ditherPattern];
     var i = Math.abs(y2 - y1);
-    this.span(x1, x2, y1, _color, _color2);
+    this.span(x1, x2, y1, color, color2);
 
     if (i > 0) {
       while (--i) {
-        this.span(x1, x2, y1 + i, _color, _color2);
+        this.span(x1, x2, y1 + i, color, color2);
       }
     }
 
-    this.span(x1, x2, y2, _color, _color2);
+    this.span(x1, x2, y2, color, color2);
     this.pat = this.dither[0];
   }
   
   /**
-   * Draws a scaled sprite from a rectangular area in renderSource to a rectangular area in _renderTarget.
+   * Draws a scaled sprite from a rectangular area in renderSource to a rectangular area in renderTarget.
    * @param {number} sx - The x-coordinate of the top-left corner of the sprite in the source image.
    * @param {number} sy - The y-coordinate of the top-left corner of the sprite in the source image.
    * @param {number} sw - The width of the sprite in the source image.
@@ -608,9 +608,9 @@ spr(sx = 0, sy = 0, sw = 8, sh = 8, x = 0, y = 0) {
       for (let j = 0; j < sw; j++) {
           //replace pget with ram lookup
           const source = this.pget(sx + j, sy + i, this.renderSource);
-          const _color = this.pal[source];
-          if (_color == 0) continue; // Skip transparent pixels
-          this.pset(x + j, y + i, _color);
+          const color = this.pal[source];
+          if (color == 0) continue; // Skip transparent pixels
+          this.pset(x + j, y + i, color);
       }
   }
 }
@@ -621,16 +621,16 @@ spr(sx = 0, sy = 0, sw = 8, sh = 8, x = 0, y = 0) {
    * @param {number} tileIndex - The index of the tile in the tile atlas.
    * @param {number} x - The x-coordinate to draw the tile.
    * @param {number} y - The y-coordinate to draw the tile.
-   * @param {number} color1 - The primary _color to use for the tile.
-   * @param {number} [_color2=64] - The secondary _color used for dithering.
+   * @param {number} color1 - The primary color to use for the tile.
+   * @param {number} [color2=64] - The secondary color used for dithering.
    */
-  drawTile(tileIndex, x, y, color1, _color2 = 64) {
+  drawTile(tileIndex, x, y, color1, color2 = 64) {
     let tileSize = 16;
     this.pal[0] = color1;
-    this.pal[22] = _color2;
+    this.pal[22] = color2;
     let tileX = (tileIndex % tileSize) * tileSize;
     let tileY = Math.floor(tileIndex / tileSize) * tileSize;
-    this.renderSource = this["PAGE_1"];
+    this.renderSource = this["PAGE1"];
     this.spr(tileX, tileY, tileSize, tileSize, x, y);
     this.pal = this.palDefault.slice();
   }
@@ -655,12 +655,12 @@ spr(sx = 0, sy = 0, sw = 8, sh = 8, x = 0, y = 0) {
         const index = (row * width + col) * 3;
         const tileIndex = data[index];
         const color1 = data[index + 1];
-        const _color2 = data[index + 2];
+        const color2 = data[index + 2];
         
         const x = startX + col * tileSize;
         const y = startY + row * tileSize;
         
-        this.drawTile(tileIndex, x, y,  _color2, color1);
+        this.drawTile(tileIndex, x, y,  color2, color1);
       }
     }
   }
@@ -670,11 +670,11 @@ spr(sx = 0, sy = 0, sw = 8, sh = 8, x = 0, y = 0) {
    * @param {number} xm - The x-coordinate of the circle center.
    * @param {number} ym - The y-coordinate of the circle center.
    * @param {number} r - The radius of the circle.
-   * @param {number} color1 - The starting _color index.
-   * @param {number} _color2 - The ending _color index.
+   * @param {number} color1 - The starting color index.
+   * @param {number} color2 - The ending color index.
    * @param {number} angle - The angle of the gradient in degrees.
    */
-  // gradCircle(xm, ym, r, color1, _color2, angle) {
+  // gradCircle(xm, ym, r, color1, color2, angle) {
   //   let prevPat = this.pat; // Preserve the existing pattern setting
 
   //   // Convert angle to radians
@@ -701,7 +701,7 @@ spr(sx = 0, sy = 0, sw = 8, sh = 8, x = 0, y = 0) {
   //         this.pat = this.dither[pattern];
 
   //         // Draw the pixel with interpolated colors
-  //         this.pset(xm + x, ym + y, color1, _color2);
+  //         this.pset(xm + x, ym + y, color1, color2);
   //       }
   //     }
   //   }
@@ -710,13 +710,13 @@ spr(sx = 0, sy = 0, sw = 8, sh = 8, x = 0, y = 0) {
   // }
 
   /**
-   * Fills a triangle with a solid _color.
+   * Fills a triangle with a solid color.
    * @param {object} p1 - The first vertex of the triangle.
    * @param {object} p2 - The second vertex of the triangle.
    * @param {object} p3 - The third vertex of the triangle.
-   * @param {number} _color - The _color index to fill the triangle.
+   * @param {number} color - The color index to fill the triangle.
    */
-  // fillTriangle(p1, p2, p3, _color) {
+  // fillTriangle(p1, p2, p3, color) {
   //   // Find bounding box
   //   const minX = Math.min(p1.x, p2.x, p3.x);
   //   const maxX = Math.max(p1.x, p2.x, p3.x);
@@ -726,7 +726,7 @@ spr(sx = 0, sy = 0, sw = 8, sh = 8, x = 0, y = 0) {
   //   for (let y = minY; y <= maxY; y++) {
   //     for (let x = minX; x <= maxX; x++) {
   //       if (this.pointInTriangle({ x, y }, p1, p2, p3)) {
-  //         this.pset(x, y, _color);
+  //         this.pset(x, y, color);
   //       }
   //     }
   //   }
@@ -737,11 +737,11 @@ spr(sx = 0, sy = 0, sw = 8, sh = 8, x = 0, y = 0) {
    * @param {object} p1 - The first vertex of the triangle.
    * @param {object} p2 - The second vertex of the triangle.
    * @param {object} p3 - The third vertex of the triangle.
-   * @param {number} color1 - The starting _color index.
-   * @param {number} _color2 - The ending _color index.
+   * @param {number} color1 - The starting color index.
+   * @param {number} color2 - The ending color index.
    * @param {number} angle - The angle of the gradient in degrees.
    */
-  // gradTriangle(p1, p2, p3, color1, _color2, angle) {
+  // gradTriangle(p1, p2, p3, color1, color2, angle) {
   //   let prevPat = this.pat; // Preserve the existing pattern setting
 
   //   // Convert angle to radians
@@ -775,7 +775,7 @@ spr(sx = 0, sy = 0, sw = 8, sh = 8, x = 0, y = 0) {
   //         this.pat = this.dither[pattern];
 
   //         // Draw the pixel with interpolated colors
-  //         this.pset(x, y, color1, _color2);
+  //         this.pset(x, y, color1, color2);
   //       }
   //     }
   //   }
@@ -861,23 +861,23 @@ spr(sx = 0, sy = 0, sw = 8, sh = 8, x = 0, y = 0) {
   }
 
   /**
-   * Renders a single line of _text.
-   * @param {string} _text - The _text to render.
-   * @param {number} x - The x-coordinate of the _text.
-   * @param {number} y - The y-coordinate of the _text.
+   * Renders a single line of text.
+   * @param {string} text - The text to render.
+   * @param {number} x - The x-coordinate of the text.
+   * @param {number} y - The y-coordinate of the text.
    * @param {number} hspacing - The horizontal spacing between characters.
    * @param {number} vspacing - The vertical spacing between lines.
-   * @param {string} halign - The horizontal alignment of the _text.
-   * @param {string} valign - The vertical alignment of the _text.
-   * @param {number} scale - The scale of the _text.
-   * @param {number} _color - The _color of the _text.
+   * @param {string} halign - The horizontal alignment of the text.
+   * @param {string} valign - The vertical alignment of the text.
+   * @param {number} scale - The scale of the text.
+   * @param {number} color - The color of the text.
    */
-  textLine(_text, x, y, hspacing, vspacing, halign, valign, scale, _color, _color2=64) {
-    var textLength = _text.length;
+  textLine(text, x, y, hspacing, vspacing, halign, valign, scale, color, color2=64) {
+    var textLength = text.length;
     var size = 5;
 
     for (var i = 0; i < textLength; i++) {
-      var letter = this.getCharacter(_text.charAt(i), this._charBuffer);
+      var letter = this.getCharacter(text.charAt(i), this.charBuffer);
 
       for (var yi = 0; yi < size; yi++) {
         for (var xi = 0; xi < size; xi++) {
@@ -886,15 +886,15 @@ spr(sx = 0, sy = 0, sw = 8, sh = 8, x = 0, y = 0) {
               this.pset(
                 x + xi * scale + (size * scale + hspacing) * i,
                 y + yi * scale,
-                _color, _color2
+                color, color2
               );
             } else {
-              this._fRect(
+              this.fRect(
                 x + xi * scale + (size * scale + hspacing) * i,
                 y + yi * scale,
                 scale,
                 scale,
-                _color, _color2
+                color, color2
               );
             }
           }
@@ -904,22 +904,22 @@ spr(sx = 0, sy = 0, sw = 8, sh = 8, x = 0, y = 0) {
   }
 
   /**
-   * Renders _text with multiple lines.
-   * @param {string} _text - The _text to render.
-   * @param {number} x - The x-coordinate of the _text.
-   * @param {number} y - The y-coordinate of the _text.
+   * Renders text with multiple lines.
+   * @param {string} text - The text to render.
+   * @param {number} x - The x-coordinate of the text.
+   * @param {number} y - The y-coordinate of the text.
    * @param {number} hspacing - The horizontal spacing between characters.
    * @param {number} vspacing - The vertical spacing between lines.
-   * @param {string} halign - The horizontal alignment of the _text.
-   * @param {string} valign - The vertical alignment of the _text.
-   * @param {number} scale - The scale of the _text.
-   * @param {number} _color - The _color of the _text.
-   * @returns {object} - The bounding box of the rendered _text.
+   * @param {string} halign - The horizontal alignment of the text.
+   * @param {string} valign - The vertical alignment of the text.
+   * @param {number} scale - The scale of the text.
+   * @param {number} color - The color of the text.
+   * @returns {object} - The bounding box of the rendered text.
    */
-  _text(_text, x, y, hspacing, vspacing, halign, valign, scale, _color) {
+  text(text, x, y, hspacing, vspacing, halign, valign, scale, color) {
     var size = 5;
     var letterSize = size * scale;
-    var lines = _text.split('\n');
+    var lines = text.split('\n');
     var linesCopy = lines.slice(0);
     var lineCount = lines.length;
     var longestLine = linesCopy.sort(function (a, b) {
@@ -983,7 +983,7 @@ spr(sx = 0, sy = 0, sw = 8, sh = 8, x = 0, y = 0) {
         halign,
         valign,
         scale,
-        _color
+        color
       );
     }
 
