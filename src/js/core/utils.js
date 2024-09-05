@@ -30,6 +30,10 @@ export function callOnce(fn){
   }
 }
 
+export function radians(degrees) {
+  return degrees * Math.PI / 180;
+}
+
 export function lightRadial(cx, cy, radius, colors) {
   //draw halo on lights layer
   r.renderTarget = r["PAGE7"];
@@ -85,6 +89,7 @@ export const Key = {
   TWO: 50,
   THREE: 51,
   FOUR: 52,
+  FIVE: 53,
   ESC: 27,
   a: 65,
   b: 66,

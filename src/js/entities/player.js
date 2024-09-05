@@ -26,7 +26,7 @@ export default class P {
         this.rectangle = new rectangle(this.x, this.y, this.width, this.height);
         this.bodyColor = 22;
         this.attackBoxColor = 8;
-        this.attackDamage = 5;
+        this.attackDamage = 15;
         this.attackDuration = 4; // Number of frames the attack lasts
         this.attackCoolDown = 40; // Number of frames before the player can attack again
         this.attackDurationCounter = 0; // Counter for the attack duration
@@ -69,6 +69,9 @@ export default class P {
     }
 
     update() {
+        if(this.health <= 0){
+            gameOver = true;
+        }
         this.oldX = this.x;
         this.oldY = this.y;
 
@@ -246,6 +249,45 @@ export default class P {
         if(Key.justReleased(Key.ONE)){
             this.health += 100;
             this.completeAltars = [6,7];
+        }
+        if(Key.justReleased(Key.TWO)){
+            this.completeAltars = [3, 3, 3, 4];
+        }
+        if(Key.justReleased(Key.THREE)){
+            this.completeAltars = [5, 3, 5];
+        }
+        if(Key.justReleased(Key.FOUR)){
+            this.completeAltars = [0];
+            this.gremlinBlood += 100;
+        }
+        if(Key.justReleased(Key.FIVE)){
+            currentFloor = 12;
+            //this.completeAltars.push(3);
+        }
+    }
+
+    handleGamepadInput(gamepad) {
+        // Handle movement
+        const deadzone = 0.2;
+        const x = gamepad.axes[0];
+        const y = gamepad.axes[1];
+        if (Math.abs(x) > deadzone) {
+            this.acceleration.x = x * this.speed;
+        }
+        if (Math.abs(y) > deadzone) {
+            this.acceleration.y = y * this.speed;
+        }
+
+        // Handle dash
+        if (gamepad.buttons[0].pressed && !this.isDashing && this.dashCoolDownCounter === 0) {
+            this.isDashing = true;
+            this.dashCounter = this.dashDuration;
+        }
+
+        // Handle attack
+        if (gamepad.buttons[1].pressed && this.attackCoolDownCounter === 0) {
+            this.attackDurationCounter = this.attackDuration; // Reset attack duration counter
+            this.attackCoolDownCounter = this.attackCoolDown; // Start cooldown counter
         }
     }
 

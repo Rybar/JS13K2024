@@ -1,6 +1,6 @@
 import RetroBuffer from './core/RetroBuffer.js';
 import MusicPlayer from './core/musicplayer.js';
-import { playSound, Key, inView, rand, resizeCanvas, loadAtlas, lerp, callOnce } from './core/utils.js';
+import { playSound, Key, inView, rand, resizeCanvas, loadAtlas, lerp, callOnce, radians } from './core/utils.js';
 
 //sound assets
 import potBreak from './sounds/potBreak.js';
@@ -23,6 +23,7 @@ import Player from './entities/player.js';
 import Floor from './entities/floor.js';
 import Map from './entities/map.js';
 import Gremlin from './entities/gremlin.js';
+import Room from './entities/room.js';
 
 (function () {
     document.body.style = "margin:0; background-color:black; overflow:hidden";
@@ -51,6 +52,7 @@ import Gremlin from './entities/gremlin.js';
 
     window.t = 0;
     text = "";
+    gamepads = [];
     window.P = null;
     sounds = {};
     soundsReady = 0;
@@ -61,23 +63,26 @@ import Gremlin from './entities/gremlin.js';
     GAMESCREEN = 1;
     gamestate = 0;
     started = false;
-    window.entitiesArray = [];
-    window.gremlinsArray = [];
-    window.portalLocation = { x: 0, y: 0 };
-    window.gameInitialized = false;
-    window.generatingNewFloor = false;
-    window.currentFloor = 0;
+    entitiesArray = [];
+    gremlinsArray = [];
+    portalLocation = { x: 0, y: 0 };
+    gameInitialized = false;
+    generatingNewFloor = false;
+    floorCompleteTime = 0;
+    currentFloor = 1;
     window.nextLevel = nextLevel;
     startGameMusic = callOnce(() => {
         playSound(sounds.gamemusic, 1, 0, 0.5, true);
     });
     floors = [];
+    thirteenthFloor = null;
     rooms = [];
     map = null;
     fps = 0;
     lastFrameTime = 0;
     frameCount = 0;
     paused = false;
+    gameOver = false;
     tileSize = 16;
     view = {
         x: 0, y: 0,
@@ -90,17 +95,18 @@ import Gremlin from './entities/gremlin.js';
         //initialize game data
         entitiesArray = [];
         gremlinsArray = [];
-        floors.push(new Floor(480, 270, 40,25));
+        floors = [];
+        floors.push(new Floor(480, 270, 35,20, 120));
+        //floors.push(new Floor(480, 270, 40,25, 10));
+        thirteenthFloor = buildThirteenthFloor();
         rooms = floors[0].rooms;
         window.rooms = rooms;
         //pick random room
         let room = rooms[Math.floor(Math.random() * rooms.length)];
         let startX = room.x + room.width / 2;
         let startY = room.y + room.height / 2;
-        P = new Player(startX * tileSize, startY * tileSize);
-        gremlin = new Gremlin((startX + 2) * tileSize, (startY + 2) * tileSize);
-        gremlinsArray.push(gremlin);        
-        window.map = new Map(480, 270, tileSize, r.PAGE3);
+        P = new Player(startX * tileSize, startY * tileSize);       
+        map = new Map(480, 270, tileSize, r.PAGE3);
         gameInitialized = true;
 
     }
@@ -154,6 +160,7 @@ import Gremlin from './entities/gremlin.js';
     function updateGame(deltaTime) {
         handleInput();
         if(paused) { return; }
+        if(gameOver) { return; }
         t += deltaTime;
         rooms.forEach(room => {room.update(P);});
         entitiesArray.forEach(entity => entity.update());
@@ -191,14 +198,13 @@ import Gremlin from './entities/gremlin.js';
 
 
         if(generatingNewFloor) {
-            r.fRect(0, 0, screenWidth, screenHeight, 3);
-            text = "LOADING THE NEXT FLOOR";
-            r.text(text, screenWidth / 2, screenHeight / 2, 1, 1, 'center', 'middle', 1, 22);
+            floorStats(floorCompleteTime);
         }
 ;
         drawLightsOverlay();
 
         if (paused) { drawPaused(); }
+        if (gameOver) { drawGameOver(); }
 
         drawUI();
 
@@ -239,50 +245,104 @@ import Gremlin from './entities/gremlin.js';
     function drawUI() {
         // Draw debug text
         debugText= `FPS: ${fps.toFixed(2)}`;
-        r.text(debugText, 10, 10, 1, 1, 'left', 'top', 1, 22);
+        r.text(debugText, 10, 260, 1, 1, 'left', 'top', 1, 22);
 
         debugText = `${P.health.toFixed(2)}\nGB: ${P.gremlinBlood}\nAP: ${P.sumCompleted}`
         r.text(debugText, P.x - view.x, P.y - view.y - 28, 1, 1, 'center', 'top', 1, 22);
     
         debugText = `FLOOR: ${currentFloor}`;
-        r.text(debugText, screenWidth - 10, 10, 1, 1, 'right', 'top', 2, 22);
-        debugText = `TORCHES: ${P.sumCompletedTorches()}`;
-        r.text(debugText, screenWidth - 10, 30, 1, 1, 'right', 'top', 2, 22);
+        r.text(debugText, 10, 10, 1, 1, 'left', 'top', 2, 22);
+        debugText = `${P.sumCompletedTorches()}`;
+        r.text(debugText, screenWidth - 31, 25, 1, 1, 'center', 'top', 2, 22);
 
         P.completeAltars.forEach((altar, i) => {
-            r.polygon(300, 50, altar*3, altar, altar, 22, 22);
+            let spin = P.sumCompletedTorches() >= 13 ? t/900 : 0;
+            r.polygon(450, 30, 15+altar*2, altar,
+                altar%2==0 ? spin: -spin + radians(i*(360/13)), 22, 22);
         });
-        
-
+    
     }
 
     function titlescreen() {
         r.clear(64, r.SCREEN);
-        r.drawTileAsset(0, 0, background1);
-        r.drawTileAsset(0, 0, platformerTest);
-        r.drawTileAsset(0, 0, tileAssetTest);
+        // r.drawTileAsset(0, 0, background1);
+        // r.drawTileAsset(0, 0, platformerTest);
+        // r.drawTileAsset(0, 0, tileAssetTest);
         drawEntities(entitiesArray);
         text = "SIX AND SEVEN";
         r.text(text, screenWidth / 2, 100, 4, 1, 'center', 'top', 4, 22);
         text = "CLICK TO START";
         r.text(text, screenWidth / 2, 125, 1, 1, 'center', 'top', 1, 22);
+        // if (Key.justReleased(Key.UP) || Key.justReleased(Key.w) || Key.justReleased(Key.z)) {
+        //     //startGameMusic();
+        //     gamestate = GAMESCREEN;
+        // }
+        gamepads = navigator.getGamepads();
+        if(gamepads[0]) {
+            text = "GAMEPAD CONNECTED";
+            r.text(text, screenWidth / 2, 150, 1, 1, 'center', 'top', 1, 22);
+        }
+
         r.render();
-        playSound(sounds.spawn);
+
     }
 
     function resetGame() {
         //reset arrays to emmpty, etc
+        gameOver = false;
+        gameState = TITLESCREEN;
         initGameData();
-        gameState = 2;
+    }
+
+    function floorStats(completeTime) {
+       
+        r.fRect(0, 0, screenWidth, screenHeight, 3);
+        text = "FLOOR COMPLETE IN " + Math.floor(completeTime/1000) + " SECONDS";
+        r.text(text, screenWidth / 2, screenHeight / 2, 1, 1, 'center', 'middle', 1, 22);
+        text = "LOADING THE NEXT FLOOR";
+        r.text(text, screenWidth / 2, screenHeight / 2+16, 1, 1, 'center', 'middle', 1, 22);
+            
+    }
+
+    function buildThirteenthFloor() {
+        //start with deep copy of floor 1
+        let floor = JSON.parse(JSON.stringify(floors[0]));
+        //clear rooms and feature rooms
+        floor.rooms = [];
+        floor.featureRooms = [];
+        //create 1 screen-sized room
+        let x = screenWidth / 2 - 13;
+        let y = screenHeight / 2 - 6;
+        let room = new Room(x, y, 28, 14);
+        floor.rooms.push(room);
+        //boss?  giant portal?  puzzle?
+
+        return floor;
+    }
+
+    function enterThirteenthFloor() {
+        //replace current floor with thirteenth floor
+        floors[0] = thirteenthFloor;
+        let room = thirteenthFloor.rooms[0];
+        rooms = thirteenthFloor.rooms;
+        let startX = room.x + room.width / 2;
+        let startY = room.y + room.height / 2;
+        P.x = startX * tileSize;
+        P.y = startY * tileSize;
+
     }
 
     function newFloor() {
         //create new floor
         //I don't think we will need to store floors, so just overwrite the first one
         currentFloor++;
-        floors = [];
+        if(currentFloor == 13) {
+            enterThirteenthFloor();
+            return;
+        }
+        //floors = [];
         entitiesArray = [];
-        floors.push(new Floor(480, 270, 40, 25));
+        floors[0] = (new Floor(480, 270, 40, 25, 10));
         rooms = floors[floors.length - 1].rooms;
         //pick random room
         let room = rooms[Math.floor(Math.random() * rooms.length)];
@@ -297,8 +357,8 @@ import Gremlin from './entities/gremlin.js';
         r.clear(64, r["SCREEN"]);
         r.renderTarget = r["SCREEN"];
         
-        text = "SIX AND SEVEN";
-        r.text(text, screenWidth / 2, 100, 4, 1, 'center', 'top', 4, 2);
+        // text = "SIX AND SEVEN";
+        // r.text(text, screenWidth / 2, 100, 4, 1, 'center', 'top', 4, 2);
         r.text(audioTxt, screenWidth / 2 - 2, 130, 1, 1, 'center', 'top', 1, 22);
         if(started){
             audioTxt = "RETICULATING SPLINES";
@@ -311,7 +371,7 @@ import Gremlin from './entities/gremlin.js';
         }
         if (Key.justReleased(Key.UP) || Key.justReleased(Key.w) || Key.justReleased(Key.z)) {
             startGameMusic();
-            gamestate = GAMESCREEN;
+            gamestate = TITLESCREEN;
         }
 
         //drawColorBarAndAtlas();
@@ -336,6 +396,34 @@ import Gremlin from './entities/gremlin.js';
         }, false);
     }
 
+function gamepadHandler(event, connected) {
+  const gamepad = event.gamepad;
+  // Note:
+  // gamepad === navigator.getGamepads()[gamepad.index]
+
+  if (connected) {
+    gamepads[gamepad.index] = gamepad;
+  } else {
+    delete gamepads[gamepad.index];
+  }
+}
+
+window.addEventListener(
+  "gamepadconnected",
+  (e) => {
+    gamepadHandler(e, true);
+  },
+  false,
+);
+window.addEventListener(
+  "gamepaddisconnected",
+  (e) => {
+    gamepadHandler(e, false);
+  },
+  false,
+);
+
+
     onclick = e => {
         const rect = r.c.getBoundingClientRect(); 
         const scaleX = r.c.width / rect.width;    
@@ -356,10 +444,10 @@ import Gremlin from './entities/gremlin.js';
                     }, 100); //wait a bit to give preload text a chance to render
                 }
                 break;
-            case 1: // react to clicks on screen 1
+            case GAMESCREEN: // react to clicks on screen 1
                 break;
-            case 2:
-                gamestate = 1;
+            case TITLESCREEN:
+                gamestate = GAMESCREEN;
                 break;
             case 3: // react to clicks on screen 3
         }
@@ -450,16 +538,30 @@ import Gremlin from './entities/gremlin.js';
             console.log('paused', paused);
         }
         if (Key.justReleased(Key.r)) {
-            nextLevel();
+            resetGame();
         }
-        P.handleInput(Key);    
+        gamepads = navigator.getGamepads();
+        if(gamepads[0]) {
+            P.handleGamepadInput(gamepads[0]);
+        }else {
+            P.handleInput(Key);
+        }
     }
 
     function drawPaused() {
         r.fRect(0, 0, screenWidth, screenHeight, 66, 67, 8);
         text = "PAUSED";
-        r.text(text, screenWidth / 2, screenHeight / 2, 1, 1, 'center', 'middle', 1, 22);
+        r.text(text, screenWidth / 2, 10, 1, 1, 'center', 'middle', 1, 22);
         drawMiniMap();
+    }
+
+    function drawGameOver() {
+        r.fRect(0, 0, screenWidth, screenHeight, 66, 67, 8);
+        text = "GAME OVER";
+        r.text(text, screenWidth / 2, screenHeight / 2, 1, 1, 'center', 'middle', 3, 22);
+        text = "PRESS R TO RESTART";
+        r.text(text, screenWidth / 2, screenHeight / 2 + 20, 1, 1, 'center', 'middle', 1, 22);
+        //drawMiniMap();
     }
 
     function drawMiniMap() {
@@ -481,6 +583,9 @@ import Gremlin from './entities/gremlin.js';
             let x = P.x + rand(-90, 90);
             let y = P.y + rand(-90, 90);
             gremlinsArray.push(new Gremlin(x, y));
+            x = P.x + rand(-90, 90);
+            y = P.y + rand(-90, 90);
+            gremlinsArray.push(new Gremlin(x, y, true));
             playSound(sounds.spawn);
         }
     }

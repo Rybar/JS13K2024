@@ -3,22 +3,21 @@ import Altar from './altar';
 import Portal from './portal';
 
 export default class Floor {
-    constructor(width, height, maxRoomWidth, maxRoomHeight) {
+    constructor(width, height, maxRoomWidth, maxRoomHeight, roomCount) {
         this.width = width;
         this.height = height;
         this.maxRoomWidth = maxRoomWidth;
         this.maxRoomHeight = maxRoomHeight;
 
-        this.roomCount = 200;
+        this.roomCount = roomCount;
         this.maxSeparationTries = 20000;
         this.rooms = [];
         this.featureRooms = [];
-        this.sizeBias = 5;
-        this.biasInfluence = 0.6;
+        this.sizeBias = 1;
+        this.biasInfluence = 0.1;
         this.featureRoomSize = { width: 20, height: 15 };
         this.maxGenerationTries = 10;
         this.generateFloor();
-        
 
     }
 
@@ -41,7 +40,7 @@ export default class Floor {
          
         //if there are no rooms, try again, up to 10 times
         let tries = this.maxGenerationTries;
-        if(this.rooms.length < 5 && tries > 0) {
+        if(this.featureRooms.length < 5 && tries > 0) {
             this.generateFloor();
             tries--;
         }

@@ -6,7 +6,8 @@ import Particle from './particle.js';
 import Arm from "./arm";
 
 export default class Gremlin {
-    constructor(x, y) {
+    constructor(x, y, brute = false) {
+        this.brute = brute;
         this.x = x;
         this.y = y;
         this.width = 8;
@@ -33,6 +34,18 @@ export default class Gremlin {
         this.currentRoom = null;
         this.angleToPlayer = 0;
         this.stepFrameCount = 0; // Counter for alternating legs
+
+        if(brute) {
+            this.width = 20;
+            this.height = 12;
+            this.speed = 0.1;
+            this.maxSpeed = 0.2;
+            this.health = 50;
+            this.damage = 20;
+            this.attackRange = 60;
+            this.attackCooldown = 2000;
+            this.attackTelegraphTime = 1000;
+        }
         this.targetTypes = {
             P: 1,
             TORCH: 2
@@ -50,11 +63,19 @@ export default class Gremlin {
             new Arm(this.x, this.y + this.height)  // Right leg
         ];
         // Add segments to each leg
+        if(brute) {
+            this.legs.forEach(leg => {
+                leg.addSegment(10); // Upper segment
+                leg.addSegment(10); // Lower segment
+                leg.addSegment(10); // Lower segment
+            });
+        }else {
         this.legs.forEach(leg => {
             leg.addSegment(4); // Upper segment
             leg.addSegment(4); // Lower segment
             leg.addSegment(4); // Lower segment
         });
+        }
         this.legTargets = [
             { x: this.x, y: this.y },
             { x: this.x, y: this.y },
@@ -71,14 +92,21 @@ export default class Gremlin {
         }
 
         //body
-        r.fRect(this.x - view.x, this.y - view.y, 8, 10, 16, 16);
-        r.fCircle(this.x - view.x + 4, this.y - view.y, 4, 16);
+        r.fRect(this.x - view.x, this.y - view.y, this.width, this.height, 16, 16);
+        r.fCircle(this.x + this.width / 2 - view.x, this.y - view.y, this.width / 2, 16);
         lightRadial(this.x - view.x, this.y - view.y, 30, [2, 4]);
 
         const hornColor = this.isAttacking ? choice([10,11,12,13]) : 16;
-        r.fRect(this.x - view.x - 2, this.y - view.y - 2, 2, 4, hornColor);
-        r.fRect(this.x - view.x + 6, this.y - view.y - 2, 2, 4, hornColor);
+        const hornWidth = this.brute? 4 : 2;
+        const hornHeight = this.brute? 6 : 4;
+        r.fRect(this.x - view.x - 2, this.y - view.y - 2, hornWidth, hornHeight, hornColor);
+        r.fRect(this.x - view.x + this.width-2, this.y - view.y - 2, hornWidth, hornHeight, hornColor);
 
+        //eyes if brute
+        if(this.brute) {
+            r.fRect(this.x - view.x + 2, this.y - view.y + 2, 2, 2, 22);
+            r.fRect(this.x - view.x + this.width - 4, this.y - view.y + 2, 2, 2, 22);
+        }
         // Draw the legs
         this.legs.forEach(leg => leg.segments.forEach(segment => {
             r.line(segment.x - view.x, segment.y - view.y, segment.getEndX() - view.x, segment.getEndY() - view.y, 16);
@@ -136,8 +164,8 @@ export default class Gremlin {
         // Update the legs
         this.legs.forEach((leg, index) => {
             //4 legs, attach to roughly the corners of the gremlin
-            leg.x = this.x + index * 3;
-            leg.y = this.y + this.height + index % 2 * 3; 
+            leg.x = this.x + (this.width/4 * index);
+            leg.y = this.y + this.height;
             leg.target = this.legTargets[index]; // Update target
 
             // Update leg if the step frame count is appropriate
@@ -177,11 +205,19 @@ export default class Gremlin {
     }
 
     updateLegTargets() {
-        const offset = 12; // Distance ahead of the P for the leg targets
-        const verticalOffset = 6; // Vertical offset for the leg targets
+       
+        var offset = 12; // Distance ahead of the P for the leg targets
+        var verticalOffset = 6; // Vertical offset for the leg targets
         let targetX, targetY;
         this.stepDistance = 30; // Minimum distance before a leg takes a step
         this.legStepOffset = 15; // Offset in frames for alternating leg movement
+
+        if(this.brute){
+            offset = 20;
+            verticalOffset = 10;
+            this.stepDistance = 40;
+            this.legStepOffset = 30;
+        }
 
         switch (this.direction) {
             case 'up':
