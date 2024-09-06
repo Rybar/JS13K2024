@@ -1,6 +1,6 @@
 import RetroBuffer from './core/RetroBuffer.js';
 import MusicPlayer from './core/musicplayer.js';
-import { playSound, Key, inView, rand, resizeCanvas, loadAtlas, lerp, callOnce, radians } from './core/utils.js';
+import { playSound, Key, inView, rand, resizeCanvas, loadAtlas, lerp, callOnce, radians, choice } from './core/utils.js';
 
 //sound assets
 import potBreak from './sounds/potBreak.js';
@@ -12,6 +12,9 @@ import gremlinHurt from './sounds/gremlinHurt.js';
 import playerHurt from './sounds/playerHurt.js';
 import pickup from './sounds/pickup.js';
 import gamemusic from './sounds/gamemusic.js';
+import playerDeath from './sounds/playerDeath.js';
+import playerAttack from './sounds/playerAttack.js';
+import altarDone from './sounds/altarDone.js';
 
 //gfx assets
 //import background1 from '../assets/background1.js';
@@ -133,7 +136,10 @@ import Room from './entities/room.js';
             { name: 'gremlinHurt', data: gremlinHurt },
             { name: 'playerHurt', data: playerHurt },
             { name: 'pickup', data: pickup },
-            { name: 'gamemusic', data: gamemusic }
+            { name: 'gamemusic', data: gamemusic },
+            { name: 'playerDeath', data: playerDeath },
+            { name: 'playerAttack', data: playerAttack },
+            { name: 'altarDone', data: altarDone }
         ]
         totalSounds = sndData.length;
         soundsReady = 0;
@@ -577,15 +583,20 @@ window.addEventListener(
     }
 
     function spawnGremlin() {
-        //if player current room is a feature room, spawn a gremlin
+        //if player current room is a feature room, spawn a gremlin in the corners
         let currentRoom = P.currentRoom;
         if(currentRoom.altar) {
-            let x = P.x + rand(-90, 90);
-            let y = P.y + rand(-90, 90);
-            gremlinsArray.push(new Gremlin(x, y));
-            x = P.x + rand(-90, 90);
-            y = P.y + rand(-90, 90);
-            gremlinsArray.push(new Gremlin(x, y, true));
+            let roomCorners = {
+                x1: currentRoom.x+1,
+                y1: currentRoom.y+1,
+                x2: currentRoom.x + currentRoom.width-2,
+                y2: currentRoom.y + currentRoom.height-2
+            }
+            //pick random corner of room
+            let x = choice([roomCorners.x1, roomCorners.x2]);
+            let y = choice([roomCorners.y1, roomCorners.y2]);
+
+            gremlinsArray.push(new Gremlin(x * tileSize, y * tileSize));
             playSound(sounds.spawn);
         }
     }

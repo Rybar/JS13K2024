@@ -15,8 +15,8 @@ export default class P {
         this.velocity = { x: 0, y: 0 };
         this.acceleration = { x: 0, y: 0 };
         this.drag = 0.8;
-        this.speed = 0.35;
-        this.maxSpeed = 0.6;
+        this.speed = 0.5;
+        this.maxSpeed = 0.8;
         this.isFiring = false;
         this.gremlinBlood = 0;
         this.currentRoom = null;
@@ -38,6 +38,11 @@ export default class P {
         this.isDashing = false; // Is the player currently dashing?
         this.dashCounter = 0; // Counter for dash duration
         this.dashCoolDownCounter = 0; // Counter for dash cooldown
+
+        this.isInvincible = false; // Is the player invincible?
+        this.invincibilityDuration = 1000; // Duration of invincibility in frames
+        this.invincibilityCounter = 0; // Counter for invincibility duration
+
         
         
 
@@ -71,9 +76,24 @@ export default class P {
     update() {
         if(this.health <= 0){
             gameOver = true;
+            playSound(sounds.playerDeath);
         }
         this.oldX = this.x;
         this.oldY = this.y;
+
+        if(this.isInvincible) {
+            this.health = this.maxHealth;
+            this.invincibilityCounter++;
+            if(this.invincibilityCounter >= this.invincibilityDuration) {
+                this.isInvincible = false;
+                this.invincibilityCounter = 0;
+            }
+            let gradient = [10,11,12,13,14,15]
+            entitiesArray.push(new Particle(
+                this.x + rand(-4,4), this.y,
+                randFloat(-0.05,0.05),
+                -0.65, {color: gradient, life: 70}));
+        }
 
         if (this.isDashing) {
             this.dashCounter--;
@@ -141,7 +161,7 @@ export default class P {
             this.updateAttackBox();
             //emit particles along a circular 90 degree arc in the direction the P is facing
             //direction is set at this.direction, left, right, up, down
-            for(let i = 0; i < 60; i++) {
+            for(let i = 0; i < 40; i++) {
                 let angle = this.directionAngles[this.direction] + Math.random() * Math.PI / 2 - Math.PI / 4;
                 let particle = new Particle(
                     this.x + Math.cos(angle) * 20 + rand(-3, 3),
@@ -150,7 +170,7 @@ export default class P {
                     this.velocity.y + Math.sin(angle), 
                     {
                         color: [22,21,20,19,18],
-                        life: 15,
+                        life: 5,
                         customUpdate: function(p) {
                             p.xVelocity += randFloat(-0.3, 0.3);
                             p.yVelocity += randFloat(-0.3, 0.3);
@@ -170,6 +190,9 @@ export default class P {
         }
 
         if (this.attackDurationCounter > 0) {
+            if (this.attackDurationCounter === this.attackDuration) {
+                playSound(sounds.playerAttack, 1, 0, 0.1);
+            }
             this.attackDurationCounter--;
             this.isFiring = true;
             this.updateAttackBox();
@@ -198,6 +221,8 @@ export default class P {
 
         // Draw body (with head and attack box)
         r.fRect(this.x - view.x, this.y - view.y-4, this.width, 8, this.bodyColor);
+        //r.drawTile(5, this.x - view.x, this.y - view.y - 8, 16, 22, 8);
+        r.sspr(16, 0, 16, 16, this.x - 2 - view.x, this.y - view.y - 8, 8, 8, 0, 0);
 
         //Draw attack box if firing
         // if (this.isFiring && this.attackBox) {
@@ -214,6 +239,16 @@ export default class P {
 
         // //debug rectangle
         // r.fRect(this.rectangle.x - view.x, this.rectangle.y - view.y, this.rectangle.width, this.rectangle.height, 10);
+
+        //if completed altar torches >= 13, draw an arrow pointing towards the portal orbiting the Player
+        if(this.sumCompletedTorches() >= 13) {
+            let dx = portalLocation.x * tileSize - this.x;
+            let dy = portalLocation.y * tileSize - this.y;
+            let angle = Math.atan2(dy, dx);
+            let x = this.x + Math.cos(angle) * 20;
+            let y = this.y + Math.sin(angle) * 20;
+            r.polygon(x - view.x, y - view.y, 5, 3, angle, 11, 11)
+        }
     }
 
     handleInput(Key) {

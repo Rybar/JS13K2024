@@ -6,6 +6,8 @@ export default class Torch {
         this.y = y;
         this.size = 3;
         this.health = 0;
+        this.maxHealth = 50;
+        this.playerLightDistance = 20;
         this.lit = false;
         this.igniting = false;
         this.annointed = false;
@@ -36,8 +38,8 @@ export default class Torch {
         let dx = P.x - this.x;
         let dy = P.y - this.y;
         let dist = Math.sqrt(dx*dx + dy*dy);
-        if(dist < 10 && !this.lit && !this.igniting) {
-            this.health = 25;
+        if(dist < this.playerLightDistance && !this.lit && !this.igniting) {
+            this.health = this.maxHealth;
             this.lit = true;
             this.igniting = true;
         }

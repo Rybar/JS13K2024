@@ -624,15 +624,15 @@ spr(sx = 0, sy = 0, sw = 8, sh = 8, x = 0, y = 0) {
    * @param {number} color1 - The primary color to use for the tile.
    * @param {number} [color2=64] - The secondary color used for dithering.
    */
-  drawTile(tileIndex, x, y, color1, color2 = 64) {
-    let tileSize = 16;
+  drawTile(tileIndex, x, y, color1, color2 = 64, tileSize = 16) {
     this.pal[0] = color1;
     this.pal[22] = color2;
     let tileX = (tileIndex % tileSize) * tileSize;
     let tileY = Math.floor(tileIndex / tileSize) * tileSize;
     this.renderSource = this["PAGE1"];
     this.spr(tileX, tileY, tileSize, tileSize, x, y);
-    this.pal = this.palDefault.slice();
+    this.pal[0] = this.palDefault[0];
+    this.pal[22] = this.palDefault[22];
   }
 
   /**

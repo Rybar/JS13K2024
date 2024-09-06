@@ -150,13 +150,11 @@ export default class Gremlin {
         this.oldX = this.x;
         this.oldY = this.y;
 
-        // Seek out the target (P or lit torch)
+
         this.seekTarget();
-
         this.seekWithObstacleAvoidance();
-
         this.determineDirection();
-
+        
         // Update leg positions
         this.updateLegTargets();
         this.stepFrameCount++;
@@ -210,13 +208,13 @@ export default class Gremlin {
         var verticalOffset = 6; // Vertical offset for the leg targets
         let targetX, targetY;
         this.stepDistance = 30; // Minimum distance before a leg takes a step
-        this.legStepOffset = 15; // Offset in frames for alternating leg movement
+        this.legStepOffset = 5; // Offset in frames for alternating leg movement
 
         if(this.brute){
             offset = 20;
             verticalOffset = 10;
             this.stepDistance = 40;
-            this.legStepOffset = 30;
+            this.legStepOffset = 10;
         }
 
         switch (this.direction) {
@@ -238,7 +236,7 @@ export default class Gremlin {
                 break;
         }
 
-        // Update the targets for each leg only if the P has moved sufficiently
+        // Update the targets for each leg only if the Player has moved sufficiently
         this.legs.forEach((leg, index) => {
             const legTarget = this.legTargets[index];
             const distance = Math.hypot(targetX - legTarget.x, targetY - legTarget.y);
@@ -252,6 +250,10 @@ export default class Gremlin {
 
     collideWithPlayer() {
         if (this.rectangle.intersects(P.rectangle)) {
+            if(P.isInvincible) {
+                this.health -= 1;
+                return;
+            }
             P.health -= 1;
             let knockbackForce = 4;
             P.acceleration.x += Math.cos(this.angleToPlayer) * knockbackForce;
@@ -263,8 +265,6 @@ export default class Gremlin {
         if (P.isFiring && this.rectangle.intersects(P.attackBox)) {
             this.health -= P.attackDamage; 
             let knockbackForce = 24;
-            //this.acceleration.x = -Math.cos(this.angleToPlayer) * knockbackForce;
-            //this.acceleration.y = -Math.sin(this.angleToPlayer) * knockbackForce;
             this.velocity.x =  - Math.cos(this.angleToPlayer) * knockbackForce;
             this.velocity.y = - Math.sin(this.angleToPlayer) * knockbackForce;
            playSound(sounds.gremlinHurt); 

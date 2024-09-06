@@ -5,6 +5,7 @@ export default class Particle {
         this.xVelocity = xVelocity;
         this.yVelocity = yVelocity;
         this.color = options.color || 22;
+        this.drawLight = options.drawLight || false;
         this.life = options.life || 100;
         this.maxLife = this.life;
         this.drop = options.drop || 0;
@@ -57,8 +58,7 @@ export default class Particle {
 
     draw(r, view) {
         r.line(this.x - view.x, this.y - view.y, this.prevX - view.x, this.prevY - view.y, this.color);
-        lightRadial(this.x - view.x, this.y - view.y, 10 * this.life/this.maxLife , [2,3, 4]);
-
+        if(this.drawLight){ lightRadial(this.x - view.x, this.y - view.y, 10 * this.life/this.maxLife , [2,3, 4]); }
     }
 
     die() {

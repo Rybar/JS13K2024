@@ -13,9 +13,10 @@ export default class Altar {
         this.fill = 13;
         this.completeColor = 10;
         this.generateTorches();
-        this.bloodRequired = 20;
+        this.bloodRequired = 60;
         this.playerCompleted = callOnce(() => {
             P.completeAltars.push( this.torchCount );
+            P.isInvincible = true;
             //emit particles
             for(let i = 0; i < 300; i++) {
                 let angle = Math.random() * Math.PI * 2;
@@ -41,10 +42,9 @@ export default class Altar {
     update() {
         this.torches.forEach(torch => torch.update());
         this.lit = this.torches.filter(torch => torch.lit).length === this.torchCount;
-        this.annointed = this.lit && this.bloodRequired === 0;
+        this.annointed = this.lit && this.bloodRequired <= 0;
         if(this.annointed) {
             this.fill = this.completeColor;
-            this.annointedComplete();
             //emit particles
             for(let i = 0; i < 4; i++) {
                 let angle = Math.random() * Math.PI * 2;
@@ -59,7 +59,8 @@ export default class Altar {
         }
         this.fill = this.annointed ? this.completeColor : 12;
         if(this.lit && this.bloodRequired > 0) {
-
+            //if all torches are lit, decrement over time
+            this.bloodRequired -= 0.05;
             //distance to P
             let dx = P.x - this.x;
             let dy = P.y - this.y;
@@ -104,7 +105,22 @@ export default class Altar {
              [2, 3, 4]);
 
         //bloodRequired text
-        r.text(this.bloodRequired.toString(), this.x - view.x, this.y - view.y + 8, 1, 1, 'center', 'top', 1, 22);
+        if(this.bloodRequired > 0){
+            r.text(this.bloodRequired.toFixed(2).toString(), this.x - view.x, this.y - view.y + 8, 1, 1, 'center', 'top', 1, 22);
+            
+            //represent blood Required as a circle of dots
+            if(this.bloodRequired < 60 && this.lit) {
+                for(let i = 0; i < 60; i++) {
+                    let x = this.x + Math.cos(i / 60 * Math.PI * 2) * this.radius;
+                    let y = this.y + Math.sin(i / 60 * Math.PI * 2) * this.radius;
+                    r.pset(x - view.x, y - view.y, i < this.bloodRequired ? 10 : 0);
+                    //emit particle at same location
+                    if(i < this.bloodRequired) {
+                        entitiesArray.push(new Particle(x, y, randFloat(-.05, .05), randFloat(-.1, -.3), {color: [22,9,8,7,6,5,4,3,2,1], life: 30}));
+                    }
+                }
+            }
+        }
         
     }
 
