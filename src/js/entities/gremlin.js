@@ -388,6 +388,9 @@ export default class Gremlin {
     }
 
     startAttackTelegraph() {
+        if(!this.isAttacking) {
+            playSound(sounds.gremlinAttack, randFloat(0.9,1.1), 0, 0.1);
+        }
         this.isAttacking = true;
         this.telegraphStartTime = Date.now();
         this.acceleration.x = 0;

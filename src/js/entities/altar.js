@@ -10,10 +10,11 @@ export default class Altar {
         this.torches = [];
         this.lit = false;
         this.annointed = false;
-        this.fill = 13;
+        this.fill = 16;
         this.completeColor = 10;
         this.generateTorches();
         this.bloodRequired = 60;
+        this.totalBloodRequired = 60;
         this.playerCompleted = callOnce(() => {
             playSound(sounds.altarDone)
             P.completeAltars.push( this.torchCount );
@@ -110,10 +111,10 @@ export default class Altar {
             r.text(this.bloodRequired.toFixed(2).toString(), this.x - view.x, this.y - view.y + 8, 1, 1, 'center', 'top', 1, 22);
             
             //represent blood Required as a circle of dots
-            if(this.bloodRequired < 60 && this.lit) {
-                for(let i = 0; i < 60; i++) {
-                    let x = this.x + Math.cos(i / 60 * Math.PI * 2) * this.radius;
-                    let y = this.y + Math.sin(i / 60 * Math.PI * 2) * this.radius;
+            if(this.bloodRequired < this.totalBloodRequired && this.lit) {
+                for(let i = 0; i < this.totalBloodRequired; i++) {
+                    let x = this.x + Math.cos(i / this.totalBloodRequired * Math.PI * 2) * this.radius;
+                    let y = this.y + Math.sin(i / this.totalBloodRequired * Math.PI * 2) * this.radius;
                     r.pset(x - view.x, y - view.y, i < this.bloodRequired ? 10 : 0);
                     //emit particle at same location
                     if(i < this.bloodRequired) {

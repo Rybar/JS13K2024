@@ -15,6 +15,7 @@ import gamemusic from './sounds/gamemusic.js';
 import playerDeath from './sounds/playerDeath.js';
 import playerAttack from './sounds/playerAttack.js';
 import altarDone from './sounds/altarDone.js';
+import gremlinAttack from './sounds/gremlinAttack.js';
 
 //gfx assets
 //import background1 from '../assets/background1.js';
@@ -28,6 +29,8 @@ import Map from './entities/map.js';
 import Gremlin from './entities/gremlin.js';
 import Room from './entities/room.js';
 import Particle from './entities/particle.js';
+import Altar from './entities/altar.js';
+import Portal from './entities/portal.js';
 
 (function () {
     document.body.style = "margin:0; background-color:black; overflow:hidden";
@@ -75,6 +78,7 @@ import Particle from './entities/particle.js';
     generatingNewFloor = false;
     floorCompleteTime = 0;
     currentFloor = 1;
+    gremlinSpawnRate = 3000;
     window.nextLevel = nextLevel;
     startGameMusic = callOnce(() => {
         playSound(sounds.gamemusic, 1, 0, 0.5, true);
@@ -101,7 +105,7 @@ import Particle from './entities/particle.js';
         entitiesArray = [];
         gremlinsArray = [];
         floors = [];
-        floors.push(new Floor(480, 270, 35,20, 120));
+        floors.push(new Floor(480, 270, 35,20, 110));
         //floors.push(new Floor(480, 270, 40,25, 10));
         thirteenthFloor = buildThirteenthFloor();
         rooms = floors[0].rooms;
@@ -141,7 +145,8 @@ import Particle from './entities/particle.js';
             { name: 'gamemusic', data: gamemusic },
             { name: 'playerDeath', data: playerDeath },
             { name: 'playerAttack', data: playerAttack },
-            { name: 'altarDone', data: altarDone }
+            { name: 'altarDone', data: altarDone },
+            { name: 'gremlinAttack', data: gremlinAttack } 
         ]
         totalSounds = sndData.length;
         soundsReady = 0;
@@ -173,6 +178,8 @@ import Particle from './entities/particle.js';
                 audioMaster.gain.value = 1;
             }
         if(gameOver) { return; }
+        if(currentFloor == 14) { return; }
+        
         t += deltaTime;
         rooms.forEach(room => {room.update(P);});
         entitiesArray.forEach(entity => entity.update());
@@ -180,7 +187,7 @@ import Particle from './entities/particle.js';
         P.update();
 
         //spawn another gremlin near P every 5 seconds
-        if(t % 5000 < deltaTime) {
+        if(t % gremlinSpawnRate < deltaTime) {
             spawnGremlin();
         }
        
@@ -217,6 +224,9 @@ import Particle from './entities/particle.js';
 
         if (paused) { drawPaused(); }
         if (gameOver) { drawGameOver(); }
+        if(currentFloor == 14) {
+            drawCongratulations();
+        }
 
         drawUI();
 
@@ -252,6 +262,16 @@ import Particle from './entities/particle.js';
         //reset palette
         r.pal = r.palDefault.slice();
         r.renderSource = r["PAGE1"];
+    }
+
+    function drawCongratulations() {
+        r.clear(64, r.SCREEN);
+        text = "CONGRATULATIONS";
+        r.text(text, screenWidth / 2, screenHeight / 2, 1, 1, 'center', 'middle', 3, 22);
+        text = "YOU HAVE ESCAPED THE DUNGEON";
+        r.text(text, screenWidth / 2, screenHeight / 2 + 20, 1, 1, 'center', 'middle', 1, 22);
+        text = "THANK YOU FOR PLAYING!"
+        r.text(text, screenWidth / 2, screenHeight / 2 + 40, 1, 1, 'center', 'middle', 1, 22);
     }
 
     function drawUI() {
@@ -335,8 +355,19 @@ import Particle from './entities/particle.js';
         let y = screenHeight / 2 - 6;
         let room = new Room(x, y, 28, 14);
         floor.rooms.push(room);
-        //boss?  giant portal?  puzzle?
-
+        //create altar in center of room
+        let altarX = x + 14;
+        let altarY = y + 7;
+        let altar = new Altar(altarX, altarY, 13);
+        altar.radius = 90;
+        altar.bloodRequired = 40;
+        altar.torches = [];
+        altar.generateTorches();
+        floor.featureRooms.push(room);
+        room.altar = altar;
+        let portal = new Portal(altarX, altarY);
+        //portalLocation = {x, y};
+        room.portal = portal;
         return floor;
     }
 
@@ -349,7 +380,8 @@ import Particle from './entities/particle.js';
         let startY = room.y + room.height / 2;
         P.x = startX * tileSize;
         P.y = startY * tileSize;
-
+        portalLocation = {x: room.portal.x, y: room.portal.y};
+        gremlinsArray = [];
     }
 
     function newFloor() {
@@ -465,6 +497,7 @@ window.addEventListener(
                 }
                 break;
             case GAMESCREEN: // react to clicks on screen 1
+                P.handleClick(e);
                 break;
             case TITLESCREEN:
                 gamestate = GAMESCREEN;
