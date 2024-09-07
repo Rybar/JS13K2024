@@ -1,6 +1,6 @@
 import Torch from './torch.js';
 import Particle from './particle.js';   
-import { callOnce, inView, lightRadial, randFloat } from '../core/utils.js';
+import { callOnce, inView, lightRadial, randFloat, playSound } from '../core/utils.js';
 export default class Altar {
     constructor(x, y, torchCount=3) {
         this.x = x*tileSize;
@@ -15,6 +15,7 @@ export default class Altar {
         this.generateTorches();
         this.bloodRequired = 60;
         this.playerCompleted = callOnce(() => {
+            playSound(sounds.altarDone)
             P.completeAltars.push( this.torchCount );
             P.isInvincible = true;
             //emit particles

@@ -26,9 +26,9 @@ export default class P {
         this.rectangle = new rectangle(this.x, this.y, this.width, this.height);
         this.bodyColor = 22;
         this.attackBoxColor = 8;
-        this.attackDamage = 15;
+        this.attackDamage = 5;
         this.attackDuration = 4; // Number of frames the attack lasts
-        this.attackCoolDown = 40; // Number of frames before the player can attack again
+        this.attackCoolDown = 120; // Number of frames before the player can attack again
         this.attackDurationCounter = 0; // Counter for the attack duration
         this.attackCoolDownCounter = 0; // Counter for the cooldown
 
@@ -207,10 +207,10 @@ export default class P {
         this.acceleration.y = 0;
 
         // Only update the player's rectangle if not dashing
-        if (!this.isDashing) {
-            this.rectangle.x = this.x;
-            this.rectangle.y = this.y;
-        }
+        // if (!this.isDashing) {
+        //     this.rectangle.x = this.x;
+        //     this.rectangle.y = this.y;
+        // }
     }
 
     draw(r, view) {
@@ -264,20 +264,20 @@ export default class P {
         }
 
         //dash input
-        if (Key.isDown(Key.n) && !this.isDashing && this.dashCoolDownCounter === 0) {
+        if (Key.isDown(Key.n) && !this.isDashing && this.dashCoolDownCounter <= 0) {
             this.isDashing = true;
             this.dashCounter = this.dashDuration;
         }
 
         // Check if the attack button is pressed and if not on cooldown
-        if (Key.isDown(Key.SPACE) || Key.isDown(Key.b) && this.attackCoolDownCounter === 0) {
+        if (Key.isDown(Key.SPACE) || Key.isDown(Key.b) && this.attackCoolDownCounter <= 0) {
             this.attackDurationCounter = this.attackDuration; // Reset attack duration counter
             this.attackCoolDownCounter = this.attackCoolDown; // Start cooldown counter
         }
 
-        if(Key.justReleased(Key.SPACE) || Key.justReleased(Key.b)){
-            this.attackCoolDownCounter = 0;
-        }
+        //if(Key.justReleased(Key.SPACE) || Key.justReleased(Key.b)){
+        //    this.attackCoolDownCounter = 0;
+        //}
 
 
         //debug keys
@@ -314,13 +314,13 @@ export default class P {
         }
 
         // Handle dash
-        if (gamepad.buttons[0].pressed && !this.isDashing && this.dashCoolDownCounter === 0) {
+        if (gamepad.buttons[0].pressed && !this.isDashing && this.dashCoolDownCounter <= 0) {
             this.isDashing = true;
             this.dashCounter = this.dashDuration;
         }
 
         // Handle attack
-        if (gamepad.buttons[1].pressed && this.attackCoolDownCounter === 0) {
+        if (gamepad.buttons[1].pressed && this.attackCoolDownCounter <= 0) {
             this.attackDurationCounter = this.attackDuration; // Reset attack duration counter
             this.attackCoolDownCounter = this.attackCoolDown; // Start cooldown counter
         }

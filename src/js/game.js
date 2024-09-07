@@ -27,6 +27,7 @@ import Floor from './entities/floor.js';
 import Map from './entities/map.js';
 import Gremlin from './entities/gremlin.js';
 import Room from './entities/room.js';
+import Particle from './entities/particle.js';
 
 (function () {
     document.body.style = "margin:0; background-color:black; overflow:hidden";
@@ -54,6 +55,7 @@ import Room from './entities/room.js';
     }
 
     window.t = 0;
+    audioMaster = null;
     text = "";
     gamepads = [];
     window.P = null;
@@ -165,7 +167,11 @@ import Room from './entities/room.js';
 
     function updateGame(deltaTime) {
         handleInput();
-        if(paused) { return; }
+        if(paused) { 
+            audioMaster.gain.value = 0.03;
+            return; } else {
+                audioMaster.gain.value = 1;
+            }
         if(gameOver) { return; }
         t += deltaTime;
         rooms.forEach(room => {room.update(P);});
@@ -263,8 +269,16 @@ import Room from './entities/room.js';
 
         P.completeAltars.forEach((altar, i) => {
             let spin = P.sumCompletedTorches() >= 13 ? t/900 : 0;
+            let color = spin > 0 ? 22 : 4;
+            if(spin > 0) {
+                //emit green particle
+                entitiesArray.push(new Particle(screenWidth - 31 + rand(-5, 5), 25,
+                    rand(-.05, .05), rand(-.1, -.3), {color: [10,11,12,13,14,15], life: 30}));
+            }
             r.polygon(450, 30, 15+altar*2, altar,
-                altar%2==0 ? spin: -spin + radians(i*(360/13)), 22, 22);
+                altar%2==0 ? spin: -spin + radians(i*(360/13)), color, color);
+
+            
         });
     
     }

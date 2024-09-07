@@ -28,6 +28,9 @@ https://sb.bitsnbites.eu/?data=U0JveA4C7caxCYBAEADBO_BCMTIwEyzCOuzDPkQwsxyb87EMm
 gremlin hurt
 https://sb.bitsnbites.eu/?data=U0JveA4C7cixEUAwAADAJE4GcKfPClrzUFkindNoLGEPla2whvsvf-vDq8Q01bW5a5hDm8evrhzTcHblyEuMewAAAAAAAID_eAA
 
+gremlin attack
+https://sb.bitsnbites.eu/?data=U0JveA4C7cexEUBAFEXRt9_fQKYEqR7MUIJiZCsQLyPRgBKVYCsgFdyTnbtW0QbLsyyvXtI1wxK1ebDxqqbT-xiS3h36sgsAAAAAAAAAAAD4iwc
+
 Player hurt
 https://sb.bitsnbites.eu/?data=U0JveA4C7ckxEYAwEAXRn2NyAphJDxLSogchaakRAGUcIIAKDZgBDEBLsa_cnZJuXbCxnM1RtCn68KTdZbm2afbeQtW75eNrFQAAAAAAAAAAAPAbFw
 
