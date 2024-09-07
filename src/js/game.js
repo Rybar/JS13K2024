@@ -643,7 +643,7 @@ window.addEventListener(
             let x = choice([roomCorners.x1, roomCorners.x2]);
             let y = choice([roomCorners.y1, roomCorners.y2]);
 
-            gremlinsArray.push(new Gremlin(x * tileSize, y * tileSize));
+            gremlinsArray.push(new Gremlin(x * tileSize, y * tileSize, rand(0,1) == 0 ? true : false));
             playSound(sounds.spawn);
         }
     }

@@ -4,20 +4,19 @@ import Portal from './portal';
 
 export default class Floor {
     constructor(width, height, maxRoomWidth, maxRoomHeight, roomCount) {
-        Object.assign(this, {
-            width,
-            height,
-            maxRoomWidth,
-            maxRoomHeight,
-            roomCount,
-            maxSeparationTries: 20000,
-            rooms: [],
-            featureRooms: [],
-            sizeBias: 1,
-            biasInfluence: 0.1,
-            featureRoomSize: { width: 15, height: 15 },
-            maxGenerationTries: 10
-        });
+        this.width = width;
+        this.height = height;
+        this.maxRoomWidth = maxRoomWidth;
+        this.maxRoomHeight = maxRoomHeight;
+
+        this.roomCount = roomCount;
+        this.maxSeparationTries = 20000;
+        this.rooms = [];
+        this.featureRooms = [];
+        this.sizeBias = 1;
+        this.biasInfluence = 0.1;
+        this.featureRoomSize = { width: 15, height: 15 };
+        this.maxGenerationTries = 10;
         this.generateFloor();
 
     }
