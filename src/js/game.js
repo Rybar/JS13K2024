@@ -6,7 +6,6 @@ import { playSound, Key, inView, rand, resizeCanvas, loadAtlas, lerp, callOnce, 
 import potBreak from './sounds/potBreak.js';
 import torch from './sounds/torch.js';
 import spawn from './sounds/spawn.js';
-import footstep from './sounds/footstep.js';
 import gremlinHurt from './sounds/gremlinHurt.js';
 import playerHurt from './sounds/playerHurt.js';
 import pickup from './sounds/pickup.js';
@@ -107,7 +106,7 @@ import Portal from './entities/portal.js';
         entitiesArray = [];
         gremlinsArray = [];
         floors = [];
-        floors.push(new Floor(480, 270, 35,20, 110));
+        floors.push(new Floor(480, 270, 18,18, 90));
         //floors.push(new Floor(480, 270, 40,25, 10));
         thirteenthFloor = buildThirteenthFloor();
         rooms = floors[0].rooms;
@@ -139,7 +138,6 @@ import Portal from './entities/portal.js';
             { name: 'potBreak', data: potBreak },
             { name: 'torch', data: torch },
             { name: 'spawn', data: spawn },
-            { name: 'footstep', data: footstep },
             { name: 'gremlinHurt', data: gremlinHurt },
             { name: 'playerHurt', data: playerHurt },
             { name: 'pickup', data: pickup },
@@ -302,6 +300,9 @@ import Portal from './entities/portal.js';
 
             
         });
+
+        //draw minimap
+        drawMiniMap(true);
     
     }
 
@@ -628,15 +629,25 @@ import Portal from './entities/portal.js';
         //drawMiniMap();
     }
 
-    function drawMiniMap() {
+    function drawMiniMap(onGame=false) {
         r.renderSource = r["PAGE3"];
         r.renderTarget = r["SCREEN"];
-        r.fRect(0, 0, 480,270,0);
-        r.spr(0,0,480,270,0,0);
-        //draw P position
-        r.fRect(P.x/tileSize-1, P.y/tileSize-1, 2, 2, 22);
-        //draw portal position
-        r.fRect(portalLocation.x-1, portalLocation.y-1, 3, 3, 7);
+        //r.fRect(0, 0, 480,270,0);
+        //onGame, draw portion of minimap that is in view
+        if(onGame) {
+            let viewScale = 3
+            let x = P.x/tileSize - 240*viewScale/tileSize;
+            let y = P.y/tileSize - 240*viewScale/tileSize;
+            r.spr(x, y, 480*viewScale/tileSize, 480*viewScale/tileSize, 380, 170);
+        }else{
+            r.spr(0,0,480,270,0,0);
+             //draw P position
+            r.fRect(P.x/tileSize-1, P.y/tileSize-1, 2, 2, 22);
+            //draw portal position
+            r.fRect(portalLocation.x-1, portalLocation.y-1, 3, 3, 7);
+        }
+        
+       
         
     }
 

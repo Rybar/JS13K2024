@@ -4,9 +4,9 @@ export default class Bullet {
         this.x = x;
         this.y = y;
         this.angle = angle;
-        this.damage = 10;
+        this.damage = Math.max(P.gremlinBlood/5 + 5, 5);
         this.speed = 5;
-        this.radius = 3;
+        this.radius = Math.max(P.gremlinBlood/5, 3);
         this.width = this.radius * 2;
         this.height = this.radius * 2;
         this.rectangle = new rectangle(this.x, this.y, this.width, this.height);
@@ -15,7 +15,7 @@ export default class Bullet {
     }
     draw(r, view) {
         r.fCircle(this.x - view.x, this.y - view.y, this.radius, 6);
-        lightRadial(this.x - view.x, this.y - view.y, this.radius) 
+        lightRadial(this.x - view.x, this.y - view.y, this.radius+5) 
     }
     update() {
         //map is global. check if bullet hits wall

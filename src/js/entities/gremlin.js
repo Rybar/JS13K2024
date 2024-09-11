@@ -71,7 +71,7 @@ export default class Gremlin {
         //draw health bar if health is less than max
         if(this.health < this.maxHealth) {
             r.fRect(this.x - view.x-2, this.y - view.y - 16, this.width+4, 2, 22);
-            r.fRect(this.x - view.x-2, this.y - view.y - 16, this.width+4 * (this.health / this.maxHealth), 2, 10);
+            r.fRect(this.x - view.x-2, this.y - view.y - 16, (this.width+4) * (this.health / this.maxHealth), 2, 10);
         }
 
         //body

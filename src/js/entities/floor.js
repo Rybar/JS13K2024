@@ -16,7 +16,7 @@ export default class Floor {
         this.featureRooms = [];
         this.sizeBias = 1;
         this.biasInfluence = 0.1;
-        this.featureRoomSize = { width: 15, height: 15 };
+        this.featureRoomSize = { width: 12, height: 12 };
         this.maxGenerationTries = 10;
         this.generateFloor();
 

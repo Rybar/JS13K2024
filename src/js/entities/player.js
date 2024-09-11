@@ -271,10 +271,13 @@ export default class P {
             }
         }
         if(e.which == 1){
-            bulletsArray.push(new Bullet(this.x, this.y, this.angle));
+            this.fireBullet();
         }
     }
-
+    fireBullet(){
+        playSound(sounds.playerHurt, 1.5, 0, 0.2, false);
+        bulletsArray.push(new Bullet(this.x, this.y, this.angle));
+    }
     updateLegTargets() {
         const offset = 6; // Distance ahead of the P for the leg targets
         const verticalOffset = 6; // Vertical offset for the leg targets
@@ -299,18 +302,7 @@ export default class P {
                 targetX = this.x + offset;
                 targetY = this.y + this.height + verticalOffset;
                 break;
-        }
-
-
-        // Update the targets for each leg only if the P has moved sufficiently
-        this.legs.forEach((leg, index) => {
-            const legTarget = this.legTargets[index];
-            const distance = Math.hypot(targetX - legTarget.x, targetY - legTarget.y);
-            if (distance > this.stepDistance) {
-                this.legTargets[index] = { x: targetX + (index === 0 ? 0 : 3), y: targetY };
-                playSound(sounds.footstep, 1, 0, 0.1)
-            }
-        });
+        }        
     }
 
     sumCompletedTorches() { return this.completeAltars.reduce((a, b) => a + b, 0); }
