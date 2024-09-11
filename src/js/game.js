@@ -6,7 +6,6 @@ import { playSound, Key, inView, rand, resizeCanvas, loadAtlas, lerp, callOnce, 
 import potBreak from './sounds/potBreak.js';
 import torch from './sounds/torch.js';
 import spawn from './sounds/spawn.js';
-import tada from './sounds/tada.js';
 import footstep from './sounds/footstep.js';
 import gremlinHurt from './sounds/gremlinHurt.js';
 import playerHurt from './sounds/playerHurt.js';
@@ -21,6 +20,7 @@ import gremlinAttack from './sounds/gremlinAttack.js';
 //import background1 from '../assets/background1.js';
 // import platformerTest from '../assets/platformerTest.js';
 // import tileAssetTest from '../assets/tileAssetTest.js';
+
 //entities
 
 import Player from './entities/player.js';
@@ -61,6 +61,7 @@ import Portal from './entities/portal.js';
     audioMaster = null;
     text = "";
     gamepads = [];
+    window.mouse = { x: 0, y: 0 };
     window.P = null;
     sounds = {};
     soundsReady = 0;
@@ -73,6 +74,7 @@ import Portal from './entities/portal.js';
     started = false;
     entitiesArray = [];
     gremlinsArray = [];
+    bulletsArray = [];
     portalLocation = { x: 0, y: 0 };
     gameInitialized = false;
     generatingNewFloor = false;
@@ -134,7 +136,6 @@ import Portal from './entities/portal.js';
         compressor.connect(audioCtx.destination);
 
         sndData = [
-            { name: 'tada', data: tada },
             { name: 'potBreak', data: potBreak },
             { name: 'torch', data: torch },
             { name: 'spawn', data: spawn },
@@ -184,6 +185,9 @@ import Portal from './entities/portal.js';
         rooms.forEach(room => {room.update(P);});
         entitiesArray.forEach(entity => entity.update());
         gremlinsArray.forEach(gremlin => gremlin.update());
+        bulletsArray.forEach(bullet => bullet.update());
+        entitiesVsBullets(entitiesArray, bulletsArray);
+        entitiesVsBullets(gremlinsArray, bulletsArray);
         P.update();
 
         //spawn another gremlin near P every 5 seconds
@@ -213,6 +217,7 @@ import Portal from './entities/portal.js';
 
         drawEntities(entitiesArray);
         drawEntities(gremlinsArray);
+        drawEntities(bulletsArray);
         P.draw(r, view);
 
 
@@ -238,15 +243,6 @@ import Portal from './entities/portal.js';
         r.clear(0, r["PAGE7"]);
         r.fRect(0, 0, 480, 270, 4, 5, 8);
         r.renderTarget = r["SCREEN"];
-    }
-
-    function drawColorBarAndAtlas() {
-        for(let i = 0; i < 64; i++) {
-            r.fRect(i * 8, 0, 8, 8, i);
-        }
-        r.renderSource = r["PAGE1"]
-        r.sspr(0, 0, 480, 270, 60, 60, 480, 270);
-
     }
 
     function drawLightsOverlay() {
@@ -279,11 +275,17 @@ import Portal from './entities/portal.js';
         debugText= `FPS: ${fps.toFixed(2)}`;
         r.text(debugText, 10, 260, 1, 1, 'left', 'top', 1, 22);
 
+        //draw player health bar at top of screen
+        r.fRect(50, 5, 100, 5, 1);
+        r.fRect(50, 5, P.health, 5, 4);
+        text = "HEALTH";
+        r.text(text, 48, 20, 1, 1, 'left', 'top', 1, 22);
+
         debugText = `${P.health.toFixed(2)}\nGB: ${P.gremlinBlood}\nAP: ${P.sumCompleted}`
         r.text(debugText, P.x - view.x, P.y - view.y - 28, 1, 1, 'center', 'top', 1, 22);
     
-        debugText = `FLOOR: ${currentFloor}`;
-        r.text(debugText, 10, 10, 1, 1, 'left', 'top', 2, 22);
+        debugText = `LEVEL: ${currentFloor}`;
+        r.text(debugText, 10, 10, 1, 1, 'left', 'top', 1, 22);
         debugText = `${P.sumCompletedTorches()}`;
         r.text(debugText, screenWidth - 31, 25, 1, 1, 'center', 'top', 2, 22);
 
@@ -305,18 +307,11 @@ import Portal from './entities/portal.js';
 
     function titlescreen() {
         r.clear(64, r.SCREEN);
-        // r.drawTileAsset(0, 0, background1);
-        // r.drawTileAsset(0, 0, platformerTest);
-        // r.drawTileAsset(0, 0, tileAssetTest);
         drawEntities(entitiesArray);
         text = "SIX AND SEVEN";
         r.text(text, screenWidth / 2, 100, 4, 1, 'center', 'top', 4, 22);
         text = "CLICK TO START";
         r.text(text, screenWidth / 2, 125, 1, 1, 'center', 'top', 1, 22);
-        // if (Key.justReleased(Key.UP) || Key.justReleased(Key.w) || Key.justReleased(Key.z)) {
-        //     //startGameMusic();
-        //     gamestate = GAMESCREEN;
-        // }
         gamepads = navigator.getGamepads();
         if(gamepads[0]) {
             text = "GAMEPAD CONNECTED";
@@ -334,14 +329,10 @@ import Portal from './entities/portal.js';
         initGameData();
     }
 
-    function floorStats(completeTime) {
-       
+    function floorStats(completeTime) {   
         r.fRect(0, 0, screenWidth, screenHeight, 3);
-        text = "FLOOR COMPLETE IN " + Math.floor(completeTime/1000) + " SECONDS";
-        r.text(text, screenWidth / 2, screenHeight / 2, 1, 1, 'center', 'middle', 1, 22);
         text = "LOADING THE NEXT FLOOR";
-        r.text(text, screenWidth / 2, screenHeight / 2+16, 1, 1, 'center', 'middle', 1, 22);
-            
+        r.text(text, screenWidth / 2, screenHeight / 2+16, 1, 1, 'center', 'middle', 1, 22);         
     }
 
     function buildThirteenthFloor() {
@@ -448,33 +439,46 @@ import Portal from './entities/portal.js';
         }, false);
     }
 
-function gamepadHandler(event, connected) {
-  const gamepad = event.gamepad;
-  // Note:
-  // gamepad === navigator.getGamepads()[gamepad.index]
+    function gamepadHandler(event, connected) {
+    const gamepad = event.gamepad;
+    // Note:
+    // gamepad === navigator.getGamepads()[gamepad.index]
 
-  if (connected) {
-    gamepads[gamepad.index] = gamepad;
-  } else {
-    delete gamepads[gamepad.index];
-  }
-}
-
-window.addEventListener(
-  "gamepadconnected",
-  (e) => {
-    gamepadHandler(e, true);
-  },
-  false,
-);
-window.addEventListener(
-  "gamepaddisconnected",
-  (e) => {
-    gamepadHandler(e, false);
-  },
-  false,
-);
-
+    if (connected) {
+        gamepads[gamepad.index] = gamepad;
+    } else {
+        delete gamepads[gamepad.index];
+    }
+    }
+    window.addEventListener(
+    "gamepadconnected",
+    (e) => {
+        gamepadHandler(e, true);
+    },
+    false,
+    );
+    window.addEventListener(
+    "gamepaddisconnected",
+    (e) => {
+        gamepadHandler(e, false);
+    },
+    false,
+    );
+        onmousemove = e => {
+        const rect = r.c.getBoundingClientRect(); 
+        const scaleX = r.c.width / rect.width;    
+        const scaleY = r.c.height / rect.height;  // Calculate the vertical scale
+        
+        // Calculate the mouse coordinates relative to the canvas
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
+        mouse = { x: x, y: y };
+    }
+    oncontextmenu = e => {
+        P.handleClick(e);
+        e.preventDefault();
+        return false;
+    }
 
     onclick = e => {
         const rect = r.c.getBoundingClientRect(); 
@@ -497,6 +501,7 @@ window.addEventListener(
                 }
                 break;
             case GAMESCREEN: // react to clicks on screen 1
+                e.preventDefault();
                 P.handleClick(e);
                 break;
             case TITLESCREEN:
@@ -506,7 +511,6 @@ window.addEventListener(
         }
     }
     
-
     function pruneDead(entitiesArray) {
         for (let i = 0; i < entitiesArray.length; i++) {
             let e = entitiesArray[i];
@@ -525,10 +529,17 @@ window.addEventListener(
         }
     }
 
-    function drawEntities(entitiesArray) {
+    function entitiesVsBullets(entitiesArray, bulletsArray) {
         for (let i = 0; i < entitiesArray.length; i++) {
             let e = entitiesArray[i];
-            if(inView(e, tileSize)){e.draw(r, view);}
+            for (let j = 0; j < bulletsArray.length; j++) {
+                let b = bulletsArray[j];
+                if(e.rectangle == undefined) { continue; }
+                else if (e.rectangle.intersects(b.rectangle)) {
+                    e.hurt(b.damage);
+                    b.alive = false;
+                }
+            }
         }
     }
 
@@ -541,7 +552,6 @@ window.addEventListener(
             fps = (frameCount * 1000) / (timestamp - lastFrameTime);
             lastFrameTime = timestamp;
             frameCount = 0;
-            //console.log(`FPS: ${fps.toFixed(2)}`);
         }
     
         if (1 == 1) {
@@ -559,6 +569,8 @@ window.addEventListener(
             }
             Key.update();
             pruneDead(entitiesArray);
+            pruneDead(gremlinsArray);
+            pruneDead(bulletsArray);
             requestAnimationFrame(gameloop);
         }
     }
@@ -588,7 +600,6 @@ window.addEventListener(
    function handleInput() {
         if (Key.justReleased(Key.ESC) || Key.justReleased(Key.p)) {
             paused = !paused;
-            console.log('paused', paused);
         }
         if (Key.justReleased(Key.r)) {
             resetGame();
@@ -627,6 +638,13 @@ window.addEventListener(
         //draw portal position
         r.fRect(portalLocation.x-1, portalLocation.y-1, 3, 3, 7);
         
+    }
+
+    function drawEntities(entitiesArray) {
+        for (let i = 0; i < entitiesArray.length; i++) {
+            let e = entitiesArray[i];
+            if(inView(e, tileSize)){e.draw(r, view);}
+        }
     }
 
     function spawnGremlin() {

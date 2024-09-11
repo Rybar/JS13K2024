@@ -1,11 +1,12 @@
 import Torch from './torch.js';
 import Particle from './particle.js';   
-import { callOnce, inView, lightRadial, randFloat, playSound } from '../core/utils.js';
+import { callOnce, inView, lightRadial, randFloat, playSound, rectangle } from '../core/utils.js';
 export default class Altar {
     constructor(x, y, torchCount=3) {
         this.x = x*tileSize;
         this.y = y*tileSize;
         this.radius = 40;
+        // this.rectangle = new rectangle(this.x, this.y, 16, 16);
         this.torchCount = torchCount;
         this.torches = [];
         this.lit = false;
@@ -13,12 +14,11 @@ export default class Altar {
         this.fill = 16;
         this.completeColor = 10;
         this.generateTorches();
-        this.bloodRequired = 60;
-        this.totalBloodRequired = 60;
+        this.bloodRequired = 30;
+        this.totalBloodRequired = 30;
         this.playerCompleted = callOnce(() => {
             playSound(sounds.altarDone)
             P.completeAltars.push( this.torchCount );
-            P.isInvincible = true;
             //emit particles
             for(let i = 0; i < 300; i++) {
                 let angle = Math.random() * Math.PI * 2;
@@ -112,12 +112,12 @@ export default class Altar {
             
             //represent blood Required as a circle of dots
             if(this.bloodRequired < this.totalBloodRequired && this.lit) {
-                for(let i = 0; i < this.totalBloodRequired; i++) {
+                for(let i = this.totalBloodRequired; i > 0; i--) {
                     let x = this.x + Math.cos(i / this.totalBloodRequired * Math.PI * 2) * this.radius;
                     let y = this.y + Math.sin(i / this.totalBloodRequired * Math.PI * 2) * this.radius;
-                    r.pset(x - view.x, y - view.y, i < this.bloodRequired ? 10 : 0);
+                    //r.pset(x - view.x, y - view.y, i < this.bloodRequired ? 10 : 0);
                     //emit particle at same location
-                    if(i < this.bloodRequired) {
+                    if(i > this.bloodRequired) {
                         entitiesArray.push(new Particle(x, y, randFloat(-.05, .05), randFloat(-.1, -.3), {color: [22,9,8,7,6,5,4,3,2,1], life: 30}));
                     }
                 }

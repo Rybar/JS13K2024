@@ -1,7 +1,7 @@
 import { tileCollisionCheck, rectangle, lightRadial, playSound, randFloat, rand } from "../core/utils";
-import Arm from "./arm";
+// import Arm from "./arm";
 import Particle from "./particle";
-
+import Bullet from "./bullet";
 export default class P {
 
     constructor(x, y) {
@@ -11,40 +11,30 @@ export default class P {
         this.oldY = y;
         this.x = x;
         this.y = y;
+        this.angle = 0;
         this.alive = true;
         this.velocity = { x: 0, y: 0 };
         this.acceleration = { x: 0, y: 0 };
         this.drag = 0.8;
-        this.speed = 0.5;
-        this.maxSpeed = 0.8;
+        this.speed = 0.6;
+        this.maxSpeed = 0.9;
         this.isFiring = false;
         this.gremlinBlood = 0;
         this.currentRoom = null;
-        this.health = 100;
-        this.maxHealth = 100;
+        this.health = 200;
+        this.maxHealth = 200;
         this.completeAltars = [];
+        this.stepFrameCount = 0;
         this.rectangle = new rectangle(this.x, this.y, this.width, this.height);
         this.bodyColor = 22;
         this.attackBoxColor = 8;
-        this.attackDamage = 5;
-        this.attackDuration = 4; // Number of frames the attack lasts
+        this.attackDamage = 10;
+        this.attackDuration = 10; // Number of frames the attack lasts
         this.attackCoolDown = 30; // Number of frames before the player can attack again
         this.attackDurationCounter = 0; // Counter for the attack duration
         this.attackCoolDownCounter = 0; // Counter for the cooldown
-
-        this.dashSpeed = 12.0; // Speed during the dash
-        this.dashDuration = 8; // Duration of the dash in frames
-        this.dashCoolDown = 30; // Cooldown period after a dash
-        this.isDashing = false; // Is the player currently dashing?
-        this.dashCounter = 0; // Counter for dash duration
-        this.dashCoolDownCounter = 0; // Counter for dash cooldown
-
-        this.isInvincible = false; // Is the player invincible?
-        this.invincibilityDuration = 1000; // Duration of invincibility in frames
-        this.invincibilityCounter = 0; // Counter for invincibility duration
-
-        
-        
+        this.hurtCoolDown = 60; // Number of frames before the player can be hurt again
+        this.healCoolDown = 180;
 
         this.direction = 'down'; // Track the direction the player is facing
         this.directionAngles = {
@@ -54,74 +44,17 @@ export default class P {
             right: 0
         }
         this.attackBox = new rectangle(this.x, this.y, 0, 0);; // Placeholder for the attack box
-
-        // Create legs as Arms with 2 Segments each
-        this.legs = [
-            new Arm(this.x, this.y + this.height), // Left leg
-            new Arm(this.x, this.y + this.height)  // Right leg
-        ];
-
-        // Add segments to each leg
-        this.legs.forEach(leg => {
-            leg.addSegment(4); // Upper segment
-            leg.addSegment(4); // Lower segment
-        });
-
-        this.legTargets = [{ x: this.x, y: this.y + 8 }, { x: this.x, y: this.y }];
-        //this.stepDistance = 10; // Minimum distance before a leg takes a step
-        //this.legStepOffset = 120; // Offset in frames for alternating leg movement
-        this.stepFrameCount = 0; // Counter for alternating legs
     }
 
     update() {
+        //set angle by getting angle between mouse and player
+        this.angle = Math.atan2(mouse.y - (this.y-view.y), mouse.x - (this.x-view.x));
         if(this.health <= 0){
             gameOver = true;
             playSound(sounds.playerDeath);
         }
         this.oldX = this.x;
         this.oldY = this.y;
-
-        if(this.isInvincible) {
-            this.health = this.maxHealth;
-            this.invincibilityCounter++;
-            if(this.invincibilityCounter >= this.invincibilityDuration) {
-                this.isInvincible = false;
-                this.invincibilityCounter = 0;
-            }
-            let gradient = [10,11,12,13,14,15]
-            entitiesArray.push(new Particle(
-                this.x + rand(-4,4), this.y,
-                randFloat(-0.05,0.05),
-                -0.65, {color: gradient, life: 70}));
-        }
-
-        if (this.isDashing) {
-            this.dashCounter--;
-
-            // Move player in the direction of dash
-            switch (this.direction) {
-                case 'up':
-                    this.y -= this.dashSpeed;
-                    break;
-                case 'down':
-                    this.y += this.dashSpeed;
-                    break;
-                case 'left':
-                    this.x -= this.dashSpeed;
-                    break;
-                case 'right':
-                    this.x += this.dashSpeed;
-                    break;
-            }
-
-            if (this.dashCounter <= 0) {
-                this.isDashing = false;
-                this.dashCoolDownCounter = this.dashCoolDown; // Start cooldown counter
-            }
-        } else {
-            if (this.dashCoolDownCounter > 0) {
-                this.dashCoolDownCounter--;
-            }
 
         this.velocity.x += this.acceleration.x;
         this.velocity.x *= this.drag;
@@ -137,24 +70,11 @@ export default class P {
             this.y = this.oldY;
         }
 
+         //if moving increment stepFrameCount
+         if(this.x !== this.oldX || this.y !== this.oldY) {
+            this.stepFrameCount++;
+        }
         this.determineDirection();
-    }
-
-        // Update leg positions
-        this.updateLegTargets();
-        this.stepFrameCount++;
-
-        // Update the legs
-        this.legs.forEach((leg, index) => {
-            leg.x = this.x + (index === 0 ? 0 : 3); // Attach legs to the sides of the P
-            leg.y = this.y + this.height; // Attach legs to the bottom of the P
-            leg.target = this.legTargets[index]; // Update target
-
-            // Update leg if the step frame count is appropriate
-            if (this.stepFrameCount > this.legStepOffset * index) {
-                leg.update();
-            }
-        });
 
         // Update attack box if firing
         if (this.isFiring) {
@@ -162,7 +82,8 @@ export default class P {
             //emit particles along a circular 90 degree arc in the direction the P is facing
             //direction is set at this.direction, left, right, up, down
             for(let i = 0; i < 40; i++) {
-                let angle = this.directionAngles[this.direction] + Math.random() * Math.PI / 2 - Math.PI / 4;
+                let angle = this.angle + Math.random() * Math.PI / 2 - Math.PI / 4;
+                //let angle = this.directionAngles[this.direction] + Math.random() * Math.PI / 2 - Math.PI / 4;
                 let particle = new Particle(
                     this.x + Math.cos(angle) * 20 + rand(-3, 3),
                     this.y + Math.sin(angle) * 20 + rand(-3, 3),
@@ -206,39 +127,27 @@ export default class P {
         this.acceleration.x = 0;
         this.acceleration.y = 0;
 
-        // Only update the player's rectangle if not dashing
-        // if (!this.isDashing) {
-        //     this.rectangle.x = this.x;
-        //     this.rectangle.y = this.y;
-        // }
+        this.rectangle.x = this.x;
+        this.rectangle.y = this.y;
+
     }
 
     draw(r, view) {
-        // Draw the legs
-        this.legs.forEach(leg => leg.segments.forEach(segment => {
-            r.line(segment.x - view.x, segment.y - view.y, segment.getEndX() - view.x, segment.getEndY() - view.y, this.bodyColor);
-        }));
+        //draw basic stick legs, alternating every 8 frames
+        if(this.stepFrameCount % 16 < 8) {
+            r.line(this.x - view.x, this.y - view.y + 4, this.x - view.x, this.y - view.y + 8, this.bodyColor);
+            r.line(this.x - view.x + 3, this.y - view.y + 4, this.x - view.x + 3, this.y - view.y + 8, this.bodyColor);
+        } else {
+            r.line(this.x - view.x, this.y - view.y + 4, this.x - view.x + 3, this.y - view.y + 8, this.bodyColor);
+            r.line(this.x - view.x + 3, this.y - view.y + 4, this.x - view.x, this.y - view.y + 8, this.bodyColor);
+        }
 
         // Draw body (with head and attack box)
         r.fRect(this.x - view.x, this.y - view.y-4, this.width, 8, this.bodyColor);
         //r.drawTile(5, this.x - view.x, this.y - view.y - 8, 16, 22, 8);
-        r.sspr(16, 0, 16, 16, this.x - 2 - view.x, this.y - view.y - 8, 8, 8, 0, 0);
-
-        //Draw attack box if firing
-        // if (this.isFiring && this.attackBox) {
-        //     r.fRect(this.attackBox.x - view.x, this.attackBox.y - view.y, this.attackBox.width, this.attackBox.height, this.attackBoxColor);
-        // }
-        
+        r.sspr(16, 0, 16, 16, this.x - 2 - view.x, this.y - view.y - 8, 8, 8, 0, 0);        
         lightRadial(this.x - view.x + 2, this.y - view.y + 2, 50, [0,1,2,3,4]);
 
-        // //debug corners
-        // r.fRect(this.x - view.x, this.y - view.y, 1, 1, 18);
-        // r.fRect(this.x - view.x + this.width, this.y - view.y, 1, 1, 18);
-        // r.fRect(this.x - view.x, this.y - view.y + this.height, 1, 1, 18);
-        // r.fRect(this.x - view.x + this.width, this.y - view.y + this.height, 1, 1, 18);
-
-        // //debug rectangle
-        // r.fRect(this.rectangle.x - view.x, this.rectangle.y - view.y, this.rectangle.width, this.rectangle.height, 10);
 
         //if completed altar torches >= 13, draw an arrow pointing towards the portal orbiting the Player
         if(this.sumCompletedTorches() >= 13) {
@@ -248,6 +157,12 @@ export default class P {
             let x = this.x + Math.cos(angle) * 20;
             let y = this.y + Math.sin(angle) * 20;
             r.polygon(x - view.x, y - view.y, 5, 3, angle, 11, 11)
+        }
+
+        if(this.angle){
+            let x = this.x + Math.cos(this.angle) * 20;
+            let y = this.y + Math.sin(this.angle) * 20;
+            r.polygon(x - view.x, y - view.y, 3, 3, this.angle, 4, 4)
         }
     }
 
@@ -263,16 +178,38 @@ export default class P {
             this.acceleration.y = this.speed;
         }
 
-        //dash input
-        if (Key.isDown(Key.n) && !this.isDashing && this.dashCoolDownCounter <= 0) {
-            this.isDashing = true;
-            this.dashCounter = this.dashDuration;
-        }
-
         // Check if the attack button is pressed and if not on cooldown
-        if (Key.isDown(Key.SPACE) || Key.isDown(Key.b) && this.attackCoolDownCounter <= 0) {
+        if (Key.isDown(Key.n) && this.attackCoolDownCounter <= 0) {
             this.attackDurationCounter = this.attackDuration; // Reset attack duration counter
             this.attackCoolDownCounter = this.attackCoolDown; // Start cooldown counter
+        }
+
+        if (Key.isDown(Key.x) && this.attackCoolDownCounter <= 0) {
+            this.attackDurationCounter = this.attackDuration; // Reset attack duration counter
+            this.attackCoolDownCounter = this.attackCoolDown; // Start cooldown counter
+        }
+
+        if ( (Key.justReleased(Key.c) || Key.justReleased(Key.m) ) && this.gremlinBlood > 20) {
+            //all gremlins in attack radius take 30 damage
+            let attackRadius = 150;
+            gremlinsArray.forEach(gremlin => {
+                let dx = gremlin.x - this.x;
+                let dy = gremlin.y - this.y;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+                if(dist < attackRadius) {
+                    gremlin.hurt(30);
+                }
+            });
+            //spawn particles inside blast radius
+            for(let i = 0; i < 400; i++) {
+                let angle = Math.random() * Math.PI * 2;
+                let x = this.x + Math.cos(angle) * rand(0,attackRadius);
+                let y = this.y + Math.sin(angle) * rand(0,attackRadius);
+                entitiesArray.push(new Particle(x, y, randFloat(-0.3,0.3), -0.75, {color: [10,11,12,13,14], life: 20}));
+            }
+            this.gremlinBlood -= 20;
+            playSound(sounds.playerAttack, 0.5, 0, 0.7)
+            playSound(sounds.playerDeath, 0.5, 0, 0.7);
         }
 
         //if(Key.justReleased(Key.SPACE) || Key.justReleased(Key.b)){
@@ -327,9 +264,14 @@ export default class P {
     }
 
     handleClick(e){
-        if(this.attackCoolDownCounter <= 0) {
-            this.attackDurationCounter = this.attackDuration; // Reset attack duration counter
-            this.attackCoolDownCounter = this.attackCoolDown; // Start cooldown counter
+        if(e.which == 3){
+            if(this.attackCoolDownCounter <= 0) {
+                this.attackDurationCounter = this.attackDuration; // Reset attack duration counter
+                this.attackCoolDownCounter = this.attackCoolDown; // Start cooldown counter
+            }
+        }
+        if(e.which == 1){
+            bulletsArray.push(new Bullet(this.x, this.y, this.angle));
         }
     }
 

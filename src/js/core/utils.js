@@ -34,7 +34,7 @@ export function radians(degrees) {
   return degrees * Math.PI / 180;
 }
 
-export function lightRadial(cx, cy, radius, colors) {
+export function lightRadial(cx, cy, radius, colors=[0,1,2,3]){
   //draw halo on lights layer
   r.renderTarget = r["PAGE7"];
   r.paintTransparent = true;

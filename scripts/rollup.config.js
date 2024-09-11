@@ -46,7 +46,7 @@ export default {
       
         // nameCache: null,
       
-        ecma: 2022,
+        ecma: 2023,
         ie8: false,
         safari10: false,
         keep_classnames: false,
@@ -55,14 +55,14 @@ export default {
         // Parser options
         parse: {
           bare_returns: false,
-          ecma: 2022,
+          ecma: 2023,
           html5_comments: false,
           shebang: true,
         },
       
         // Compress options
         compress: {
-          ecma: 2022,
+          ecma: 2023,
       
           defaults: true,
       

@@ -1,6 +1,7 @@
 import Room from './room';
 import Altar from './altar';
 import Portal from './portal';
+import Pot from './pot';
 
 export default class Floor {
     constructor(width, height, maxRoomWidth, maxRoomHeight, roomCount) {
@@ -43,6 +44,8 @@ export default class Floor {
         if(this.featureRooms.length < 5 && tries > 0) {
             this.generateFloor();
             tries--;
+        }else {
+            this.placePots(this.rooms);
         }
         if(tries === 0) {
             console.log('Failed to generate floor');
@@ -118,10 +121,8 @@ export default class Floor {
             const y = room.y + Math.floor(room.height / 2);
             const numTorches = Math.round(Math.random() * 2) + 3;
             if (!portalPlaced) {
-                console.log('portal placed');
                 room.portal = new Portal(x, y);
                 portalLocation = {x, y};
-                console.log(portalLocation);
                 portalPlaced = true;
             } else if (!sixPlaced) {
                 room.altar = new Altar(x, y, 6);
@@ -132,6 +133,16 @@ export default class Floor {
             } else {
                 room.altar = new Altar(x, y, numTorches)
             };
+        });
+    }
+
+    placePots(rooms) {
+        //randomly place 1 pot in each room
+        rooms.forEach(room => {
+            let x = Math.floor(room.width/2) + room.x;
+            let y = Math.floor(room.height/2) + room.y;
+            if(Math.random() < .01) entitiesArray.push(new Pot(x, y));
+            
         });
     }
 
@@ -180,7 +191,6 @@ export default class Floor {
     
         // Step 2: Re-incorporate some of the remaining edges to add loops
         const remainingEdges = edges.filter(edge => !mst.includes(edge));
-        console.log(remainingEdges.length);
         const extraEdges = Math.floor(remainingEdges.length * 0.05);
         for (let i = 0; i < extraEdges; i++) {
             const randomEdge = remainingEdges[Math.floor(Math.random() * remainingEdges.length)];

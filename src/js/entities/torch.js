@@ -1,12 +1,14 @@
 import Particle from './particle';
-import { randFloat, rand, lightRadial, playSound} from '../core/utils';
+import { randFloat, rand, lightRadial, playSound, rectangle} from '../core/utils';
 export default class Torch {
     constructor(x, y) {
+        this.type = "torch";
         this.x = x;
         this.y = y;
         this.size = 3;
+        // this.rectangle = new rectangle(this.x, this.y, 8, 8);
         this.health = 0;
-        this.maxHealth = 50;
+        this.maxHealth = 70;
         this.playerLightDistance = 20;
         this.lit = false;
         this.igniting = false;
@@ -15,7 +17,6 @@ export default class Torch {
     }
 
     draw(r, view) {
-        //console.log('Torch draw');
         r.renderTarget = r["SCREEN"];
         r.fCircle(this.x - view.x, this.y - view.y, this.size, this.fill);
         if(this.lit) {

@@ -1,4 +1,5 @@
-import { playSound, randFloat, tileCollisionCheck } from "../core/utils";
+import { playSound, randFloat, tileCollisionCheck, rectangle } from "../core/utils";
+
 
 export default class Powerup {
 
@@ -11,7 +12,7 @@ export default class Powerup {
                 "life": 500,
                 "color": 5,
                 "effect" : function (P) {
-                    P.health = Math.min(P.health + 1, P.maxHealth);
+                    P.health = Math.min(P.health + 10, P.maxHealth);
                 }
             },
             "GREMLINBLOOD": {
@@ -30,7 +31,7 @@ export default class Powerup {
         this.alive = true;
         
         this.type = this.types[type];
-        this.life = this.type.life
+        this.life = this.type.life;
         this.lifeMax = this.type.life;
         this.color = this.type.color;
         this.effect = this.type.effect;

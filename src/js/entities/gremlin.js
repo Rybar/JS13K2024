@@ -3,7 +3,6 @@ import { tileCollisionCheck, rand, randFloat, rectangle, lightRadial, playSound,
 import Splode from "../gfx/Splode";
 import Powerup from "./Powerup";
 import Particle from './particle.js';
-import Arm from "./arm";
 
 export default class Gremlin {
     constructor(x, y, brute = false) {
@@ -16,24 +15,28 @@ export default class Gremlin {
         this.oldY = y;
         this.alive = true;
         this.health = 30;
+        this.maxHealth = 30;
         this.velocity = {x: 0, y: 0};
         this.acceleration = {x: 0, y: 0};
+        this.fillColor = 16;
         this.drag = 0.8;
         this.speed = 0.25;
         this.maxSpeed = 0.3;
         this.attackRange = 50;
-        this.attackCooldown = 1000;
-        this.attackTelegraphTime = 500;
+        this.attackCooldown = 900;
+        this.attackTelegraphTime = 1100;
         this.isAttacking = false;
         this.attackBox = new rectangle(0, 0, 0, 0);
         this.lastAttackTime = 0;
         this.telegraphStartTime = 0;
         this.damage = 10;
         this.isFiring = false;
-        this.rectangle = new rectangle(this.x, this.y, this.width, this.height);
+       
         this.currentRoom = null;
         this.angleToPlayer = 0;
+        this.distanceToPlayer = 0;
         this.stepFrameCount = 0; // Counter for alternating legs
+        this.hurtCooldown = 0;
 
         if(brute) {
             this.width = 20;
@@ -41,11 +44,13 @@ export default class Gremlin {
             this.speed = 0.1;
             this.maxSpeed = 0.2;
             this.health = 50;
+            this.maxHealth = 50;
             this.damage = 20;
             this.attackRange = 60;
-            this.attackCooldown = 2000;
-            this.attackTelegraphTime = 1000;
+            this.attackCooldown = 1000;
+            this.attackTelegraphTime = 500;
         }
+        this.rectangle = new rectangle(this.x, this.y-5, this.width, this.height+5);
         this.targetTypes = {
             P: 1,
             TORCH: 2
@@ -55,33 +60,6 @@ export default class Gremlin {
             x: P.x,
             y: P.y
         };
-         // Create legs as Arms with 2 Segments each
-        this.legs = [
-            new Arm(this.x, this.y + this.height), // Left leg
-            new Arm(this.x, this.y + this.height), // Right leg
-            new Arm(this.x, this.y + this.height), // Left leg
-            new Arm(this.x, this.y + this.height)  // Right leg
-        ];
-        // Add segments to each leg
-        if(brute) {
-            this.legs.forEach(leg => {
-                leg.addSegment(10); // Upper segment
-                leg.addSegment(10); // Lower segment
-                leg.addSegment(10); // Lower segment
-            });
-        }else {
-        this.legs.forEach(leg => {
-            leg.addSegment(4); // Upper segment
-            leg.addSegment(4); // Lower segment
-            leg.addSegment(4); // Lower segment
-        });
-        }
-        this.legTargets = [
-            { x: this.x, y: this.y },
-            { x: this.x, y: this.y },
-            { x: this.x, y: this.y },
-            { x: this.x, y: this.y }
-        ];
     }
 
     draw(r, view) {
@@ -90,13 +68,18 @@ export default class Gremlin {
         if (this.isAttacking) {
             r.line(this.x-view.x, this.y-view.y, this.target.x-view.x, this.target.y-view.y, choice([10,11,12,13]));
         }
+        //draw health bar if health is less than max
+        if(this.health < this.maxHealth) {
+            r.fRect(this.x - view.x-2, this.y - view.y - 16, this.width+4, 2, 22);
+            r.fRect(this.x - view.x-2, this.y - view.y - 16, this.width+4 * (this.health / this.maxHealth), 2, 10);
+        }
 
         //body
-        r.fRect(this.x - view.x, this.y - view.y, this.width, this.height, 16, 16);
+        r.fRect(this.x - view.x, this.y - view.y, this.width, this.height, this.fillColor, this.fillColor);
         r.fCircle(this.x + this.width / 2 - view.x, this.y - view.y, this.width / 2, 16);
         lightRadial(this.x - view.x, this.y - view.y, 30, [2, 4]);
 
-        const hornColor = this.isAttacking ? choice([10,11,12,13]) : 16;
+        const hornColor = this.isAttacking ? choice([10,11,12,13]) : this.fillColor;
         const hornWidth = this.brute? 4 : 2;
         const hornHeight = this.brute? 6 : 4;
         r.fRect(this.x - view.x - 2, this.y - view.y - 2, hornWidth, hornHeight, hornColor);
@@ -107,25 +90,13 @@ export default class Gremlin {
             r.fRect(this.x - view.x + 2, this.y - view.y + 2, 2, 2, 22);
             r.fRect(this.x - view.x + this.width - 4, this.y - view.y + 2, 2, 2, 22);
         }
-        // Draw the legs
-        this.legs.forEach(leg => leg.segments.forEach(segment => {
-            r.line(segment.x - view.x, segment.y - view.y, segment.getEndX() - view.x, segment.getEndY() - view.y, 16);
-        }));
-
-        r.text(`${this.health}`, this.x - view.x, this.y - view.y - 16, 1, 1, 'center', 'top', 1, 22);
-
-        // //debug rectangle
-        // r.fRect(this.x - view.x, this.y - view.y, this.width, this.height, 10);
-        // //debug corners
-        // r.fRect(this.x - view.x, this.y - view.y, 1, 1, 10);
-        // r.fRect(this.x - view.x + this.width, this.y - view.y, 1, 1, 11);
-        // r.fRect(this.x - view.x, this.y - view.y + this.height, 1, 1, 12);
 
     }
 
     update() {
         if (!this.alive) return;
         this.angleToPlayer = Math.atan2(P.y - this.y, P.x - this.x);
+        this.distanceToPlayer = Math.hypot(P.x - this.x, P.y - this.y);
         if(this.currentRoom !== P.currentRoom) {
             if(this.target.type === this.targetTypes.TORCH) {
                 this.target.type = this.targetTypes.P;
@@ -140,6 +111,9 @@ export default class Gremlin {
         const now = Date.now();
 
         if (this.isAttacking) {
+            if(this.target.type === this.targetTypes.P && P.isDashing) {
+                P.health += 5;
+            }
             let timeRemaining = this.attackTelegraphTime - (now - this.telegraphStartTime);
             if (timeRemaining <= 0) {
                 
@@ -153,25 +127,7 @@ export default class Gremlin {
 
         this.seekTarget();
         this.seekWithObstacleAvoidance();
-        this.determineDirection();
         
-        // Update leg positions
-        this.updateLegTargets();
-        this.stepFrameCount++;
-
-        // Update the legs
-        this.legs.forEach((leg, index) => {
-            //4 legs, attach to roughly the corners of the gremlin
-            leg.x = this.x + (this.width/4 * index);
-            leg.y = this.y + this.height;
-            leg.target = this.legTargets[index]; // Update target
-
-            // Update leg if the step frame count is appropriate
-            if (this.stepFrameCount > this.legStepOffset * index) {
-                leg.update();
-            }
-        });
-
         // Initiate attack telegraph if within range and cooldown passed
         const distanceToTarget = Math.hypot(this.target.x - this.x, this.target.y - this.y);
         if (distanceToTarget <= this.attackRange && now - this.lastAttackTime >= this.attackCooldown && !this.isAttacking) {
@@ -188,72 +144,19 @@ export default class Gremlin {
         this.applyMovement();
     }
 
-    determineDirection() {
-        if (this.velocity.x !== 0 || this.velocity.y !== 0) {
-            const magnitude = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
-            const normalizedX = this.velocity.x / magnitude;
-            const normalizedY = this.velocity.y / magnitude;
 
-            if (Math.abs(normalizedX) > Math.abs(normalizedY)) {
-                this.direction = normalizedX > 0 ? 'right' : 'left';
-            } else {
-                this.direction = normalizedY > 0 ? 'down' : 'up';
-            }
-        }
-    }
-
-    updateLegTargets() {
-       
-        var offset = 12; // Distance ahead of the P for the leg targets
-        var verticalOffset = 6; // Vertical offset for the leg targets
-        let targetX, targetY;
-        this.stepDistance = 30; // Minimum distance before a leg takes a step
-        this.legStepOffset = 5; // Offset in frames for alternating leg movement
-
-        if(this.brute){
-            offset = 20;
-            verticalOffset = 10;
-            this.stepDistance = 40;
-            this.legStepOffset = 10;
-        }
-
-        switch (this.direction) {
-            case 'up':
-                targetX = this.x;
-                targetY = this.y + this.height + verticalOffset;
-                break;
-            case 'down':
-                targetX = this.x;
-                targetY = this.y + this.height + verticalOffset;
-                break;
-            case 'left':
-                targetX = this.x - offset;
-                targetY = this.y + this.height + verticalOffset;
-                break;
-            case 'right':
-                targetX = this.x + offset;
-                targetY = this.y + this.height + verticalOffset;
-                break;
-        }
-
-        // Update the targets for each leg only if the Player has moved sufficiently
-        this.legs.forEach((leg, index) => {
-            const legTarget = this.legTargets[index];
-            const distance = Math.hypot(targetX - legTarget.x, targetY - legTarget.y);
-            if (distance > this.stepDistance) {
-                this.legTargets[index] = { x: targetX + (index === 0 ? 0 : 3), y: targetY };
-                playSound(sounds.footstep, 1, 0, 0.1)
-            }
-        });
+    hurt(damage) {
+        this.health -= damage;
+        let knockbackForce = 4;
+        this.velocity.x =  - Math.cos(this.angleToPlayer) * knockbackForce;
+        this.velocity.y = - Math.sin(this.angleToPlayer) * knockbackForce;
+        playSound(sounds.gremlinHurt);
+        
     }
 
 
     collideWithPlayer() {
         if (this.rectangle.intersects(P.rectangle)) {
-            if(P.isInvincible) {
-                this.health -= 1;
-                return;
-            }
             P.health -= 1;
             let knockbackForce = 4;
             P.acceleration.x += Math.cos(this.angleToPlayer) * knockbackForce;
@@ -332,6 +235,12 @@ export default class Gremlin {
     
 
     seekTarget() {
+        if(this.distanceToPlayer < this.attackRange) {
+            this.target.type = this.targetTypes.P;
+            this.target.x = P.x;
+            this.target.y = P.y;
+            return;
+        }
         // If the current room has an altar and it's not anointed, target the nearest torch
         if (P.currentRoom.altar && !P.currentRoom.altar.annointed) {
             let nearestTorch = null;
@@ -398,14 +307,11 @@ export default class Gremlin {
     }
 
     performAttack() {
-        console.log('performing attack');
         this.isAttacking = false;
         this.lastAttackTime = Date.now();
         // Perform attack logic based on target type
         if (this.target.type === this.targetTypes.P && !P.isFiring) {
-            console.log('attack target is player...');
             if (Math.hypot(P.x - this.x, P.y - this.y) <= this.attackRange) {
-                console.log('player in range...');
                 P.health -= this.damage; 
                 let knockbackForce = 6;
                 P.acceleration.x += Math.cos(this.angleToPlayer) * knockbackForce;
@@ -432,11 +338,12 @@ export default class Gremlin {
 
                 //playSound('hit'); // Assuming there's a sound effect for hitting
             }
+        }else if(P.isFiring && this.target.type === this.targetTypes.P){
+            this.hurt(P.attackDamage);
+            P.health += 10;
         } else if (this.target.type === this.targetTypes.TORCH) {
             for (const torch of P.currentRoom.altar.torches) {
-                console.log('checking torch');
                 if (torch.x === this.target.x && torch.y === this.target.y) {
-                    console.log('extinguishing torch');
                     torch.health -= 20; // Reduce torch health
                     if (torch.health <= 0) {
                        playSound(sounds.footstep, 0.5, 0, 0.8); // Assuming there's a sound effect for extinguishing torches
@@ -524,8 +431,7 @@ export default class Gremlin {
         }
 
         this.rectangle.x = this.x;
-        this.rectangle.y = this.y;
-
+        this.rectangle.y = this.y-5
 
     }
 
