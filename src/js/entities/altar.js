@@ -14,8 +14,8 @@ export default class Altar {
         this.fill = 16;
         this.completeColor = 10;
         this.generateTorches();
-        this.bloodRequired = 30;
-        this.totalBloodRequired = 30;
+        this.bloodRequired = 20;
+        this.totalBloodRequired = 20;
         this.playerCompleted = callOnce(() => {
             playSound(sounds.altarDone)
             P.completeAltars.push( this.torchCount );
@@ -60,21 +60,14 @@ export default class Altar {
             this.playerCompleted();
         }
         this.fill = this.annointed ? this.completeColor : 12;
-        if(this.lit && this.bloodRequired > 0) {
+        //if all torches are lit, decrement over time, only if on screen
+        if(this.lit && this.bloodRequired > 0 && inView({x: this.x, y: this.y}) ) {
             //if all torches are lit, decrement over time
             this.bloodRequired -= 0.05;
             //distance to P
             let dx = P.x - this.x;
             let dy = P.y - this.y;
             let dist = Math.sqrt(dx*dx + dy*dy);
-            if(dist < 20) {
-                if(P.gremlinBlood > 0) {
-                    this.bloodRequired--;
-                    P.gremlinBlood--;
-                    playSound(sounds.pickup, 1.5, 0, 0.2, false);
-                }
-
-            }
         }
     }
 

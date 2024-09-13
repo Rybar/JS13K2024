@@ -20,6 +20,7 @@ export default class P {
         this.maxSpeed = 0.9;
         this.isFiring = false;
         this.gremlinBlood = 0;
+        this.gremlinBloodMax = 200;
         this.currentRoom = null;
         this.health = 200;
         this.maxHealth = 200;
@@ -29,25 +30,18 @@ export default class P {
         this.bodyColor = 22;
         this.attackBoxColor = 8;
         this.attackDamage = 10;
-        this.attackDuration = 10; // Number of frames the attack lasts
-        this.attackCoolDown = 30; // Number of frames before the player can attack again
-        this.attackDurationCounter = 0; // Counter for the attack duration
+        this.attackCoolDown = 5; // Number of frames before the player can attack again
         this.attackCoolDownCounter = 0; // Counter for the cooldown
+        this.bombCoolDown = 30;
+        this.bombCoolDownCounter = 0;
         this.hurtCoolDown = 60; // Number of frames before the player can be hurt again
         this.healCoolDown = 180;
-
-        this.direction = 'down'; // Track the direction the player is facing
-        this.directionAngles = {
-            up: -Math.PI / 2,
-            down: Math.PI / 2,
-            left: Math.PI,
-            right: 0
-        }
         this.attackBox = new rectangle(this.x, this.y, 0, 0);; // Placeholder for the attack box
     }
 
     update() {
         //set angle by getting angle between mouse and player
+        this.gremlinBlood = Math.min(this.gremlinBlood, this.gremlinBloodMax);
         this.angle = Math.atan2(mouse.y - (this.y-view.y), mouse.x - (this.x-view.x));
         if(this.health <= 0){
             gameOver = true;
@@ -74,54 +68,20 @@ export default class P {
          if(this.x !== this.oldX || this.y !== this.oldY) {
             this.stepFrameCount++;
         }
-        this.determineDirection();
-
-        // Update attack box if firing
-        if (this.isFiring) {
-            this.updateAttackBox();
-            //emit particles along a circular 90 degree arc in the direction the P is facing
-            //direction is set at this.direction, left, right, up, down
-            for(let i = 0; i < 40; i++) {
-                let angle = this.angle + Math.random() * Math.PI / 2 - Math.PI / 4;
-                //let angle = this.directionAngles[this.direction] + Math.random() * Math.PI / 2 - Math.PI / 4;
-                let particle = new Particle(
-                    this.x + Math.cos(angle) * 20 + rand(-3, 3),
-                    this.y + Math.sin(angle) * 20 + rand(-3, 3),
-                    this.velocity.x + Math.cos(angle),
-                    this.velocity.y + Math.sin(angle), 
-                    {
-                        color: [22,21,20,19,18],
-                        life: 5,
-                        customUpdate: function(p) {
-                            p.xVelocity += randFloat(-0.3, 0.3);
-                            p.yVelocity += randFloat(-0.3, 0.3);
-                        }
-                    })
-                entitiesArray.push(particle);
-            }
-
-        } else {
-            this.attackBox.width = 0;
-            this.attackBox.height = 0;
-        }
-
+    
         // Handle attack cooldown and duration
         if (this.attackCoolDownCounter > 0) {
             this.attackCoolDownCounter--;
         }
+        if (this.bombCoolDownCounter > 0) {
+            this.bombCoolDownCounter--;
+        }
 
         if (this.attackDurationCounter > 0) {
-            if (this.attackDurationCounter === this.attackDuration) {
-                playSound(sounds.playerAttack, 1, 0, 0.1);
-            }
             this.attackDurationCounter--;
             this.isFiring = true;
-            this.updateAttackBox();
-            // Add particle effects here if desired
         } else {
             this.isFiring = false;
-            this.attackBox.width = 0;
-            this.attackBox.height = 0;
         }
 
         this.acceleration.x = 0;
@@ -189,53 +149,34 @@ export default class P {
             this.attackCoolDownCounter = this.attackCoolDown; // Start cooldown counter
         }
 
-        if ( (Key.justReleased(Key.c) || Key.justReleased(Key.m) ) && this.gremlinBlood > 20) {
-            //all gremlins in attack radius take 30 damage
-            let attackRadius = 150;
-            gremlinsArray.forEach(gremlin => {
-                let dx = gremlin.x - this.x;
-                let dy = gremlin.y - this.y;
-                let dist = Math.sqrt(dx*dx + dy*dy);
-                if(dist < attackRadius) {
-                    gremlin.hurt(30);
-                }
-            });
-            //spawn particles inside blast radius
-            for(let i = 0; i < 400; i++) {
-                let angle = Math.random() * Math.PI * 2;
-                let x = this.x + Math.cos(angle) * rand(0,attackRadius);
-                let y = this.y + Math.sin(angle) * rand(0,attackRadius);
-                entitiesArray.push(new Particle(x, y, randFloat(-0.3,0.3), -0.75, {color: [10,11,12,13,14], life: 20}));
-            }
-            this.gremlinBlood -= 20;
-            playSound(sounds.playerAttack, 0.5, 0, 0.7)
-            playSound(sounds.playerDeath, 0.5, 0, 0.7);
+        if ( (Key.justReleased(Key.c) || Key.justReleased(Key.m) ) && this.gremlinBlood > 10) {
+            this.bomb();
         }
-
-        //if(Key.justReleased(Key.SPACE) || Key.justReleased(Key.b)){
-        //    this.attackCoolDownCounter = 0;
-        //}
-
 
         //debug keys
         if(Key.justReleased(Key.ONE)){
             this.health += 100;
             this.completeAltars = [6,7];
         }
-        if(Key.justReleased(Key.TWO)){
-            this.completeAltars = [3, 3, 3, 4];
-        }
-        if(Key.justReleased(Key.THREE)){
-            this.completeAltars = [5, 3, 5];
-        }
-        if(Key.justReleased(Key.FOUR)){
-            this.completeAltars = [0];
-            this.gremlinBlood += 100;
-        }
+        // if(Key.justReleased(Key.TWO)){
+        //     this.completeAltars = [3, 3, 3, 4];
+        // }
+        // if(Key.justReleased(Key.THREE)){
+        //     this.completeAltars = [5, 3, 5];
+        // }
+        // if(Key.justReleased(Key.FOUR)){
+        //     this.completeAltars = [0];
+        //     this.gremlinBlood += 100;
+        // }
         if(Key.justReleased(Key.FIVE)){
             currentFloor = 12;
-            //this.completeAltars.push(3);
         }
+
+        if(mouse.down && this.attackCoolDownCounter <= 0){
+            this.attackCoolDownCounter = this.attackCoolDown; 
+            this.fireBullet();
+        }
+
     }
 
     handleGamepadInput(gamepad) {
@@ -249,108 +190,87 @@ export default class P {
         if (Math.abs(y) > deadzone) {
             this.acceleration.y = y * this.speed;
         }
-
-        // Handle dash
-        if (gamepad.buttons[0].pressed && !this.isDashing && this.dashCoolDownCounter <= 0) {
-            this.isDashing = true;
-            this.dashCounter = this.dashDuration;
+        const bombPressed = (
+            gamepad.buttons[1].pressed ||
+            gamepad.buttons[5].pressed ||
+            gamepad.buttons[7].pressed ||
+            gamepad.buttons[1].pressed 
+        );
+        // Handle attack
+        if (bombPressed && this.bombCoolDownCounter <= 0 && this.gremlinBlood > 10) {
+            this.bombCoolDownCounter = this.bombCoolDown;
+            this.bomb();
         }
 
-        // Handle attack
-        if (gamepad.buttons[1].pressed && this.attackCoolDownCounter <= 0) {
-            this.attackDurationCounter = this.attackDuration; // Reset attack duration counter
-            this.attackCoolDownCounter = this.attackCoolDown; // Start cooldown counter
+        //fire bullets in direction of right stick
+        const rightStickX = gamepad.axes[2];
+        const rightStickY = gamepad.axes[3];
+
+        if (Math.abs(rightStickX) > deadzone || Math.abs(rightStickY) > deadzone) {
+            if(this.attackCoolDownCounter <= 0){
+                this.angle = Math.atan2(rightStickY, rightStickX);
+                this.attackCoolDownCounter = this.attackCoolDown; 
+                this.fireBullet();
+            }
         }
     }
 
     handleClick(e){
         if(e.which == 3){
-            if(this.attackCoolDownCounter <= 0) {
-                this.attackDurationCounter = this.attackDuration; // Reset attack duration counter
-                this.attackCoolDownCounter = this.attackCoolDown; // Start cooldown counter
+            if(this.bombCoolDownCounter <= 0 && this.gremlinBlood > 10){ 
+                this.bombCoolDownCounter = this.bombCoolDown;
+                this.bomb();
             }
         }
         if(e.which == 1){
             this.fireBullet();
         }
     }
+
+    handleMouseDown(){
+        if(mouse.down && this.attackCoolDownCounter <= 0){
+            this.attackCoolDownCounter = this.attackCoolDown; 
+            this.fireBullet();
+        }
+    }
+
     fireBullet(){
-        playSound(sounds.playerHurt, 1.5, 0, 0.2, false);
+        playSound(sounds.playerHurt, 1.5, 0, 0.1, false);
         bulletsArray.push(new Bullet(this.x, this.y, this.angle));
     }
-    updateLegTargets() {
-        const offset = 6; // Distance ahead of the P for the leg targets
-        const verticalOffset = 6; // Vertical offset for the leg targets
-        let targetX, targetY;
-        this.stepDistance = 16; // Minimum distance before a leg takes a step
-        this.legStepOffset = 8; // Offset in frames for alternating leg movement
 
-        switch (this.direction) {
-            case 'up':
-                targetX = this.x;
-                targetY = this.y + this.height + verticalOffset;
-                break;
-            case 'down':
-                targetX = this.x;
-                targetY = this.y + this.height + verticalOffset;
-                break;
-            case 'left':
-                targetX = this.x - offset;
-                targetY = this.y + this.height + verticalOffset;
-                break;
-            case 'right':
-                targetX = this.x + offset;
-                targetY = this.y + this.height + verticalOffset;
-                break;
-        }        
+    bomb(){
+        //all gremlins in attack radius take 30 damage
+        let attackRadius = 150;
+        gremlinsArray.forEach(gremlin => {
+            let dx = gremlin.x - this.x;
+            let dy = gremlin.y - this.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            if(dist < attackRadius) {
+                gremlin.hurt(30);
+            }
+        });
+        //spawn particles inside blast radius
+        for(let i = 0; i < 400; i++) {
+            let angle = Math.random() * Math.PI * 2;
+            let x = this.x + Math.cos(angle) * rand(0,attackRadius);
+            let y = this.y + Math.sin(angle) * rand(0,attackRadius);
+            entitiesArray.push(new Particle(x, y, randFloat(-0.3,0.3), -0.75, {
+                color: [22,9,10,11,12,13,14,15],
+                life: 100,
+                customUpdate: (particle) => {
+                    particle.yVelocity += randFloat(-0.5, 0.5);
+                    particle.xVelocity += randFloat(-0.5, 0.5);
+                }
+                }));
+            
+            lightRadial(x, y, 10);
+        }
+        this.gremlinBlood -= 10;
+        playSound(sounds.playerAttack, 0.5, 0, 0.7)
+        playSound(sounds.playerDeath, 0.5, 0, 0.7);
     }
 
     sumCompletedTorches() { return this.completeAltars.reduce((a, b) => a + b, 0); }
-
-
-    updateAttackBox() {
-        const attackSize = 8; // Adjust the size as needed
-        switch (this.direction) {
-            case 'up':
-                this.attackBox.x = this.x - 16;
-                this.attackBox.y = this.y - 8;
-                this.attackBox.width = 32;
-                this.attackBox.height = 32;
-                break;
-            case 'down':
-                this.attackBox.x = this.x - 16;
-                this.attackBox.y = this.y + this.height + 4;
-                this.attackBox.width = 32;
-                this.attackBox.height = 32;
-                break;
-            case 'left':
-                this.attackBox.x = this.x - 32;
-                this.attackBox.y = this.y - 18;
-                this.attackBox.width = 32;
-                this.attackBox.height = 32;
-                break;
-            case 'right':
-                this.attackBox.x = this.x + 8;
-                this.attackBox.y = this.y - 18;
-                this.attackBox.width = 32;
-                this.attackBox.height = 32;
-                break;
-        }
-    }
-    
-
-    determineDirection() {
-        if (this.velocity.x !== 0 || this.velocity.y !== 0) {
-            const magnitude = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
-            const normalizedX = this.velocity.x / magnitude;
-            const normalizedY = this.velocity.y / magnitude;
-
-            if (Math.abs(normalizedX) > Math.abs(normalizedY)) {
-                this.direction = normalizedX > 0 ? 'right' : 'left';
-            } else {
-                this.direction = normalizedY > 0 ? 'down' : 'up';
-            }
-        }
-    }
 
 }

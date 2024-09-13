@@ -68,7 +68,7 @@ export default class Powerup {
     draw(r, view){
         r.renderTarget = r["SCREEN"];
         r.fRect(this.x - view.x, this.y - view.y, 4, 4, this.color);
-        lightRadial(this.x - view.x, this.y - view.y, this.radius+5) 
+        lightRadial(this.x - view.x, this.y - view.y, 9) 
 
     }
 

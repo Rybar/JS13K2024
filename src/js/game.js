@@ -57,10 +57,11 @@ import Portal from './entities/portal.js';
     }
 
     window.t = 0;
+    window.pauseGame = pauseGame;
     audioMaster = null;
     text = "";
     gamepads = [];
-    window.mouse = { x: 0, y: 0 };
+    window.mouse = { x: 0, y: 0, down: false, e: null };
     window.P = null;
     sounds = {};
     soundsReady = 0;
@@ -79,7 +80,7 @@ import Portal from './entities/portal.js';
     generatingNewFloor = false;
     floorCompleteTime = 0;
     currentFloor = 1;
-    gremlinSpawnRate = 3000;
+    gremlinSpawnRate = 2500;
     window.nextLevel = nextLevel;
     startGameMusic = callOnce(() => {
         playSound(sounds.gamemusic, 1, 0, 0.5, true);
@@ -188,6 +189,10 @@ import Portal from './entities/portal.js';
         entitiesVsBullets(gremlinsArray, bulletsArray);
         P.update();
 
+        if(P.sumCompletedTorches() == 13 || currentFloor == 13) {
+            gremlinSpawnRate = 1100;
+        }
+
         //spawn another gremlin near P every 5 seconds
         if(t % gremlinSpawnRate < deltaTime) {
             spawnGremlin();
@@ -270,20 +275,26 @@ import Portal from './entities/portal.js';
 
     function drawUI() {
         // Draw debug text
-        debugText= `FPS: ${fps.toFixed(2)}`;
-        r.text(debugText, 10, 260, 1, 1, 'left', 'top', 1, 22);
+        // debugText= `FPS: ${fps.toFixed(2)}`;
+        // r.text(debugText, 10, 260, 1, 1, 'left', 'top', 1, 22);
 
         //draw player health bar at top of screen
-        r.fRect(50, 5, 100, 5, 1);
-        r.fRect(50, 5, P.health, 5, 4);
+        r.fRect(10, 5, 100, 5, 1);
+        r.fRect(10, 5, P.health, 5, 4);
         text = "HEALTH";
-        r.text(text, 48, 20, 1, 1, 'left', 'top', 1, 22);
+        r.text(text, 10, 12, 1, 1, 'left', 'top', 1, 22);
+
+        //draw gremlin blood bar at top of screen
+        r.fRect(10, 18, 100, 5, 1);
+        r.fRect(10, 18, P.gremlinBlood, 5, 11);
+        text = "GREMLIN MANA";
+        r.text(text, 10, 25, 1, 1, 'left', 'top', 1, 22);
 
         debugText = `${P.health.toFixed(2)}\nGB: ${P.gremlinBlood}\nAP: ${P.sumCompleted}`
         r.text(debugText, P.x - view.x, P.y - view.y - 28, 1, 1, 'center', 'top', 1, 22);
     
         debugText = `LEVEL: ${currentFloor}`;
-        r.text(debugText, 10, 10, 1, 1, 'left', 'top', 1, 22);
+        r.text(debugText, 10, 260, 1, 1, 'left', 'top', 1, 22);
         debugText = `${P.sumCompletedTorches()}`;
         r.text(debugText, screenWidth - 31, 25, 1, 1, 'center', 'top', 2, 22);
 
@@ -296,13 +307,13 @@ import Portal from './entities/portal.js';
                     rand(-.05, .05), rand(-.1, -.3), {color: [10,11,12,13,14,15], life: 30}));
             }
             r.polygon(450, 30, 15+altar*2, altar,
-                altar%2==0 ? spin: -spin + radians(i*(360/13)), color, color);
-
-            
+                altar%2==0 ? spin: -spin + radians(i*(360/13)), color, color);            
         });
 
         //draw minimap
-        drawMiniMap(true);
+        if(currentFloor != 13) {
+            drawMiniMap(true);
+        }
     
     }
 
@@ -317,7 +328,12 @@ import Portal from './entities/portal.js';
         if(gamepads[0]) {
             text = "GAMEPAD CONNECTED";
             r.text(text, screenWidth / 2, 150, 1, 1, 'center', 'top', 1, 22);
+        }else {
+            text = "THIS GAME SUPPORTS GAMEPADS, NOT DETECTED";
+            r.text(text, screenWidth / 2, 150, 1, 1, 'center', 'top', 1, 22);
         }
+        text = "WASD OR ZQSD TO MOVE, MOUSE TO AIM AND SHOOT\nRIGHT CLICK TO BOMB GREMLINS\nCOMPLETE ALTARS TO PROGRESS";
+            r.text(text, screenWidth / 2, 170, 1, 2, 'center', 'top', 1, 22);
 
         r.render();
 
@@ -325,9 +341,15 @@ import Portal from './entities/portal.js';
 
     function resetGame() {
         //reset arrays to emmpty, etc
+        gremlinSpawnRate = 2000;
+        currentFloor = 1;
         gameOver = false;
         gameState = TITLESCREEN;
         initGameData();
+    }
+
+    function pauseGame() {
+        paused = !paused;
     }
 
     function floorStats(completeTime) {   
@@ -403,7 +425,7 @@ import Portal from './entities/portal.js';
         
         // text = "SIX AND SEVEN";
         // r.text(text, screenWidth / 2, 100, 4, 1, 'center', 'top', 4, 2);
-        r.text(audioTxt, screenWidth / 2 - 2, 130, 1, 1, 'center', 'top', 1, 22);
+        r.text(audioTxt, screenWidth / 2 - 2, 130, 1, 2, 'center', 'top', 1, 22);
         if(started){
             audioTxt = "RETICULATING SPLINES";
         } else {
@@ -511,6 +533,14 @@ import Portal from './entities/portal.js';
             case 3: // react to clicks on screen 3
         }
     }
+
+    onmousedown = e => {
+        mouse.down = true;
+        //P.handleMouseDown(e);
+    }
+    onmouseup = e => {
+        mouse.down = false;
+    }
     
     function pruneDead(entitiesArray) {
         for (let i = 0; i < entitiesArray.length; i++) {
@@ -538,7 +568,7 @@ import Portal from './entities/portal.js';
                 if(e.rectangle == undefined) { continue; }
                 else if (e.rectangle.intersects(b.rectangle)) {
                     e.hurt(b.damage);
-                    b.alive = false;
+                    b.die();
                 }
             }
         }
@@ -679,6 +709,8 @@ import Portal from './entities/portal.js';
 
     function nextLevel() {
         P.completeAltars = [];
+        gremlinsArray = [];
+        gremlinSpawnRate = 2000;
         generatingNewFloor = true;
             setTimeout(() => {
                 newFloor();

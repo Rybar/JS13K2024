@@ -1,5 +1,5 @@
 
-import { tileCollisionCheck, rand, randFloat, rectangle, lightRadial, playSound, choice } from "../core/utils";
+import { tileCollisionCheck, rand, randFloat, rectangle, lightRadial, playSound, choice, getPan} from "../core/utils";
 import Splode from "../gfx/Splode";
 import Powerup from "./Powerup";
 import Particle from './particle.js';
@@ -22,9 +22,9 @@ export default class Gremlin {
         this.drag = 0.8;
         this.speed = 0.25;
         this.maxSpeed = 0.3;
-        this.attackRange = 50;
-        this.attackCooldown = 900;
-        this.attackTelegraphTime = 1100;
+        this.attackRange = 60;
+        this.attackCooldown = 700;
+        this.attackTelegraphTime = 950;
         this.isAttacking = false;
         this.attackBox = new rectangle(0, 0, 0, 0);
         this.lastAttackTime = 0;
@@ -49,6 +49,10 @@ export default class Gremlin {
             this.attackRange = 60;
             this.attackCooldown = 1000;
             this.attackTelegraphTime = 500;
+        }
+        if(currentFloor == 13){
+            this.health = 10;
+            gremlinSpawnRate = 700;
         }
         this.rectangle = new rectangle(this.x, this.y-5, this.width, this.height+5);
         this.targetTypes = {
@@ -76,7 +80,16 @@ export default class Gremlin {
 
         //body
         r.fRect(this.x - view.x, this.y - view.y, this.width, this.height, this.fillColor, this.fillColor);
-        r.fCircle(this.x + this.width / 2 - view.x, this.y - view.y, this.width / 2, 16);
+        r.fCircle(this.x + this.width / 2 - view.x, this.y - view.y, this.width / 2, this.fillColor);
+        //3 filled circles slowly rotating
+        for(let i = 0; i < 3; i++) {
+            let angle = Math.PI * 2 / 3 * i + Date.now() / 300;
+            let x = this.x + this.width / 2 + Math.cos(angle) * (this.brute? 8 : 4);
+            let y = this.y + this.height +  Math.sin(angle) * 3;
+            r.fCircle(x - view.x, y - view.y, (this.brute? 6 : 3), this.fillColor);
+        }
+
+        
         lightRadial(this.x - view.x, this.y - view.y, 30, [2, 4]);
 
         const hornColor = this.isAttacking ? choice([10,11,12,13]) : this.fillColor;
@@ -85,12 +98,19 @@ export default class Gremlin {
         r.fRect(this.x - view.x - 2, this.y - view.y - 2, hornWidth, hornHeight, hornColor);
         r.fRect(this.x - view.x + this.width-2, this.y - view.y - 2, hornWidth, hornHeight, hornColor);
 
+        
         //eyes if brute
         if(this.brute) {
             r.fRect(this.x - view.x + 2, this.y - view.y + 2, 2, 2, 22);
             r.fRect(this.x - view.x + this.width - 4, this.y - view.y + 2, 2, 2, 22);
         }
 
+        if(P.sumCompletedTorches() == 13 || currentFloor == 13) {
+            this.fillColor = 6;
+            this.speed = 0.5;
+            this.maxSpeed = 0.6;
+        }
+        
     }
 
     update() {
@@ -150,7 +170,7 @@ export default class Gremlin {
         let knockbackForce = 4;
         this.velocity.x =  - Math.cos(this.angleToPlayer) * knockbackForce;
         this.velocity.y = - Math.sin(this.angleToPlayer) * knockbackForce;
-        playSound(sounds.gremlinHurt);
+        playSound(sounds.gremlinHurt, randFloat(0.9,1.1), getPan(this), 0.2);
         
     }
 
@@ -170,7 +190,7 @@ export default class Gremlin {
             let knockbackForce = 24;
             this.velocity.x =  - Math.cos(this.angleToPlayer) * knockbackForce;
             this.velocity.y = - Math.sin(this.angleToPlayer) * knockbackForce;
-           playSound(sounds.gremlinHurt); 
+           playSound(sounds.gremlinHurt, randFloat(0.9,1.1), getPan(this), 0.2); 
         }
     }
 
@@ -298,7 +318,7 @@ export default class Gremlin {
 
     startAttackTelegraph() {
         if(!this.isAttacking) {
-            playSound(sounds.gremlinAttack, randFloat(0.9,1.1), 0, 0.1);
+            playSound(sounds.gremlinAttack, randFloat(0.9,1.1), getPan(this), 0.1);
         }
         this.isAttacking = true;
         this.telegraphStartTime = Date.now();
@@ -345,9 +365,7 @@ export default class Gremlin {
             for (const torch of P.currentRoom.altar.torches) {
                 if (torch.x === this.target.x && torch.y === this.target.y) {
                     torch.health -= 20; // Reduce torch health
-                    if (torch.health <= 0) {
-                       playSound(sounds.footstep, 0.5, 0, 0.8); // Assuming there's a sound effect for extinguishing torches
-                    }
+                    
                 }
             }
         }
@@ -443,5 +461,7 @@ export default class Gremlin {
             entitiesArray.push(new Particle(this.x, this.y, randFloat(-0.1, 0.1), randFloat(-0.1, 0.1), {color: [16, 15, 14, 13, 12, 11], life: 50}));
             entitiesArray.push(new Powerup('GREMLINBLOOD', this.x + randFloat(-10, 10), this.y+ randFloat(-10, 10)));
         }
+        if(rand(0,1))entitiesArray.push(new Powerup('HEALTH', this.x + randFloat(-10, 10), this.y+ randFloat(-10, 10)));
+
         }
 }

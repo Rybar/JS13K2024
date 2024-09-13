@@ -30,6 +30,10 @@ export function callOnce(fn){
   }
 }
 
+export function getPan(entity){
+  return (entity.x - view.x) / screenWidth * 2 - 1;
+}
+
 export function radians(degrees) {
   return degrees * Math.PI / 180;
 }

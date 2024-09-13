@@ -12,6 +12,12 @@ export default class map {
         this.rooms = [];
         this.torches = [];
         this.P = null;
+        this.floorColors = [
+            [43,44],
+            [34,35],
+            [27,28]
+
+        ]
         this.preGenerate();
         this.generate();
         
@@ -19,6 +25,7 @@ export default class map {
         this.startTileY = 0;
         this.endTileX = 0;
         this.endTileY = 0;
+       
     }
 
     preGenerate(){
@@ -42,7 +49,7 @@ export default class map {
             for(let x = 0; x < this.width; x++){
                 let tile = r.ram[this.bufferPage + y * this.width + x];
                 let drawTileIndex = tile === 0 ? r.LCG.choice([1,2,3,4]) : r.LCG.choice([1,2]);
-                let drawTileColors = tile == 0 ? [50,51] : [34,35];
+                let drawTileColors = tile == 0 ? [50,51] : this.floorColors[currentFloor%3];
                 this.tiles[y * this.width + x] = tile;
                 this.drawTiles[y * this.width + x] = drawTileIndex;
                 this.firstDrawColors[y * this.width + x] = drawTileColors[0];
